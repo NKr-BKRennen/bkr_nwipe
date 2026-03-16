@@ -46,6 +46,13 @@ sudo apt install -y \
 cd /root
 git clone https://github.com/NKr-BKRennen/bkr_nwipe.git
 cd bkr_nwipe
+chmod +x build.sh
+./build.sh install
+```
+
+Alternativ manuell:
+
+```bash
 ./autogen.sh
 ./configure
 make -j$(nproc)
@@ -106,10 +113,7 @@ Nach dem Neustart startet nwipe automatisch auf dem ersten Terminal.
 ```bash
 cd /root/bkr_nwipe
 git pull
-./autogen.sh
-./configure
-make -j$(nproc)
-sudo make install
+./build.sh install
 ```
 
 ---
@@ -125,8 +129,7 @@ sudo apt update && sudo apt install -y \
   dmidecode coreutils smartmontools hdparm && \
 cd /root && \
 git clone https://github.com/NKr-BKRennen/bkr_nwipe.git && \
-cd bkr_nwipe && \
-./autogen.sh && ./configure && make -j$(nproc) && sudo make install && \
+cd bkr_nwipe && chmod +x build.sh && ./build.sh install && \
 echo "Installation abgeschlossen. Starten mit: sudo nwipe"
 ```
 
