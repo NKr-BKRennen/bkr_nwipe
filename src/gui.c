@@ -142,16 +142,16 @@ PANEL* stats_panel;
 extern void strip_CR_LF( char* );
 
 /* Options window title. */
-const char* options_title = " Options ";
+const char* options_title = " Settings ";
 
 /* Statistics window title. */
-const char* stats_title = " Statistics ";
+const char* stats_title = " Status ";
 
 /* Footer labels. */
 const char* main_window_footer =
-    "S=Start m=Method p=PRNG v=Verify r=Rounds b=Blanking d=Direction t=Path Space=Select H=Host I=Inv c=Config CTRL+C=Quit";
-const char* shredos_main_window_footer = "S=Start m=Method p=PRNG v=Verify r=Rounds b=Blanking d=Direction t=Path"
-                                         "Space=Select H=Host I=Inv f=Font size c=Config CTRL+C=Quit";
+    " S Start | m Method | p PRNG | v Verify | r Rounds | b Blank | d Dir | Space Select | H Host | I Inv | c Config | ^C Quit";
+const char* shredos_main_window_footer =
+    " S Start | m Method | p PRNG | v Verify | r Rounds | b Blank | d Dir | Space Select | H Host | I Inv | f Font | c Config | ^C Quit";
 char** p_main_window_footer;
 const char* main_window_footer_warning_lower_case_s = "  WARNING: To start the wipe press SHIFT+S (uppercase S)  ";
 
@@ -425,6 +425,7 @@ void nwipe_gui_title( WINDOW* w, const char* s )
 {
     /**
      * Prints the string 's' centered on the first line of the window 'w'.
+     * Uses bold styling for modern appearance (BKR).
      */
 
     /* The number of lines in the window. (Not used.) */
@@ -450,8 +451,13 @@ void nwipe_gui_title( WINDOW* w, const char* s )
         wattron( w, A_BOLD );
     }
 
+    /* Bold title for modern look (BKR) */
+    wattron( w, A_BOLD );
+
     /* Print the title. */
     mvwprintw( w, 0, margin / 2, "%s", s );
+
+    wattroff( w, A_BOLD );
 
 } /* nwipe_gui_title */
 
@@ -464,12 +470,18 @@ void nwipe_init_pairs( void )
 
         if( can_change_color() )
         {
-            /* Redefine cyan to gray. */
-            init_color( COLOR_CYAN, 128, 128, 128 );
+            /* Modern dark color scheme (BKR) */
+            init_color( COLOR_CYAN, 400, 800, 800 );  /* Teal accent */
+            init_color( COLOR_BLUE, 100, 120, 180 );  /* Dark navy background */
+            init_color( COLOR_WHITE, 900, 900, 920 ); /* Soft white */
+            init_color( COLOR_GREEN, 300, 800, 400 ); /* Modern green */
+            init_color( COLOR_RED, 900, 300, 300 );   /* Soft red */
+            init_color( COLOR_YELLOW, 950, 800, 200 ); /* Warm yellow */
+            init_color( COLOR_MAGENTA, 600, 400, 900 ); /* Modern purple */
         }
 
         /* If we are in tft saver mode set grey text on black background else
-         * Set white on blue as the emphasis color */
+         * Set white on dark navy as the emphasis color */
         if( tft_saver )
         {
             init_pair( 1, COLOR_BLACK, COLOR_BLACK );
@@ -479,14 +491,14 @@ void nwipe_init_pairs( void )
             init_pair( 1, COLOR_WHITE, COLOR_BLUE );
         }
 
-        /* Set gray (or cyan) on blue as the normal color. */
+        /* Set teal/cyan on dark background as the normal/secondary text color. */
         init_pair( 2, COLOR_CYAN, COLOR_BLUE );
 
-        /* Set red on blue as the hilite color. */
+        /* Set red on dark background as the hilite color. */
         init_pair( 3, COLOR_RED, COLOR_BLUE );
 
         /* If we are in tft saver mode set grey text on black background else
-         * Set white on blue as the emphasis color */
+         * Set header/footer bar style */
         if( tft_saver )
         {
             init_pair( 4, COLOR_BLACK, COLOR_BLACK );
@@ -505,10 +517,10 @@ void nwipe_init_pairs( void )
         /* Set black on black for when hiding the display. */
         init_pair( 7, COLOR_BLACK, COLOR_BLACK );
 
-        /* Set green on blue for reverse bold messages */
+        /* Set green on dark for success indicators */
         init_pair( 8, COLOR_GREEN, COLOR_WHITE );
 
-        /* Set green on blue for reverse bold error messages */
+        /* Set red on white for error messages */
         init_pair( 9, COLOR_RED, COLOR_WHITE );
 
         /* Set black on yellow for warning messages */
@@ -520,11 +532,20 @@ void nwipe_init_pairs( void )
         /* Set blue on blue to make temperature invisible */
         init_pair( 12, COLOR_BLUE, COLOR_BLUE );
 
-        /* Set magenta on blue  */
+        /* Set magenta/purple on dark background */
         init_pair( 13, COLOR_MAGENTA, COLOR_BLUE );
 
         /* Set white on black for low critical temperature */
         init_pair( 14, COLOR_WHITE, COLOR_BLACK );
+
+        /* Pair 15: Cyan/teal on dark for accents (BKR) */
+        init_pair( 15, COLOR_CYAN, COLOR_BLACK );
+
+        /* Pair 16: Green on dark for progress bars (BKR) */
+        init_pair( 16, COLOR_GREEN, COLOR_BLUE );
+
+        /* Pair 17: Yellow on dark for labels (BKR) */
+        init_pair( 17, COLOR_YELLOW, COLOR_BLUE );
 
         /* Set the background style. */
         wbkgdset( stdscr, COLOR_PAIR( 1 ) | ' ' );
@@ -682,7 +703,7 @@ void nwipe_gui_create_main_window()
 void nwipe_gui_create_header_window()
 {
     char anon_label[] = " (ANONYMIZED)";
-    char bannerplus[80];
+    char bannerplus[120];
 
     /* Create the header window. */
     header_window = newwin( NWIPE_GUI_HEADER_H, NWIPE_GUI_HEADER_W, NWIPE_GUI_HEADER_Y, NWIPE_GUI_HEADER_X );
@@ -702,8 +723,8 @@ void nwipe_gui_create_header_window()
     /* Clear the header window. */
     werase( header_window );
 
-    /* If in anonymized mode modify the title banner to reflect this */
-    strcpy( bannerplus, banner );
+    /* Build header with BKR branding (BKR) */
+    snprintf( bannerplus, sizeof( bannerplus ), " BKR  %s ", banner );
 
     if( nwipe_options.quiet )
     {
@@ -985,12 +1006,14 @@ void nwipe_gui_create_stats_window()
     /* Add a title. */
     nwipe_gui_title( stats_window, stats_title );
 
-    /* Print field labels. */
-    mvwprintw( stats_window, NWIPE_GUI_STATS_RUNTIME_Y, NWIPE_GUI_STATS_RUNTIME_X, "Runtime:       " );
-    mvwprintw( stats_window, NWIPE_GUI_STATS_ETA_Y, NWIPE_GUI_STATS_ETA_X, "Remaining:     " );
-    mvwprintw( stats_window, NWIPE_GUI_STATS_LOAD_Y, NWIPE_GUI_STATS_LOAD_X, "Load Averages: " );
-    mvwprintw( stats_window, NWIPE_GUI_STATS_THROUGHPUT_Y, NWIPE_GUI_STATS_THROUGHPUT_X, "Throughput:    " );
-    mvwprintw( stats_window, NWIPE_GUI_STATS_ERRORS_Y, NWIPE_GUI_STATS_ERRORS_X, "Retries/Errors:" );
+    /* Print field labels with modern styling (BKR) */
+    wattron( stats_window, COLOR_PAIR( 2 ) );
+    mvwprintw( stats_window, NWIPE_GUI_STATS_RUNTIME_Y, NWIPE_GUI_STATS_RUNTIME_X, "Runtime        " );
+    mvwprintw( stats_window, NWIPE_GUI_STATS_ETA_Y, NWIPE_GUI_STATS_ETA_X, "Remaining      " );
+    mvwprintw( stats_window, NWIPE_GUI_STATS_LOAD_Y, NWIPE_GUI_STATS_LOAD_X, "Load Averages  " );
+    mvwprintw( stats_window, NWIPE_GUI_STATS_THROUGHPUT_Y, NWIPE_GUI_STATS_THROUGHPUT_X, "Throughput     " );
+    mvwprintw( stats_window, NWIPE_GUI_STATS_ERRORS_Y, NWIPE_GUI_STATS_ERRORS_X, "Errors         " );
+    wattroff( stats_window, COLOR_PAIR( 2 ) );
 
 } /* nwipe_gui_create_stats_window */
 
@@ -1037,7 +1060,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
     extern int terminate_signal;
 
     /* Widget labels. */
-    const char* select_title = " Disks and Partitions ";
+    const char* select_title = " Devices ";
 
     /* The number of lines available in the window. */
     int wlines;
@@ -1198,15 +1221,21 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
 
                         if( nwipe_options.method == &nwipe_verify_zero || nwipe_options.method == &nwipe_verify_one )
                         {
+                            wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
+                            wprintw( main_window, " VRFY " );
+                            wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
                             wprintw( main_window,
-                                     "[vrfy] %s %s ",
+                                     " %s %s ",
                                      c[i + offset]->gui_device_name,
                                      c[i + offset]->device_type_str );
                         }
                         else
                         {
+                            wattron( main_window, COLOR_PAIR( 5 ) | A_BOLD );
+                            wprintw( main_window, " WIPE " );
+                            wattroff( main_window, COLOR_PAIR( 5 ) | A_BOLD );
                             wprintw( main_window,
-                                     "[wipe] %s %s ",
+                                     " %s %s ",
                                      c[i + offset]->gui_device_name,
                                      c[i + offset]->device_type_str );
                         }
@@ -1215,7 +1244,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     case NWIPE_SELECT_FALSE:
                         /* Print an element that is not selected. */
                         wprintw( main_window,
-                                 "[    ] %s %s ",
+                                 "  --   %s %s ",
                                  c[i + offset]->gui_device_name,
                                  c[i + offset]->device_type_str );
                         break;
@@ -1223,8 +1252,11 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     case NWIPE_SELECT_TRUE_PARENT:
 
                         /* This element will be wiped when its parent is wiped. */
+                        wattron( main_window, COLOR_PAIR( 13 ) );
+                        wprintw( main_window, " AUTO " );
+                        wattroff( main_window, COLOR_PAIR( 13 ) );
                         wprintw( main_window,
-                                 "[****] %s %s ",
+                                 " %s %s ",
                                  c[i + offset]->gui_device_name,
                                  c[i + offset]->device_type_str );
                         break;
@@ -1232,8 +1264,11 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     case NWIPE_SELECT_FALSE_CHILD:
 
                         /* We can't wipe this element because it has a child that is being wiped. */
+                        wattron( main_window, COLOR_PAIR( 2 ) );
+                        wprintw( main_window, " LOCK " );
+                        wattroff( main_window, COLOR_PAIR( 2 ) );
                         wprintw( main_window,
-                                 "[----] %s %s ",
+                                 " %s %s ",
                                  c[i + offset]->gui_device_name,
                                  c[i + offset]->device_type_str );
                         break;
@@ -1241,14 +1276,17 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                     case NWIPE_SELECT_DISABLED:
 
                         /* We don't know how to wipe this device. (Iomega Zip drives.) */
-                        wprintw( main_window, "[????] %s ", "Unrecognized Device" );
+                        wprintw( main_window, "  ??   %s ", "Unrecognized Device" );
                         break;
 
                     case NWIPE_SELECT_DISABLED_BUSY:
 
                         /* We can't wipe this element because it is in use and --force is not set. */
+                        wattron( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                        wprintw( main_window, " BUSY " );
+                        wattroff( main_window, COLOR_PAIR( 6 ) | A_BOLD );
                         wprintw( main_window,
-                                 "[----] %s %s ",
+                                 " %s %s ",
                                  c[i + offset]->gui_device_name,
                                  c[i + offset]->device_type_str );
                         break;
@@ -1260,7 +1298,10 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
 
                 } /* switch select */
 
-                wprintw( main_window, "[%s] ", c[i + offset]->device_size_text );
+                /* Size in accent color (BKR) */
+                wattron( main_window, A_BOLD );
+                wprintw( main_window, "%s ", c[i + offset]->device_size_text );
+                wattroff( main_window, A_BOLD );
 
                 /* Read the drive temperature values */
                 // nwipe_update_temperature( c[i + offset] );
@@ -1890,7 +1931,7 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
 void nwipe_gui_options( void )
 {
     /**
-     * Updates the options window.
+     * Updates the options window with modern styled labels (BKR).
      *
      * @modifies  options_window
      *
@@ -1899,20 +1940,35 @@ void nwipe_gui_options( void )
     /* Erase the window. */
     werase( options_window );
 
-    mvwprintw(
-        options_window, NWIPE_GUI_OPTIONS_ENTROPY_Y, NWIPE_GUI_OPTIONS_ENTROPY_X, "Entropy: Linux Kernel (urandom)" );
+    /* Labels in cyan/teal, values in bold white (BKR) */
+    wattron( options_window, COLOR_PAIR( 2 ) );
+    mvwprintw( options_window, NWIPE_GUI_OPTIONS_ENTROPY_Y, NWIPE_GUI_OPTIONS_ENTROPY_X, "Entropy " );
+    wattroff( options_window, COLOR_PAIR( 2 ) );
+    wattron( options_window, A_BOLD );
+    wprintw( options_window, "Linux Kernel (urandom)" );
+    wattroff( options_window, A_BOLD );
 
-    mvwprintw(
-        options_window, NWIPE_GUI_OPTIONS_PRNG_Y, NWIPE_GUI_OPTIONS_PRNG_X, "PRNG:    %s", nwipe_options.prng->label );
+    wattron( options_window, COLOR_PAIR( 2 ) );
+    mvwprintw( options_window, NWIPE_GUI_OPTIONS_PRNG_Y, NWIPE_GUI_OPTIONS_PRNG_X, "PRNG    " );
+    wattroff( options_window, COLOR_PAIR( 2 ) );
+    wattron( options_window, A_BOLD );
+    wprintw( options_window, "%s", nwipe_options.prng->label );
+    wattroff( options_window, A_BOLD );
 
-    mvwprintw( options_window,
-               NWIPE_GUI_OPTIONS_METHOD_Y,
-               NWIPE_GUI_OPTIONS_METHOD_X,
-               "Method:  %s%s",
-               nwipe_method_label( nwipe_options.method ),
-               nwipe_options.io_direction == NWIPE_IO_DIRECTION_FORWARD ? "" : " (R)" );
+    wattron( options_window, COLOR_PAIR( 2 ) );
+    mvwprintw( options_window, NWIPE_GUI_OPTIONS_METHOD_Y, NWIPE_GUI_OPTIONS_METHOD_X, "Method  " );
+    wattroff( options_window, COLOR_PAIR( 2 ) );
+    wattron( options_window, A_BOLD );
+    wprintw( options_window,
+             "%s%s",
+             nwipe_method_label( nwipe_options.method ),
+             nwipe_options.io_direction == NWIPE_IO_DIRECTION_FORWARD ? "" : " (R)" );
+    wattroff( options_window, A_BOLD );
 
-    mvwprintw( options_window, NWIPE_GUI_OPTIONS_VERIFY_Y, NWIPE_GUI_OPTIONS_VERIFY_X, "Verify:  " );
+    wattron( options_window, COLOR_PAIR( 2 ) );
+    mvwprintw( options_window, NWIPE_GUI_OPTIONS_VERIFY_Y, NWIPE_GUI_OPTIONS_VERIFY_X, "Verify  " );
+    wattroff( options_window, COLOR_PAIR( 2 ) );
+    wattron( options_window, A_BOLD );
 
     switch( nwipe_options.verify )
     {
@@ -1932,8 +1988,7 @@ void nwipe_gui_options( void )
             wprintw( options_window, "Unknown %i", nwipe_options.verify );
 
     } /* switch verify */
-
-    mvwprintw( options_window, NWIPE_GUI_OPTIONS_ROUNDS_Y, NWIPE_GUI_OPTIONS_ROUNDS_X, "Rounds:  " );
+    wattroff( options_window, A_BOLD );
 
     /* Disable blanking for ops2 and verify methods */
     if( nwipe_options.method == &nwipe_ops2 || nwipe_options.method == &nwipe_verify_zero
@@ -1942,6 +1997,10 @@ void nwipe_gui_options( void )
         nwipe_options.noblank = 1;
     }
 
+    wattron( options_window, COLOR_PAIR( 2 ) );
+    mvwprintw( options_window, NWIPE_GUI_OPTIONS_ROUNDS_Y, NWIPE_GUI_OPTIONS_ROUNDS_X, "Rounds  " );
+    wattroff( options_window, COLOR_PAIR( 2 ) );
+    wattron( options_window, A_BOLD );
     if( nwipe_options.noblank )
     {
         wprintw( options_window, "%i (no final blanking pass)", nwipe_options.rounds );
@@ -1950,6 +2009,7 @@ void nwipe_gui_options( void )
     {
         wprintw( options_window, "%i (plus blanking pass)", nwipe_options.rounds );
     }
+    wattroff( options_window, A_BOLD );
 
     /* Add a border. */
     box( options_window, 0, 0 );
@@ -1958,7 +2018,6 @@ void nwipe_gui_options( void )
     nwipe_gui_title( options_window, options_title );
 
     /* Refresh the window. */
-    // wrefresh( options_window );
     wnoutrefresh( options_window );
 
 } /* nwipe_gui_options */
@@ -8145,41 +8204,73 @@ void* nwipe_gui_status( void* ptr )
                     /* Check whether the child process is still running the wipe. */
                     if( c[i]->wipe_status == 1 )
                     {
-                        /* Print percentage and pass information. */
-                        mvwprintw( main_window,
-                                   yy++,
-                                   4,
-                                   "[%5.2f%%, round %i of %i, pass %i of %i] ",
-                                   c[i]->round_percent,
-                                   c[i]->round_working,
-                                   c[i]->round_count,
-                                   c[i]->pass_working,
-                                   c[i]->pass_count );
+                        /* Modern progress bar with percentage (BKR) */
+                        {
+                            int bar_width = 20;
+                            int filled = (int) ( c[i]->round_percent / 100.0 * bar_width );
+                            if( filled > bar_width )
+                                filled = bar_width;
+                            int empty = bar_width - filled;
+                            char bar[64];
+                            int bi = 0;
+                            int bj;
+                            for( bj = 0; bj < filled; bj++ )
+                                bar[bi++] = '#';
+                            for( bj = 0; bj < empty; bj++ )
+                                bar[bi++] = '-';
+                            bar[bi] = '\0';
+
+                            mvwprintw( main_window, yy, 4, " " );
+                            wattron( main_window, COLOR_PAIR( 16 ) | A_BOLD );
+                            wprintw( main_window, "%s", bar );
+                            wattroff( main_window, COLOR_PAIR( 16 ) | A_BOLD );
+                            wprintw( main_window,
+                                     " %5.1f%%  R%i/%i P%i/%i ",
+                                     c[i]->round_percent,
+                                     c[i]->round_working,
+                                     c[i]->round_count,
+                                     c[i]->pass_working,
+                                     c[i]->pass_count );
+                            yy++;
+                        }
 
                     } /* child running */
                     else
                     {
                         if( c[i]->result == 0 ) /* Success */
                         {
-                            mvwprintw( main_window, yy++, 4, "[%05.2f%% complete, SUCCESS! ", c[i]->round_percent );
+                            mvwprintw( main_window, yy, 4, " " );
+                            wattron( main_window, COLOR_PAIR( 5 ) | A_BOLD );
+                            wprintw( main_window, " ERASED " );
+                            wattroff( main_window, COLOR_PAIR( 5 ) | A_BOLD );
+                            wprintw( main_window, " 100%% complete" );
+                            yy++;
                         }
                         else if( c[i]->signal ) /* Signal received */
                         {
-                            wattron( main_window, COLOR_PAIR( 9 ) );
-                            mvwprintw( main_window, yy++, 4, "(>>> FAILURE! <<<, signal %i) ", c[i]->signal );
-                            wattroff( main_window, COLOR_PAIR( 9 ) );
+                            mvwprintw( main_window, yy, 4, " " );
+                            wattron( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                            wprintw( main_window, " FAILED " );
+                            wattroff( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                            wprintw( main_window, " signal %i", c[i]->signal );
+                            yy++;
                         }
                         else if( c[i]->result == 1 ) /* Non-fatal errors */
                         {
-                            wattron( main_window, COLOR_PAIR( 9 ) );
-                            mvwprintw( main_window, yy++, 4, "(>>> FAILURE! <<<) " );
-                            wattroff( main_window, COLOR_PAIR( 9 ) );
+                            mvwprintw( main_window, yy, 4, " " );
+                            wattron( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                            wprintw( main_window, " FAILED " );
+                            wattroff( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                            yy++;
                         }
                         else /* Fatal error */
                         {
-                            wattron( main_window, COLOR_PAIR( 9 ) );
-                            mvwprintw( main_window, yy++, 4, "(>>> IOERROR! <<<, code %i) ", c[i]->result );
-                            wattroff( main_window, COLOR_PAIR( 9 ) );
+                            mvwprintw( main_window, yy, 4, " " );
+                            wattron( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                            wprintw( main_window, " IOERR  " );
+                            wattroff( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                            wprintw( main_window, " code %i", c[i]->result );
+                            yy++;
                         }
 
                     } /* child returned */
@@ -8203,52 +8294,54 @@ void* nwipe_gui_status( void* ptr )
 
                     if( c[i]->wipe_status == 1 )
                     {
-                        const char* op_prefix = c[i]->io_direction == NWIPE_IO_DIRECTION_FORWARD ? "" : "<";
-                        const char* op_suffix = c[i]->io_direction == NWIPE_IO_DIRECTION_FORWARD ? ">" : "";
+                        const char* dir_indicator = c[i]->io_direction == NWIPE_IO_DIRECTION_FORWARD ? "" : " REV";
 
-                        switch( c[i]->pass_type )
-                        {
-                            /* Each text field in square brackets should be the same number of characters
-                             * to retain output in columns */
-                            case NWIPE_PASS_FINAL_BLANK:
-                                if( !c[i]->sync_status && !c[i]->retry_status )
-                                {
-                                    wprintw( main_window, "%s[ blanking]%s ", op_prefix, op_suffix );
-                                }
-                                break;
-
-                            case NWIPE_PASS_FINAL_OPS2:
-                                if( !c[i]->sync_status && !c[i]->retry_status )
-                                {
-                                    wprintw( main_window, "%s[OPS2final]%s ", op_prefix, op_suffix );
-                                }
-                                break;
-
-                            case NWIPE_PASS_WRITE:
-                                if( !c[i]->sync_status && !c[i]->retry_status )
-                                {
-                                    wprintw( main_window, "%s[ writing ]%s ", op_prefix, op_suffix );
-                                }
-                                break;
-
-                            case NWIPE_PASS_VERIFY:
-                                if( !c[i]->sync_status && !c[i]->retry_status )
-                                {
-                                    wprintw( main_window, "%s[verifying]%s ", op_prefix, op_suffix );
-                                }
-                                break;
-
-                            case NWIPE_PASS_NONE:
-                                break;
-                        }
-
+                        /* Modern colored operation tags (BKR) */
                         if( c[i]->sync_status )
                         {
-                            wprintw( main_window, "%s[ syncing ]%s ", op_prefix, op_suffix );
+                            wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
+                            wprintw( main_window, "SYNC" );
+                            wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
+                            wprintw( main_window, " " );
                         }
                         else if( c[i]->retry_status )
                         {
-                            wprintw( main_window, "%s[retrying ]%s ", op_prefix, op_suffix );
+                            wattron( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                            wprintw( main_window, "RETRY" );
+                            wattroff( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                            wprintw( main_window, " " );
+                        }
+                        else
+                        {
+                            switch( c[i]->pass_type )
+                            {
+                                case NWIPE_PASS_FINAL_BLANK:
+                                    wattron( main_window, COLOR_PAIR( 2 ) );
+                                    wprintw( main_window, "BLANK%s ", dir_indicator );
+                                    wattroff( main_window, COLOR_PAIR( 2 ) );
+                                    break;
+
+                                case NWIPE_PASS_FINAL_OPS2:
+                                    wattron( main_window, COLOR_PAIR( 13 ) );
+                                    wprintw( main_window, "OPS2%s ", dir_indicator );
+                                    wattroff( main_window, COLOR_PAIR( 13 ) );
+                                    break;
+
+                                case NWIPE_PASS_WRITE:
+                                    wattron( main_window, COLOR_PAIR( 16 ) | A_BOLD );
+                                    wprintw( main_window, "WRITE%s ", dir_indicator );
+                                    wattroff( main_window, COLOR_PAIR( 16 ) | A_BOLD );
+                                    break;
+
+                                case NWIPE_PASS_VERIFY:
+                                    wattron( main_window, COLOR_PAIR( 17 ) );
+                                    wprintw( main_window, "VERIFY%s ", dir_indicator );
+                                    wattroff( main_window, COLOR_PAIR( 17 ) );
+                                    break;
+
+                                case NWIPE_PASS_NONE:
+                                    break;
+                            }
                         }
                     }
 
@@ -8331,11 +8424,14 @@ void* nwipe_gui_status( void* ptr )
                 /* Determine the nomenclature for the combined throughput */
                 Determine_C_B_nomenclature( nwipe_throughput, nomenclature_result_str, NOMENCLATURE_RESULT_STR_SIZE );
 
-                /* Print the combined throughput. */
-                mvwprintw( stats_window, NWIPE_GUI_STATS_THROUGHPUT_Y, NWIPE_GUI_STATS_THROUGHPUT_X, "Throughput:" );
-
+                /* Print the combined throughput (BKR styled) */
+                wattron( stats_window, COLOR_PAIR( 2 ) );
+                mvwprintw( stats_window, NWIPE_GUI_STATS_THROUGHPUT_Y, NWIPE_GUI_STATS_THROUGHPUT_X, "Throughput" );
+                wattroff( stats_window, COLOR_PAIR( 2 ) );
+                wattron( stats_window, A_BOLD );
                 mvwprintw(
                     stats_window, NWIPE_GUI_STATS_THROUGHPUT_Y, NWIPE_GUI_STATS_TAB, "%s/s", nomenclature_result_str );
+                wattroff( stats_window, A_BOLD );
 
                 /* Change the current time into a delta. */
                 nwipe_time_now -= nwipe_time_start;
@@ -8347,8 +8443,11 @@ void* nwipe_gui_status( void* ptr )
                 nwipe_time_now %= 60;
                 nwipe_ss = nwipe_time_now;
 
-                /* Print the runtime. */
-                mvwprintw( stats_window, NWIPE_GUI_STATS_RUNTIME_Y, 1, "Runtime:" );
+                /* Print the runtime (BKR styled) */
+                wattron( stats_window, COLOR_PAIR( 2 ) );
+                mvwprintw( stats_window, NWIPE_GUI_STATS_RUNTIME_Y, 1, "Runtime" );
+                wattroff( stats_window, COLOR_PAIR( 2 ) );
+                wattron( stats_window, A_BOLD );
                 mvwprintw( stats_window,
                            NWIPE_GUI_STATS_RUNTIME_Y,
                            NWIPE_GUI_STATS_TAB,
@@ -8356,8 +8455,11 @@ void* nwipe_gui_status( void* ptr )
                            nwipe_hh,
                            nwipe_mm,
                            nwipe_ss );
+                wattroff( stats_window, A_BOLD );
 
-                mvwprintw( stats_window, NWIPE_GUI_STATS_ETA_Y, 1, "Remaining:" );
+                wattron( stats_window, COLOR_PAIR( 2 ) );
+                mvwprintw( stats_window, NWIPE_GUI_STATS_ETA_Y, 1, "Remaining" );
+                wattroff( stats_window, COLOR_PAIR( 2 ) );
 
                 time_t nwipe_maxeta = nwipe_misc_thread_data->maxeta;
                 if( nwipe_maxeta > 0 )
@@ -8369,7 +8471,8 @@ void* nwipe_gui_status( void* ptr )
                     nwipe_maxeta %= 60;
                     nwipe_ss = nwipe_maxeta;
 
-                    /* Print the estimated runtime remaining. */
+                    /* Print the estimated runtime remaining (BKR styled). */
+                    wattron( stats_window, A_BOLD );
                     mvwprintw( stats_window,
                                NWIPE_GUI_STATS_ETA_Y,
                                NWIPE_GUI_STATS_TAB,
@@ -8377,16 +8480,28 @@ void* nwipe_gui_status( void* ptr )
                                nwipe_hh,
                                nwipe_mm,
                                nwipe_ss );
+                    wattroff( stats_window, A_BOLD );
                 }
 
-                /* Print the error count. */
-                mvwprintw( stats_window, NWIPE_GUI_STATS_ERRORS_Y, NWIPE_GUI_STATS_ERRORS_X, "Retries/Errors:" );
+                /* Print the error count (BKR styled). */
+                wattron( stats_window, COLOR_PAIR( 2 ) );
+                mvwprintw( stats_window, NWIPE_GUI_STATS_ERRORS_Y, NWIPE_GUI_STATS_ERRORS_X, "Errors" );
+                wattroff( stats_window, COLOR_PAIR( 2 ) );
+                if( nwipe_misc_thread_data->errors > 0 )
+                {
+                    wattron( stats_window, COLOR_PAIR( 3 ) | A_BOLD );
+                }
+                else
+                {
+                    wattron( stats_window, A_BOLD );
+                }
                 mvwprintw( stats_window,
                            NWIPE_GUI_STATS_ERRORS_Y,
                            NWIPE_GUI_STATS_TAB,
                            "%llu/%llu",
                            nwipe_misc_thread_data->io_retries,
                            nwipe_misc_thread_data->errors );
+                wattroff( stats_window, COLOR_PAIR( 3 ) | A_BOLD );
 
                 /* Add a border. */
                 box( stats_window, 0, 0 );
