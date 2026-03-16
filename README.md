@@ -6,7 +6,7 @@ Basiert auf nwipe (Fork von `dwipe` / Darik's Boot and Nuke) mit folgenden Erwei
 
 - **BKR-Branding**: Logo, angepasstes PDF-Zertifikat-Layout, modernisierte GUI
 - **PDF-Zertifikate**: Device hostname, Inventory number, Disposition of Device (Checkboxen), Technician/Operator ID
-- **Secure Erase / Sanitize**: Hardware-basierte Loesch-Methoden fuer ATA, NVMe und SCSI (inkl. SSDs)
+- **Secure Erase / Sanitize**: Hardware-basierte Lösch-Methoden für ATA, NVMe und SCSI (inkl. SSDs)
 - **Per-Disk Metadaten**: Hostname und Inventarnummer pro Festplatte direkt in der GUI eingeben (H/I Tasten)
 - **E-Mail-Versand**: Automatischer Versand der PDF-Zertifikate per SMTP nach Wipe-Abschluss
 
@@ -20,7 +20,7 @@ Basiert auf nwipe (Fork von `dwipe` / Darik's Boot and Nuke) mit folgenden Erwei
 sudo apt update && sudo apt upgrade -y
 ```
 
-### 2. Abhaengigkeiten installieren
+### 2. Abhängigkeiten installieren
 
 ```bash
 sudo apt install -y \
@@ -67,9 +67,9 @@ sudo ./nwipe
 
 ### 5. Autostart einrichten (optional)
 
-Damit nwipe beim Booten automatisch auf tty1 startet (z.B. fuer dedizierte Loesch-Stationen):
+Damit nwipe beim Booten automatisch auf tty1 startet (z.B. für dedizierte Lösch-Stationen):
 
-**Auto-Login fuer root auf tty1 aktivieren:**
+**Auto-Login für root auf tty1 aktivieren:**
 
 ```bash
 sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
@@ -116,7 +116,7 @@ sudo make install
 
 ## Schnellinstallation (Copy-Paste)
 
-Alles in einem Block fuer eine frische Debian 13 Installation:
+Alles in einem Block für eine frische Debian 13 Installation:
 
 ```bash
 sudo apt update && sudo apt install -y \
@@ -132,22 +132,22 @@ echo "Installation abgeschlossen. Starten mit: sudo nwipe"
 
 ---
 
-## Loesch-Methoden
+## Lösch-Methoden
 
 ### Software-basierte Methoden
 
-| Methode | Beschreibung | Paesse |
+| Methode | Beschreibung | Pässe |
 |---------|-------------|--------|
-| Fill With Zeros | Fuellt mit Nullen (`0x00`) | 1 |
-| Fill With Ones | Fuellt mit Einsen (`0xFF`) | 1 |
+| Fill With Zeros | Füllt mit Nullen (`0x00`) | 1 |
+| Fill With Ones | Füllt mit Einsen (`0xFF`) | 1 |
 | RCMP TSSIT OPS-II | Royal Canadian Mounted Police Standard | 8 |
 | DoD Short | US DoD 5220.22-M (kurz) | 3 |
 | DoD 5220.22-M | US DoD 5220.22-M (voll) | 7 |
 | Gutmann Wipe | Peter Gutmann 35-Pass Methode | 35 |
-| PRNG Stream | Zufallsdaten vom gewaehlten PRNG | 1 |
+| PRNG Stream | Zufallsdaten vom gewählten PRNG | 1 |
 | HMG IS5 Enhanced | UK HMG IS5 (Enhanced) | 3 |
 | Schneier Wipe | Bruce Schneier 7-Pass Methode | 7 |
-| BMB21-2019 | Chinesischer Standard fuer Datensanitisierung | 6 |
+| BMB21-2019 | Chinesischer Standard für Datensanitisierung | 6 |
 
 ### Hardware-basierte Methoden (Secure Erase / Sanitize)
 
@@ -157,11 +157,11 @@ Diese Methoden arbeiten auf Firmware-Ebene und erreichen auch versteckte/reservi
 |---------|----------|-------------|
 | Secure Erase | `--method=secure_erase` | ATA/NVMe Secure Erase + Zero-Verifikation |
 | Secure Erase + PRNG | `--method=secure_erase_prng` | Secure Erase + PRNG-Pass + Verifikation |
-| Sanitize Crypto Erase | `--method=sanitize_crypto` | Zerstoert den Encryption Key (NVMe/SCSI) |
+| Sanitize Crypto Erase | `--method=sanitize_crypto` | Zerstört den Encryption Key (NVMe/SCSI) |
 | Sanitize Block Erase | `--method=sanitize_block` | Block Erase (NVMe/SCSI) |
 | Sanitize Overwrite | `--method=sanitize_overwrite` | Sanitize Overwrite (SCSI) |
 
-Verfuegbar ueber **GUI** unter "Secure Erase / Sanitize >" im Methoden-Menue.
+Verfügbar über **GUI** unter "Secure Erase / Sanitize >" im Methoden-Menü.
 
 > **Voraussetzungen:** `hdparm` (ATA), `nvme-cli` (NVMe), `sg3_utils` (SCSI)
 
@@ -173,29 +173,19 @@ Verfuegbar ueber **GUI** unter "Secure Erase / Sanitize >" im Methoden-Menue.
 
 | Taste | Funktion |
 |-------|----------|
-| **Space** | Festplatte auswaehlen/abwaehlen |
+| **Space** | Festplatte auswählen/abwählen |
 | **S** | Wipe starten (Shift+S) |
-| **H** | Hostname fuer fokussierte Festplatte setzen |
-| **I** | Inventarnummer fuer fokussierte Festplatte setzen |
-| **m** | Loesch-Methode waehlen |
-| **p** | PRNG waehlen |
+| **H** | Hostname für fokussierte Festplatte setzen |
+| **I** | Inventarnummer für fokussierte Festplatte setzen |
+| **m** | Lösch-Methode wählen |
+| **p** | PRNG wählen |
 | **v** | Verifikation einstellen |
-| **r** | Anzahl Durchlaeufe |
+| **r** | Anzahl Durchläufe |
 | **b** | Blanking ein/aus |
 | **d** | Schreibrichtung |
-| **c** | Konfiguration (Organisation, Kunde, PDF, E-Mail) |
-| **Ctrl+A** | Alle Festplatten auswaehlen |
+| **c** | Konfiguration (Organisation, Kunde, PDF) |
+| **Ctrl+A** | Alle Festplatten auswählen |
 | **Ctrl+C** | Beenden |
-
-### Per-Disk Metadaten
-
-Vor dem Starten des Wipes koennen pro Festplatte **Hostname** und **Inventarnummer** gesetzt werden.
-Diese Werte werden direkt in das PDF-Zertifikat geschrieben.
-
-1. Mit Pfeiltasten die gewuenschte Festplatte fokussieren
-2. **H** druecken → Hostname eingeben → Enter
-3. **I** druecken → Inventarnummer eingeben → Enter
-4. In der Disk-Liste erscheint `[H:hostname I:INV-001]` als Bestaetigung
 
 ---
 
@@ -203,11 +193,11 @@ Diese Werte werden direkt in das PDF-Zertifikat geschrieben.
 
 Alle Einstellungen werden in `/etc/nwipe/nwipe.conf` gespeichert (libconfig-Format).
 Die Datei wird beim ersten Start automatisch mit Standardwerten erstellt.
-Aenderungen koennen direkt in der Datei oder ueber das Config-Menue (**c**-Taste) vorgenommen werden.
+Änderungen können direkt in der Datei oder über das Config-Menü (**c**-Taste) vorgenommen werden.
 
 ### Organisations-Details (PDF-Zertifikat)
 
-Diese Angaben erscheinen auf jedem PDF-Loesch-Zertifikat:
+Diese Angaben erscheinen auf jedem PDF-Lösch-Zertifikat:
 
 ```
 Organisation_Details: {
@@ -219,7 +209,7 @@ Organisation_Details: {
 }
 ```
 
-> Konfigurierbar ueber **c** → "PDF Report - Edit Organisation" in der GUI.
+> Konfigurierbar über **c** → "PDF Report - Edit Organisation" in der GUI.
 
 ### Kunden-Zuordnung (PDF-Zertifikat)
 
@@ -234,7 +224,7 @@ Selected_Customer: {
 }
 ```
 
-> Kunden koennen ueber **c** → "PDF Report - Select/Add/Delete Customer" verwaltet werden.
+> Kunden können über **c** → "PDF Report - Select/Add/Delete Customer" verwaltet werden.
 > Kundendaten liegen in `/etc/nwipe/nwipe_customers.csv`.
 
 ### PDF-Zertifikat-Einstellungen
@@ -252,21 +242,21 @@ PDF_Certificate: {
 | Einstellung | Beschreibung |
 |-------------|-------------|
 | `PDF_Enable` | PDF-Zertifikate nach Wipe erstellen (`ENABLED`/`DISABLED`) |
-| `PDF_Preview` | PDF nach Erstellung oeffnen (nur mit Desktop) |
+| `PDF_Preview` | PDF nach Erstellung öffnen (nur mit Desktop) |
 | `PDF_Host_Visibility` | Hostname des Systems auf dem Zertifikat anzeigen |
 | `PDF_tag` | Benutzerdefinierten Tag auf dem Zertifikat anzeigen |
-| `User_Defined_Tag` | Freitext-Tag fuer das Zertifikat |
+| `User_Defined_Tag` | Freitext-Tag für das Zertifikat |
 
 ### Per-Disk Metadaten (Hostname / Inventarnummer)
 
-Zusaetzlich zu den globalen Einstellungen koennen **pro Festplatte** individuelle Werte gesetzt werden, die direkt auf dem jeweiligen PDF-Zertifikat erscheinen:
+Zusätzlich zu den globalen Einstellungen können **pro Festplatte** individuelle Werte gesetzt werden, die direkt auf dem jeweiligen PDF-Zertifikat erscheinen:
 
-1. Mit Pfeiltasten die gewuenschte Festplatte fokussieren
-2. **H** druecken → Hostname eingeben → Enter
-3. **I** druecken → Inventarnummer eingeben → Enter
-4. In der Disk-Liste erscheint `[H:hostname I:INV-001]` als Bestaetigung
+1. Mit Pfeiltasten die gewünschte Festplatte fokussieren
+2. **H** drücken → Hostname eingeben → Enter
+3. **I** drücken → Inventarnummer eingeben → Enter
+4. In der Disk-Liste erscheint `[H:hostname I:INV-001]` als Bestätigung
 
-> Diese Werte werden **nicht** in `nwipe.conf` gespeichert, sondern nur waehrend der Laufzeit gehalten und ins PDF geschrieben.
+> Diese Werte werden **nicht** in `nwipe.conf` gespeichert, sondern nur während der Laufzeit gehalten und ins PDF geschrieben.
 
 ### E-Mail-Versand (SMTP)
 
@@ -288,18 +278,16 @@ Email_Settings: {
 | `SMTP_Server` | Hostname oder IP des SMTP-Servers |
 | `SMTP_Port` | SMTP-Port (Standard: `25`) |
 | `Sender_Address` | Absender-Adresse |
-| `Recipient_Address` | Empfaenger-Adresse (leer = kein Versand) |
+| `Recipient_Address` | Empfänger-Adresse (leer = kein Versand) |
 
-> Standardmaessig deaktiviert. Unterstuetzt SMTP ohne Authentifizierung (Port 25, internes Netz).
-> E-Mail-Einstellungen muessen direkt in `/etc/nwipe/nwipe.conf` editiert werden (kein GUI-Menue dafuer).
-
-> **Hinweis fuer ShredOS/Live-Systeme:** Da `/etc/nwipe/nwipe.conf` beim ersten Start mit Standardwerten erstellt wird, muss die Datei bei Live-Systemen nach jedem Boot neu konfiguriert werden (z.B. per Overlay oder Startup-Skript).
+> Standardmäßig deaktiviert. Unterstützt SMTP ohne Authentifizierung (Port 25, internes Netz).
+> E-Mail-Einstellungen müssen direkt in `/etc/nwipe/nwipe.conf` editiert werden (kein GUI-Menü dafür).
 
 ---
 
 ## Bootbares ISO
 
-Fuer ein bootbares USB/ISO-Image das direkt in BKR_NWIPE startet: [BKR ShredOS](https://github.com/NKr-BKRennen/bkr_shredos)
+Für ein bootbares USB/ISO-Image das direkt in BKR_NWIPE startet: [BKR ShredOS](https://github.com/NKr-BKRennen/bkr_shredos)
 
 ---
 
@@ -311,4 +299,4 @@ Fuer ein bootbares USB/ISO-Image das direkt in BKR_NWIPE startet: [BKR ShredOS](
 ## Lizenz
 
 nwipe ist lizenziert unter der **GNU General Public License v2.0**.
-Siehe `LICENSE` fuer Details.
+Siehe `LICENSE` für Details.
