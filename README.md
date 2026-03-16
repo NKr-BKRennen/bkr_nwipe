@@ -199,11 +199,78 @@ Diese Werte werden direkt in das PDF-Zertifikat geschrieben.
 
 ---
 
-## E-Mail-Konfiguration
+## Konfiguration
+
+Alle Einstellungen werden in `/etc/nwipe/nwipe.conf` gespeichert (libconfig-Format).
+Die Datei wird beim ersten Start automatisch mit Standardwerten erstellt.
+Aenderungen koennen direkt in der Datei oder ueber das Config-Menue (**c**-Taste) vorgenommen werden.
+
+### Organisations-Details (PDF-Zertifikat)
+
+Diese Angaben erscheinen auf jedem PDF-Loesch-Zertifikat:
+
+```
+Organisation_Details: {
+  Business_Name = "Meine Firma GmbH"
+  Business_Address = "Musterstr. 1, 12345 Berlin"
+  Contact_Name = "Max Mustermann"
+  Contact_Phone = "+49 30 123456"
+  Op_Tech_Name = "Techniker Name"
+}
+```
+
+> Konfigurierbar ueber **c** → "PDF Report - Edit Organisation" in der GUI.
+
+### Kunden-Zuordnung (PDF-Zertifikat)
+
+Optional kann ein Kunde zugeordnet werden, der auf dem Zertifikat erscheint:
+
+```
+Selected_Customer: {
+  Customer_Name = "Kunde AG"
+  Customer_Address = "Kundenweg 5, 54321 Hamburg"
+  Contact_Name = "Ansprechpartner"
+  Contact_Phone = "+49 40 654321"
+}
+```
+
+> Kunden koennen ueber **c** → "PDF Report - Select/Add/Delete Customer" verwaltet werden.
+> Kundendaten liegen in `/etc/nwipe/nwipe_customers.csv`.
+
+### PDF-Zertifikat-Einstellungen
+
+```
+PDF_Certificate: {
+  PDF_Enable = "ENABLED"
+  PDF_Preview = "DISABLED"
+  PDF_Host_Visibility = "DISABLED"
+  PDF_tag = "DISABLED"
+  User_Defined_Tag = "Empty Tag"
+}
+```
+
+| Einstellung | Beschreibung |
+|-------------|-------------|
+| `PDF_Enable` | PDF-Zertifikate nach Wipe erstellen (`ENABLED`/`DISABLED`) |
+| `PDF_Preview` | PDF nach Erstellung oeffnen (nur mit Desktop) |
+| `PDF_Host_Visibility` | Hostname des Systems auf dem Zertifikat anzeigen |
+| `PDF_tag` | Benutzerdefinierten Tag auf dem Zertifikat anzeigen |
+| `User_Defined_Tag` | Freitext-Tag fuer das Zertifikat |
+
+### Per-Disk Metadaten (Hostname / Inventarnummer)
+
+Zusaetzlich zu den globalen Einstellungen koennen **pro Festplatte** individuelle Werte gesetzt werden, die direkt auf dem jeweiligen PDF-Zertifikat erscheinen:
+
+1. Mit Pfeiltasten die gewuenschte Festplatte fokussieren
+2. **H** druecken → Hostname eingeben → Enter
+3. **I** druecken → Inventarnummer eingeben → Enter
+4. In der Disk-Liste erscheint `[H:hostname I:INV-001]` als Bestaetigung
+
+> Diese Werte werden **nicht** in `nwipe.conf` gespeichert, sondern nur waehrend der Laufzeit gehalten und ins PDF geschrieben.
+
+### E-Mail-Versand (SMTP)
 
 Nach Abschluss eines Wipes kann das PDF-Zertifikat automatisch per E-Mail versendet werden.
-
-Konfiguration in `/etc/nwipe/nwipe.conf`:
 
 ```
 Email_Settings: {
@@ -215,7 +282,18 @@ Email_Settings: {
 }
 ```
 
+| Einstellung | Beschreibung |
+|-------------|-------------|
+| `Email_Enable` | E-Mail-Versand aktivieren (`ENABLED`/`DISABLED`) |
+| `SMTP_Server` | Hostname oder IP des SMTP-Servers |
+| `SMTP_Port` | SMTP-Port (Standard: `25`) |
+| `Sender_Address` | Absender-Adresse |
+| `Recipient_Address` | Empfaenger-Adresse (leer = kein Versand) |
+
 > Standardmaessig deaktiviert. Unterstuetzt SMTP ohne Authentifizierung (Port 25, internes Netz).
+> E-Mail-Einstellungen muessen direkt in `/etc/nwipe/nwipe.conf` editiert werden (kein GUI-Menue dafuer).
+
+> **Hinweis fuer ShredOS/Live-Systeme:** Da `/etc/nwipe/nwipe.conf` beim ersten Start mit Standardwerten erstellt wird, muss die Datei bei Live-Systemen nach jedem Boot neu konfiguriert werden (z.B. per Overlay oder Startup-Skript).
 
 ---
 
