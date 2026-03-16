@@ -657,10 +657,20 @@ void nwipe_gui_free( void )
     {
         nwipe_log( NWIPE_LOG_ERROR, "Deleting stats window failed!." );
     }
+    /* Reset terminal colors before exiting (BKR) */
+    if( has_colors() )
+    {
+        bkgdset( COLOR_PAIR( 0 ) | ' ' );
+        clear();
+        refresh();
+    }
     if( endwin() != OK )
     {
         nwipe_log( NWIPE_LOG_ERROR, "Curses endwin() failed !" );
     }
+    /* Ensure terminal is fully reset */
+    printf( "\033[0m\033[2J\033[H" );
+    fflush( stdout );
 
 } /* nwipe_gui_free */
 
@@ -1362,14 +1372,24 @@ void nwipe_gui_select( int count, nwipe_context_t** c )
                 /* print the drive model and serial number */
                 wprintw( main_window, " %s/%s", c[i + offset]->device_model, c[i + offset]->device_serial_no );
 
-                /* Show BKR metadata indicators if hostname or inventory number are set */
-                if( c[i + offset]->device_hostname[0] != '\0' || c[i + offset]->inventory_number[0] != '\0' )
+                /* Show BKR metadata if hostname or inventory number are set */
+                if( c[i + offset]->device_hostname[0] != '\0' )
                 {
-                    wattron( main_window, COLOR_PAIR( 5 ) );
-                    wprintw( main_window, " [H:%s I:%s]",
-                             c[i + offset]->device_hostname[0] ? c[i + offset]->device_hostname : "-",
-                             c[i + offset]->inventory_number[0] ? c[i + offset]->inventory_number : "-" );
-                    wattroff( main_window, COLOR_PAIR( 5 ) );
+                    wattron( main_window, COLOR_PAIR( 2 ) );
+                    wprintw( main_window, "  Hostname: " );
+                    wattroff( main_window, COLOR_PAIR( 2 ) );
+                    wattron( main_window, A_BOLD );
+                    wprintw( main_window, "%s", c[i + offset]->device_hostname );
+                    wattroff( main_window, A_BOLD );
+                }
+                if( c[i + offset]->inventory_number[0] != '\0' )
+                {
+                    wattron( main_window, COLOR_PAIR( 2 ) );
+                    wprintw( main_window, "  Inventarnr: " );
+                    wattroff( main_window, COLOR_PAIR( 2 ) );
+                    wattron( main_window, A_BOLD );
+                    wprintw( main_window, "%s", c[i + offset]->inventory_number );
+                    wattroff( main_window, A_BOLD );
                 }
 
                 if( c[i + offset]->HPA_toggle_time + 1 < time( NULL ) )
