@@ -23,12 +23,12 @@
 #ifndef PASS_H_
 #define PASS_H_
 
-#include "context.h" /* nwipe_context_t */
-#include "method.h" /* nwipe_pattern_t */
+#include "context.h" /* wype_context_t */
+#include "method.h" /* wype_pattern_t */
 
-int nwipe_random_pass( nwipe_context_t* c );
-int nwipe_random_verify( nwipe_context_t* c );
-int nwipe_static_pass( nwipe_context_t* c, nwipe_pattern_t* pattern );
-int nwipe_static_verify( nwipe_context_t* c, nwipe_pattern_t* pattern );
+int wype_random_pass( wype_context_t* c );
+int wype_random_verify( wype_context_t* c );
+int wype_static_pass( wype_context_t* c, wype_pattern_t* pattern );
+int wype_static_verify( wype_context_t* c, wype_pattern_t* pattern );
 
 #endif /* PASS_H_ */

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-NWIPE_BIN="${1:-./src/nwipe}"
-ARTIFACT_DIR="${NWIPE_CI_ARTIFACT_DIR:-}"
+WYPE_BIN="${1:-./src/wype}"
+ARTIFACT_DIR="${WYPE_CI_ARTIFACT_DIR:-}"
 
-if [[ ! -x "${NWIPE_BIN}" ]]; then
-    echo "Error: nwipe binary not executable: ${NWIPE_BIN}"
+if [[ ! -x "${WYPE_BIN}" ]]; then
+    echo "Error: wype binary not executable: ${WYPE_BIN}"
     exit 2
 fi
 
@@ -26,13 +26,13 @@ for cmd in losetup truncate dmsetup blockdev mktemp grep tail tee; do
     require_cmd "${cmd}"
 done
 
-WORKDIR="$(mktemp -d /tmp/nwipe-ci-fault.XXXXXX)"
+WORKDIR="$(mktemp -d /tmp/wype-ci-fault.XXXXXX)"
 BACKING_FILE="${WORKDIR}/disk.img"
 LOG_DIR="${WORKDIR}/logs"
 mkdir -p "${LOG_DIR}"
 
 LOOP_DEV=""
-DM_NAME="nwipe-ci-fault-$$"
+DM_NAME="wype-ci-fault-$$"
 DM_DEV="/dev/mapper/${DM_NAME}"
 
 cleanup() {
@@ -83,7 +83,7 @@ run_fault_case() {
     echo "==> Running fault case: ${case_name} (io=${io}, method=${method}, no_abort=${no_abort})"
 
     set +e
-    "${NWIPE_BIN}" \
+    "${WYPE_BIN}" \
         --autonuke \
         --nogui \
         --nowait \
@@ -112,7 +112,7 @@ run_fault_case() {
         return 1
     fi
 
-    assert_log_contains "${log_file}" "Nwipe exited with errors"
+    assert_log_contains "${log_file}" "Wype exited with errors"
     echo "    ${case_name}: correctly failed with rc=${rc}"
 }
 
@@ -143,8 +143,8 @@ fi
 
 printf '%b' "${DM_TABLE}" | dmsetup create "${DM_NAME}"
 echo "Faulty device: ${DM_DEV}"
-echo "Using nwipe binary: ${NWIPE_BIN}"
-"${NWIPE_BIN}" --version || true
+echo "Using wype binary: ${WYPE_BIN}"
+"${WYPE_BIN}" --version || true
 
 # Zero wipe - direct + cached I/O (both must abort)
 run_fault_case "fault_zero_direct"  "directio" "zero" 0

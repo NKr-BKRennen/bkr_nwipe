@@ -30,7 +30,7 @@
 #include <limits.h>
 #include <unistd.h>
 
-#include "nwipe.h"
+#include "wype.h"
 #include "context.h"
 #include "method.h"
 #include "prng.h"
@@ -38,26 +38,26 @@
 #include "logging.h"
 #include "gui.h"
 
-ssize_t nwipe_write_with_retry( nwipe_context_t* c, int fd, const void* buf, size_t count );
-ssize_t nwipe_pwrite_with_retry( nwipe_context_t* c, int fd, const void* buf, size_t count, off64_t offset );
-ssize_t nwipe_read_with_retry( nwipe_context_t* c, int fd, void* buf, size_t count );
-ssize_t nwipe_pread_with_retry( nwipe_context_t* c, int fd, void* buf, size_t count, off64_t offset );
-int nwipe_fdatasync( nwipe_context_t* c, const char* f );
+ssize_t wype_write_with_retry( wype_context_t* c, int fd, const void* buf, size_t count );
+ssize_t wype_pwrite_with_retry( wype_context_t* c, int fd, const void* buf, size_t count, off64_t offset );
+ssize_t wype_read_with_retry( wype_context_t* c, int fd, void* buf, size_t count );
+ssize_t wype_pread_with_retry( wype_context_t* c, int fd, void* buf, size_t count, off64_t offset );
+int wype_fdatasync( wype_context_t* c, const char* f );
 
-size_t nwipe_effective_io_blocksize( const nwipe_context_t* c );
-void* nwipe_alloc_io_buffer( const nwipe_context_t* c, size_t size, int clear, const char* label );
-int nwipe_compute_sync_rate_for_device( const nwipe_context_t* c, size_t io_blocksize );
-void nwipe_update_bytes_erased( nwipe_context_t* c, u64 z, u64 bs, int synced );
-int nwipe_prng_is_active( const char* buf, size_t blocksize );
+size_t wype_effective_io_blocksize( const wype_context_t* c );
+void* wype_alloc_io_buffer( const wype_context_t* c, size_t size, int clear, const char* label );
+int wype_compute_sync_rate_for_device( const wype_context_t* c, size_t io_blocksize );
+void wype_update_bytes_erased( wype_context_t* c, u64 z, u64 bs, int synced );
+int wype_prng_is_active( const char* buf, size_t blocksize );
 
-int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern );
-int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern );
-int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern );
-int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern );
+int wype_static_forward_pass( WYPE_METHOD_SIGNATURE, wype_pattern_t* pattern );
+int wype_static_reverse_pass( WYPE_METHOD_SIGNATURE, wype_pattern_t* pattern );
+int wype_static_forward_verify( WYPE_METHOD_SIGNATURE, wype_pattern_t* pattern );
+int wype_static_reverse_verify( WYPE_METHOD_SIGNATURE, wype_pattern_t* pattern );
 
-int nwipe_random_forward_pass( NWIPE_METHOD_SIGNATURE );
-int nwipe_random_reverse_pass( NWIPE_METHOD_SIGNATURE );
-int nwipe_random_forward_verify( NWIPE_METHOD_SIGNATURE );
-int nwipe_random_reverse_verify( NWIPE_METHOD_SIGNATURE );
+int wype_random_forward_pass( WYPE_METHOD_SIGNATURE );
+int wype_random_reverse_pass( WYPE_METHOD_SIGNATURE );
+int wype_random_forward_verify( WYPE_METHOD_SIGNATURE );
+int wype_random_reverse_verify( WYPE_METHOD_SIGNATURE );
 
 #endif /* PASS_INTERNAL_H_ */

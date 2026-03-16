@@ -1,5 +1,5 @@
 /*
- *  gui.h: An ncurses GUI for nwipe.
+ *  gui.h: An ncurses GUI for wype.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -23,14 +23,14 @@
 #ifndef GUI_H_
 #define GUI_H_
 
-void nwipe_gui_free( void );  // Stop the GUI.
-void nwipe_gui_init( void );  // Start the GUI.
-void nwipe_gui_create_main_window( void );  // Create the main window
-void nwipe_gui_create_header_window( void );  // Create the header window
-void nwipe_gui_create_footer_window( const char* );  // Create the footer window and write text
-void nwipe_gui_create_options_window( void );  // Create the options window
-void nwipe_gui_create_stats_window( void );  // Create the stats window
-void nwipe_gui_create_all_windows_on_terminal_resize(
+void wype_gui_free( void );  // Stop the GUI.
+void wype_gui_init( void );  // Start the GUI.
+void wype_gui_create_main_window( void );  // Create the main window
+void wype_gui_create_header_window( void );  // Create the header window
+void wype_gui_create_footer_window( const char* );  // Create the footer window and write text
+void wype_gui_create_options_window( void );  // Create the options window
+void wype_gui_create_stats_window( void );  // Create the stats window
+void wype_gui_create_all_windows_on_terminal_resize(
     int force_creation,
     const char* footer_text );  // If terminal is resized recreate all windows
 
@@ -45,39 +45,39 @@ void nwipe_gui_create_all_windows_on_terminal_resize(
  * @modifies   options     Sets program options according to to user input.
  *
  */
-void nwipe_gui_select( int count, nwipe_context_t** c );  // Select devices to wipe.
-void* nwipe_gui_status( void* ptr );  // Update operation progress.
-void nwipe_gui_method( void );  // Change the method option.
-int nwipe_gui_method_secure_erase_submenu( void );  // Submenu for Secure Erase selection.
-void nwipe_gui_options( void );  // Update the options window.
-void nwipe_gui_io_direction( void );  // Change the I/O direction.
-void nwipe_gui_prng_category( void );  // Change the prng category.
-void nwipe_gui_prng( void );  // Change the prng option.
-void nwipe_gui_rounds( void );  // Change the rounds option.
-void nwipe_gui_verify( void );  // Change the verify option.
-void nwipe_gui_noblank( void );  // Change the noblank option.
-void nwipe_gui_config( void );  // Change the nwipe settings
-void nwipe_gui_edit_organisation( void );  // Edit organisation performing the erasure
-void nwipe_gui_organisation_business_name( const char* );  // Edit business name performing erase
-void nwipe_gui_organisation_business_address( const char* );  // Edit business address performing erase
-void nwipe_gui_organisation_contact_name( const char* );  // Edit business contact name
-void nwipe_gui_organisation_contact_phone( const char* );  // Edit business contact phone
-void nwipe_gui_organisation_op_tech_name( const char* );  // Edit the name of the operator/technician
-void nwipe_gui_set_device_hostname( nwipe_context_t* c );  // Set hostname for a specific device (BKR)
-void nwipe_gui_set_device_inventory_number( nwipe_context_t* c );  // Set inventory number for a specific device (BKR)
-void nwipe_gui_list( int, char* window_title, char**, int* );
-void nwipe_gui_add_customer( void );  // Add new customer
-void nwipe_gui_add_customer_name( char* );  // Add new customer name
-void nwipe_gui_add_customer_address( char* );  // Add new customer address
-void nwipe_gui_add_customer_contact_name( char* );  // Add new customer contact name
-void nwipe_gui_add_customer_contact_phone( char* );  // Add new customer contact phone
-int nwipe_gui_yes_no_footer( void );  // Change footer to yes no
-void nwipe_gui_user_defined_tag( void );  // Edit user defined text to be added to pdf report
-void nwipe_gui_pdf_certificate_edit_user_defined_tag( const char* );
-void nwipe_gui_view_device( int count, nwipe_context_t** c, int focus );
-void nwipe_gui_benchmark_prng( void );
+void wype_gui_select( int count, wype_context_t** c );  // Select devices to wipe.
+void* wype_gui_status( void* ptr );  // Update operation progress.
+void wype_gui_method( void );  // Change the method option.
+int wype_gui_method_secure_erase_submenu( void );  // Submenu for Secure Erase selection.
+void wype_gui_options( void );  // Update the options window.
+void wype_gui_io_direction( void );  // Change the I/O direction.
+void wype_gui_prng_category( void );  // Change the prng category.
+void wype_gui_prng( void );  // Change the prng option.
+void wype_gui_rounds( void );  // Change the rounds option.
+void wype_gui_verify( void );  // Change the verify option.
+void wype_gui_noblank( void );  // Change the noblank option.
+void wype_gui_config( void );  // Change the wype settings
+void wype_gui_edit_organisation( void );  // Edit organisation performing the erasure
+void wype_gui_organisation_business_name( const char* );  // Edit business name performing erase
+void wype_gui_organisation_business_address( const char* );  // Edit business address performing erase
+void wype_gui_organisation_contact_name( const char* );  // Edit business contact name
+void wype_gui_organisation_contact_phone( const char* );  // Edit business contact phone
+void wype_gui_organisation_op_tech_name( const char* );  // Edit the name of the operator/technician
+void wype_gui_set_device_hostname( wype_context_t* c );  // Set hostname for a specific device (wype)
+void wype_gui_set_device_inventory_number( wype_context_t* c );  // Set inventory number for a specific device (wype)
+void wype_gui_list( int, char* window_title, char**, int* );
+void wype_gui_add_customer( void );  // Add new customer
+void wype_gui_add_customer_name( char* );  // Add new customer name
+void wype_gui_add_customer_address( char* );  // Add new customer address
+void wype_gui_add_customer_contact_name( char* );  // Add new customer contact name
+void wype_gui_add_customer_contact_phone( char* );  // Add new customer contact phone
+int wype_gui_yes_no_footer( void );  // Change footer to yes no
+void wype_gui_user_defined_tag( void );  // Edit user defined text to be added to pdf report
+void wype_gui_pdf_certificate_edit_user_defined_tag( const char* );
+void wype_gui_view_device( int count, wype_context_t** c, int focus );
+void wype_gui_benchmark_prng( void );
 
-/** nwipe_gui_preview_org_customer( int )
+/** wype_gui_preview_org_customer( int )
  * Display a editable preview of organisation, customer and date/time
  *
  * @param int mode 0 = use prior to drive selection
@@ -85,13 +85,13 @@ void nwipe_gui_benchmark_prng( void );
  * The different modes simply change the text in the footer menu and in the case
  * of mode 0 enable the A key which means accept & display drive selection.
  */
-void nwipe_gui_preview_org_customer( int );  // Preview window  for wipe organisation and customer
+void wype_gui_preview_org_customer( int );  // Preview window  for wipe organisation and customer
 
-void nwipe_gui_set_system_year( void );  // Set the systems current year
-void nwipe_gui_set_system_month( void );  // Set the systems month
-void nwipe_gui_set_system_day( void );  // Set the system day of the month
-void nwipe_gui_set_system_hour( void );  // Set the system hour
-void nwipe_gui_set_system_minute( void );  // Set the system minute
+void wype_gui_set_system_year( void );  // Set the systems current year
+void wype_gui_set_system_month( void );  // Set the systems month
+void wype_gui_set_system_day( void );  // Set the system day of the month
+void wype_gui_set_system_hour( void );  // Set the system hour
+void wype_gui_set_system_minute( void );  // Set the system minute
 
 /**
  * Truncate a string based on start position and terminal width
@@ -111,10 +111,10 @@ char* str_truncate( int, int, const char*, char*, int );  // Truncate string bas
  *  @parameter void
  *  @Return void
  */
-void nwipe_gui_set_date_time( void );
+void wype_gui_set_date_time( void );
 
-int spinner( nwipe_context_t** ptr, int );  // Return the next spinner character
-void temp1_flash( nwipe_context_t* );  // toggles term1_flash_status, which flashes the temperature
+int spinner( wype_context_t** ptr, int );  // Return the next spinner character
+void temp1_flash( wype_context_t* );  // toggles term1_flash_status, which flashes the temperature
 
 /**
  * If the current drive temperature is available, print it to the GUI.
@@ -125,10 +125,10 @@ void temp1_flash( nwipe_context_t* );  // toggles term1_flash_status, which flas
  * blue if the drive has dropped below the drives minimum temperature specification.
  * @param pointer to the drive context
  */
-void wprintw_temperature( nwipe_context_t* );
+void wprintw_temperature( wype_context_t* );
 
 int compute_stats( void* ptr );
-void nwipe_update_speedring( nwipe_speedring_t* speedring, u64 speedring_done, time_t speedring_now );
+void wype_update_speedring( wype_speedring_t* speedring, u64 speedring_done, time_t speedring_now );
 
 #define NOMENCLATURE_RESULT_STR_SIZE 8
 

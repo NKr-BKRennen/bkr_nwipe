@@ -1,5 +1,5 @@
 /*
- *  logging.c:  Logging facilities for nwipe.
+ *  logging.c:  Logging facilities for wype.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -30,7 +30,7 @@
 #include "stdlib.h"
 #include "string.h"
 #include "stdarg.h"
-#include "nwipe.h"
+#include "wype.h"
 #include "context.h"
 #include "method.h"
 #include "prng.h"
@@ -48,7 +48,7 @@ int log_elements_allocated = 0;
 int log_elements_displayed = 0;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 
-void nwipe_log( nwipe_log_t level, const char* format, ... )
+void wype_log( wype_log_t level, const char* format, ... )
 {
     /**
      *  Writes a message to the program log file.
@@ -74,7 +74,7 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
     r = pthread_mutex_lock( &mutex1 );
     if( r != 0 )
     {
-        fprintf( stderr, "nwipe_log: pthread_mutex_lock failed. Code %i \n", r );
+        fprintf( stderr, "wype_log: pthread_mutex_lock failed. Code %i \n", r );
         return;
     }
 
@@ -91,18 +91,18 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
     /* Only log messages with the debug label if the command line --verbose
      * options has been specified, otherwise just return
      */
-    if( level == NWIPE_LOG_DEBUG && nwipe_options.verbose == 0 )
+    if( level == WYPE_LOG_DEBUG && wype_options.verbose == 0 )
     {
         r = pthread_mutex_unlock( &mutex1 );
         if( r != 0 )
         {
-            fprintf( stderr, "nwipe_log: pthread_mutex_unlock failed. Code %i \n", r );
+            fprintf( stderr, "wype_log: pthread_mutex_unlock failed. Code %i \n", r );
         }
         return;
     }
 
     /* Print the date. The rc script uses the same format. */
-    if( level != NWIPE_LOG_NOTIMESTAMP )
+    if( level != WYPE_LOG_NOTIMESTAMP )
     {
         chars_written = snprintf( message_buffer,
                                   MAX_LOG_LINE_CHARS,
@@ -125,11 +125,11 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
     /* check if there was a complete failure to write this part of the message, in which case return */
     if( chars_written < 0 )
     {
-        fprintf( stderr, "nwipe_log: snprintf error when writing log line to memory.\n" );
+        fprintf( stderr, "wype_log: snprintf error when writing log line to memory.\n" );
         r = pthread_mutex_unlock( &mutex1 );
         if( r != 0 )
         {
-            fprintf( stderr, "nwipe_log: pthread_mutex_unlock failed. Code %i \n", r );
+            fprintf( stderr, "wype_log: pthread_mutex_unlock failed. Code %i \n", r );
             return;
         }
     }
@@ -138,7 +138,7 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
         if( ( line_current_pos + chars_written ) > MAX_LOG_LINE_CHARS )
         {
             fprintf( stderr,
-                     "nwipe_log: Warning! The log line has been truncated as it exceeded %i characters\n",
+                     "wype_log: Warning! The log line has been truncated as it exceeded %i characters\n",
                      MAX_LOG_LINE_CHARS );
             line_current_pos = MAX_LOG_LINE_CHARS;
         }
@@ -153,8 +153,8 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
         switch( level )
         {
 
-            case NWIPE_LOG_NONE:
-            case NWIPE_LOG_NOTIMESTAMP:
+            case WYPE_LOG_NONE:
+            case WYPE_LOG_NOTIMESTAMP:
                 /* Do nothing. */
                 break;
 
@@ -163,37 +163,37 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
                  * to be. Important to know if you are thinking of adding another label.
                  */
 
-            case NWIPE_LOG_DEBUG:
+            case WYPE_LOG_DEBUG:
                 chars_written =
                     snprintf( message_buffer + line_current_pos, MAX_LOG_LINE_CHARS - line_current_pos, "  debug: " );
                 break;
 
-            case NWIPE_LOG_INFO:
+            case WYPE_LOG_INFO:
                 chars_written =
                     snprintf( message_buffer + line_current_pos, MAX_LOG_LINE_CHARS - line_current_pos, "   info: " );
                 break;
 
-            case NWIPE_LOG_NOTICE:
+            case WYPE_LOG_NOTICE:
                 chars_written =
                     snprintf( message_buffer + line_current_pos, MAX_LOG_LINE_CHARS - line_current_pos, " notice: " );
                 break;
 
-            case NWIPE_LOG_WARNING:
+            case WYPE_LOG_WARNING:
                 chars_written =
                     snprintf( message_buffer + line_current_pos, MAX_LOG_LINE_CHARS - line_current_pos, "warning: " );
                 break;
 
-            case NWIPE_LOG_ERROR:
+            case WYPE_LOG_ERROR:
                 chars_written =
                     snprintf( message_buffer + line_current_pos, MAX_LOG_LINE_CHARS - line_current_pos, "  error: " );
                 break;
 
-            case NWIPE_LOG_FATAL:
+            case WYPE_LOG_FATAL:
                 chars_written =
                     snprintf( message_buffer + line_current_pos, MAX_LOG_LINE_CHARS - line_current_pos, "  fatal: " );
                 break;
 
-            case NWIPE_LOG_SANITY:
+            case WYPE_LOG_SANITY:
                 /* TODO: Request that the user report the log. */
                 chars_written =
                     snprintf( message_buffer + line_current_pos, MAX_LOG_LINE_CHARS - line_current_pos, " sanity: " );
@@ -209,11 +209,11 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
          */
         if( chars_written < 0 )
         {
-            fprintf( stderr, "nwipe_log: snprintf error when writing log line to memory.\n" );
+            fprintf( stderr, "wype_log: snprintf error when writing log line to memory.\n" );
             r = pthread_mutex_unlock( &mutex1 );
             if( r != 0 )
             {
-                fprintf( stderr, "nwipe_log: pthread_mutex_unlock failed. Code %i \n", r );
+                fprintf( stderr, "wype_log: pthread_mutex_unlock failed. Code %i \n", r );
                 return;
             }
         }
@@ -222,7 +222,7 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
             if( ( line_current_pos + chars_written ) > MAX_LOG_LINE_CHARS )
             {
                 fprintf( stderr,
-                         "nwipe_log: Warning! The log line has been truncated as it exceeded %i characters\n",
+                         "wype_log: Warning! The log line has been truncated as it exceeded %i characters\n",
                          MAX_LOG_LINE_CHARS );
                 line_current_pos = MAX_LOG_LINE_CHARS;
             }
@@ -247,11 +247,11 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
 
         if( chars_written < 0 )
         {
-            fprintf( stderr, "nwipe_log: snprintf error when writing log line to memory.\n" );
+            fprintf( stderr, "wype_log: snprintf error when writing log line to memory.\n" );
             r = pthread_mutex_unlock( &mutex1 );
             if( r != 0 )
             {
-                fprintf( stderr, "nwipe_log: pthread_mutex_unlock failed. Code %i \n", r );
+                fprintf( stderr, "wype_log: pthread_mutex_unlock failed. Code %i \n", r );
                 va_end( ap );
                 return;
             }
@@ -261,7 +261,7 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
             if( ( line_current_pos + chars_written ) > MAX_LOG_LINE_CHARS )
             {
                 fprintf( stderr,
-                         "nwipe_log: Warning! The log line has been truncated as it exceeded %i characters\n",
+                         "wype_log: Warning! The log line has been truncated as it exceeded %i characters\n",
                          MAX_LOG_LINE_CHARS );
                 line_current_pos = MAX_LOG_LINE_CHARS;
             }
@@ -273,34 +273,34 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
     }
 
     fflush( stdout );
-    /* Increase the current log element pointer - we will write here, deallocation is done in cleanup() in nwipe.c */
+    /* Increase the current log element pointer - we will write here, deallocation is done in cleanup() in wype.c */
     if( log_current_element == log_elements_allocated )
     {
         log_elements_allocated++;
         result = realloc( log_lines, ( log_elements_allocated ) * sizeof( char* ) );
         if( result == NULL )
         {
-            fprintf( stderr, "nwipe_log: realloc failed when adding a log line.\n" );
+            fprintf( stderr, "wype_log: realloc failed when adding a log line.\n" );
             r = pthread_mutex_unlock( &mutex1 );
             if( r != 0 )
             {
-                fprintf( stderr, "nwipe_log: pthread_mutex_unlock failed. Code %i \n", r );
+                fprintf( stderr, "wype_log: pthread_mutex_unlock failed. Code %i \n", r );
                 va_end( ap );
                 return;
             }
         }
         log_lines = result;
 
-        /* Allocate memory for storing a single log message, deallocation is done in cleanup() in nwipe.c */
+        /* Allocate memory for storing a single log message, deallocation is done in cleanup() in wype.c */
         message_buffer_length = strlen( message_buffer ) * sizeof( char );
         malloc_result = malloc( ( message_buffer_length + 1 ) * sizeof( char ) );
         if( malloc_result == NULL )
         {
-            fprintf( stderr, "nwipe_log: malloc failed when adding a log line.\n" );
+            fprintf( stderr, "wype_log: malloc failed when adding a log line.\n" );
             r = pthread_mutex_unlock( &mutex1 );
             if( r != 0 )
             {
-                fprintf( stderr, "nwipe_log: pthread_mutex_unlock failed. Code %i \n", r );
+                fprintf( stderr, "wype_log: pthread_mutex_unlock failed. Code %i \n", r );
                 va_end( ap );
                 return;
             }
@@ -311,7 +311,7 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
     strcpy( log_lines[log_current_element], message_buffer );
 
     /*
-        if( level >= NWIPE_LOG_WARNING )
+        if( level >= WYPE_LOG_WARNING )
         {
             vfprintf( stderr, format, ap );
         }
@@ -321,7 +321,7 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
     va_end( ap );
 
     /*
-        if( level >= NWIPE_LOG_WARNING )
+        if( level >= WYPE_LOG_WARNING )
         {
             fprintf( stderr, "\n" );
         }
@@ -333,9 +333,9 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
     /* The log file descriptor. */
     int fd;
 
-    if( nwipe_options.logfile[0] == '\0' )
+    if( wype_options.logfile[0] == '\0' )
     {
-        if( nwipe_options.nogui )
+        if( wype_options.nogui )
         {
             printf( "%s\n", log_lines[log_current_element] );
             log_elements_displayed++;
@@ -344,7 +344,7 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
     else
     {
         /* Open the log file for appending. */
-        fp = fopen( nwipe_options.logfile, "a" );
+        fp = fopen( wype_options.logfile, "a" );
 
         if( fp != NULL )
         {
@@ -357,12 +357,12 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
 
             if( r != 0 )
             {
-                perror( "nwipe_log: flock:" );
-                fprintf( stderr, "nwipe_log: Unable to lock '%s' for logging.\n", nwipe_options.logfile );
+                perror( "wype_log: flock:" );
+                fprintf( stderr, "wype_log: Unable to lock '%s' for logging.\n", wype_options.logfile );
                 r = pthread_mutex_unlock( &mutex1 );
                 if( r != 0 )
                 {
-                    fprintf( stderr, "nwipe_log: pthread_mutex_unlock failed. Code %i \n", r );
+                    fprintf( stderr, "wype_log: pthread_mutex_unlock failed. Code %i \n", r );
 
                     /* Unlock the file. */
                     r = flock( fd, LOCK_UN );
@@ -378,8 +378,8 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
 
             if( r != 0 )
             {
-                perror( "nwipe_log: flock:" );
-                fprintf( stderr, "Error: Unable to unlock '%s' after logging.\n", nwipe_options.logfile );
+                perror( "wype_log: flock:" );
+                fprintf( stderr, "Error: Unable to unlock '%s' after logging.\n", wype_options.logfile );
             }
 
             /* Close the stream. */
@@ -387,19 +387,19 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
 
             if( r != 0 )
             {
-                perror( "nwipe_log: fclose:" );
-                fprintf( stderr, "Error: Unable to close '%s' after logging.\n", nwipe_options.logfile );
+                perror( "wype_log: fclose:" );
+                fprintf( stderr, "Error: Unable to close '%s' after logging.\n", wype_options.logfile );
             }
         }
         else
         {
-            /* Tell user we can't create/open the log and terminate nwipe */
+            /* Tell user we can't create/open the log and terminate wype */
             fprintf(
-                stderr, "\nERROR:Unable to create/open '%s' for logging, permissions?\n\n", nwipe_options.logfile );
+                stderr, "\nERROR:Unable to create/open '%s' for logging, permissions?\n\n", wype_options.logfile );
             r = pthread_mutex_unlock( &mutex1 );
             if( r != 0 )
             {
-                fprintf( stderr, "nwipe_log: pthread_mutex_unlock failed. Code %i \n", r );
+                fprintf( stderr, "wype_log: pthread_mutex_unlock failed. Code %i \n", r );
             }
             user_abort = 1;
             terminate_signal = 1;
@@ -411,23 +411,23 @@ void nwipe_log( nwipe_log_t level, const char* format, ... )
     r = pthread_mutex_unlock( &mutex1 );
     if( r != 0 )
     {
-        fprintf( stderr, "nwipe_log: pthread_mutex_unlock failed. Code %i \n", r );
+        fprintf( stderr, "wype_log: pthread_mutex_unlock failed. Code %i \n", r );
     }
     return;
 
-} /* nwipe_log */
+} /* wype_log */
 
-void nwipe_perror( int nwipe_errno, const char* f, const char* s )
+void wype_perror( int wype_errno, const char* f, const char* s )
 {
     /**
      * Wrapper for perror().
      */
 
-    nwipe_log( NWIPE_LOG_ERROR, "%s: %s: %s", f, s, strerror( nwipe_errno ) );
+    wype_log( WYPE_LOG_ERROR, "%s: %s: %s", f, s, strerror( wype_errno ) );
 
-} /* nwipe_perror */
+} /* wype_perror */
 
-void nwipe_log_OSinfo()
+void wype_log_OSinfo()
 {
     /* Read /proc/version, format and write to the log */
 
@@ -452,14 +452,14 @@ void nwipe_log_OSinfo()
     fp = popen( "cat /proc/version", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_WARNING, "Unable to create a pipe to /proc/version" );
+        wype_log( WYPE_LOG_WARNING, "Unable to create a pipe to /proc/version" );
         return;
     }
 
     /* Read the OS info */
     if( fgets( OS_info_temp, MAX_SIZE_OS_STRING, fp ) == NULL )
     {
-        nwipe_log( NWIPE_LOG_WARNING, "fget failed to read /proc/version" );
+        wype_log( WYPE_LOG_WARNING, "fget failed to read /proc/version" );
         fclose( fp );
         return;
     }
@@ -504,7 +504,7 @@ void nwipe_log_OSinfo()
         }
     }
 
-    nwipe_log( NWIPE_LOG_INFO, "%s", OS_info );
+    wype_log( WYPE_LOG_INFO, "%s", OS_info );
     fclose( fp );
     return;
 }
@@ -514,7 +514,7 @@ char dmidecode_system_serial_number[DMIDECODE_RESULT_LENGTH];
 char dmidecode_system_uuid[DMIDECODE_RESULT_LENGTH];
 char dmidecode_baseboard_serial_number[DMIDECODE_RESULT_LENGTH];
 
-int nwipe_log_sysinfo()
+int wype_log_sysinfo()
 {
     FILE* fp;
     char path[256];
@@ -584,7 +584,7 @@ int nwipe_log_sysinfo()
         {
             if( system( "which /usr/bin/dmidecode > /dev/null 2>&1" ) )
             {
-                nwipe_log( NWIPE_LOG_WARNING, "Command not found. Install dmidecode !" );
+                wype_log( WYPE_LOG_WARNING, "Command not found. Install dmidecode !" );
             }
             else
             {
@@ -611,28 +611,28 @@ int nwipe_log_sysinfo()
             fp = popen( cmd, "r" );
             if( fp == NULL )
             {
-                nwipe_log( NWIPE_LOG_WARNING, "nwipe_log_sysinfo: Failed to create stream to %s", cmd );
+                wype_log( WYPE_LOG_WARNING, "wype_log_sysinfo: Failed to create stream to %s", cmd );
                 return 1;
             }
             /* Read the output a line at a time - output it. */
             while( fgets( path, sizeof( path ) - 1, fp ) != NULL )
             {
-                /* Remove any trailing return from the string, as nwipe_log automatically adds a return */
+                /* Remove any trailing return from the string, as wype_log automatically adds a return */
                 len = strlen( path );
                 if( path[len - 1] == '\n' )
                 {
                     path[len - 1] = 0;
                 }
-                if( nwipe_options.quiet )
+                if( wype_options.quiet )
                 {
                     if( *( &dmidecode_keywords[keywords_idx][1][0] ) == '0' )
                     {
-                        nwipe_log(
-                            NWIPE_LOG_INFO, "%s = %s", &dmidecode_keywords[keywords_idx][0][0], "XXXXXXXXXXXXXXX" );
+                        wype_log(
+                            WYPE_LOG_INFO, "%s = %s", &dmidecode_keywords[keywords_idx][0][0], "XXXXXXXXXXXXXXX" );
                     }
                     else
                     {
-                        nwipe_log( NWIPE_LOG_INFO, "%s = %s", &dmidecode_keywords[keywords_idx][0][0], path );
+                        wype_log( WYPE_LOG_INFO, "%s = %s", &dmidecode_keywords[keywords_idx][0][0], path );
 
                         /* if system-serial-number copy result to extern string */
                         if( keywords_idx == 5 )
@@ -649,7 +649,7 @@ int nwipe_log_sysinfo()
                 }
                 else
                 {
-                    nwipe_log( NWIPE_LOG_INFO, "%s = %s", &dmidecode_keywords[keywords_idx][0][0], path );
+                    wype_log( WYPE_LOG_INFO, "%s = %s", &dmidecode_keywords[keywords_idx][0][0], path );
 
                     /* if system-serial-number copy result to extern string */
                     if( keywords_idx == 5 )
@@ -668,8 +668,8 @@ int nwipe_log_sysinfo()
             r = pclose( fp );
             if( r > 0 )
             {
-                nwipe_log( NWIPE_LOG_WARNING,
-                           "nwipe_log_sysinfo(): dmidecode failed, \"%s\" exit status = %u",
+                wype_log( WYPE_LOG_WARNING,
+                           "wype_log_sysinfo(): dmidecode failed, \"%s\" exit status = %u",
                            cmd,
                            WEXITSTATUS( r ) );
                 return 1;
@@ -680,7 +680,7 @@ int nwipe_log_sysinfo()
     return 0;
 }
 
-void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, int nwipe_selected )
+void wype_log_summary( wype_thread_data_ptr_t* ptrx, wype_context_t** ptr, int wype_selected )
 {
     /* Prints two summary tables, the first is the device pass and verification summary
      * and the second is the main summary table detaining the drives, status, throughput,
@@ -704,14 +704,14 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
     // char duration[5];
     char duration[314];
     char model[18];
-    char serial_no[NWIPE_SERIALNUMBER_LENGTH + 1];
+    char serial_no[WYPE_SERIALNUMBER_LENGTH + 1];
     char exclamation_flag[2];
     int hours;
     int minutes;
     int seconds;
     u64 total_duration_seconds;
     u64 total_throughput;
-    nwipe_context_t** c;
+    wype_context_t** c;
     c = ptr;
 
     exclamation_flag[0] = 0;
@@ -745,14 +745,14 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
 
     /* IMPORTANT: Keep maximum columns (line length) to 80 characters for use with 80x30 terminals, Shredos, ALT-F2 etc
      * --------------------------------01234567890123456789012345678901234567890123456789012345678901234567890123456789-*/
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP, "" );
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+    wype_log( WYPE_LOG_NOTIMESTAMP, "" );
+    wype_log( WYPE_LOG_NOTIMESTAMP,
                "******************************** Error Summary *********************************" );
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP, "!   Device | Pass Errors | Verifications Errors | Fdatasync I\\O Errors" );
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+    wype_log( WYPE_LOG_NOTIMESTAMP, "!   Device | Pass Errors | Verifications Errors | Fdatasync I\\O Errors" );
+    wype_log( WYPE_LOG_NOTIMESTAMP,
                "--------------------------------------------------------------------------------" );
 
-    for( i = 0; i < nwipe_selected; i++ )
+    for( i = 0; i < wype_selected; i++ )
     {
         if( c[i]->pass_errors != 0 || c[i]->verify_errors != 0 || c[i]->fsyncdata_errors != 0 )
         {
@@ -774,9 +774,9 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
         idx_src = strlen( c[i]->device_name );
         idx_src--;
 
-        nwipe_strip_path( device, c[i]->device_name );
+        wype_strip_path( device, c[i]->device_name );
 
-        nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+        wype_log( WYPE_LOG_NOTIMESTAMP,
                    "%s %s |  %10llu |           %10llu |           %10llu",
                    exclamation_flag,
                    device,
@@ -785,29 +785,29 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
                    c[i]->fsyncdata_errors );
     }
 
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+    wype_log( WYPE_LOG_NOTIMESTAMP,
                "********************************************************************************" );
 
     /* Print the bytes erased summary table, but not for verify only methods */
-    if( nwipe_options.method != &nwipe_verify_one && nwipe_options.method != &nwipe_verify_zero )
+    if( wype_options.method != &wype_verify_one && wype_options.method != &wype_verify_zero )
     {
-        nwipe_log( NWIPE_LOG_NOTIMESTAMP, "" );
-        nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+        wype_log( WYPE_LOG_NOTIMESTAMP, "" );
+        wype_log( WYPE_LOG_NOTIMESTAMP,
                    "******************************* Erasure Summary ********************************" );
-        nwipe_log( NWIPE_LOG_NOTIMESTAMP, "!   Device |      Bytes Erased |      Bytes Total | Percentage Erased" );
-        nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+        wype_log( WYPE_LOG_NOTIMESTAMP, "!   Device |      Bytes Erased |      Bytes Total | Percentage Erased" );
+        wype_log( WYPE_LOG_NOTIMESTAMP,
                    "--------------------------------------------------------------------------------" );
 
-        for( i = 0; i < nwipe_selected; i++ )
+        for( i = 0; i < wype_selected; i++ )
         {
             u64 expected_size;
             char percent_str[7];
             char percent_display[8];
 
-            nwipe_strip_path( device, c[i]->device_name );
+            wype_strip_path( device, c[i]->device_name );
 
             /* Determine the expected total size based on device type / HPA status */
-            if( c[i]->device_type == NWIPE_DEVICE_NVME || c[i]->device_type == NWIPE_DEVICE_VIRT
+            if( c[i]->device_type == WYPE_DEVICE_NVME || c[i]->device_type == WYPE_DEVICE_VIRT
                 || c[i]->HPA_status == HPA_NOT_APPLICABLE )
             {
                 expected_size = c[i]->device_size;
@@ -841,7 +841,7 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
                 exclamation_flag[1] = 0;
             }
 
-            nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+            wype_log( WYPE_LOG_NOTIMESTAMP,
                        "%s %s | %17llu | %16llu | %17s",
                        exclamation_flag,
                        device,
@@ -850,7 +850,7 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
                        percent_display );
         }
 
-        nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+        wype_log( WYPE_LOG_NOTIMESTAMP,
                    "********************************************************************************" );
     }
 
@@ -864,24 +864,24 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
     p = localtime( &t );
     /* IMPORTANT: Keep maximum columns (line length) to 80 characters for use with 80x30 terminals, Shredos, ALT-F2 etc
      * --------------------------------01234567890123456789012345678901234567890123456789012345678901234567890123456789-*/
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP, "" );
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+    wype_log( WYPE_LOG_NOTIMESTAMP, "" );
+    wype_log( WYPE_LOG_NOTIMESTAMP,
                "********************************* Drive Status *********************************" );
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP, "!   Device | Status | Thru-put | HH:MM:SS | Model/Serial Number" );
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+    wype_log( WYPE_LOG_NOTIMESTAMP, "!   Device | Status | Thru-put | HH:MM:SS | Model/Serial Number" );
+    wype_log( WYPE_LOG_NOTIMESTAMP,
                "--------------------------------------------------------------------------------" );
     /* Example layout:
      *    "!     sdb |--FAIL--|  120MB/s | 01:22:01 | WD6788.8488YNHj/ZX677888388-N       "
      * ); "      sdc | Erased |  120MB/s | 01:25:04 | WD6784.8488JKGG/ZX677888388-N       " ); "     sdv | Erased |
      * 120MB/s | 01:19:07 | WD6788.848HHDDR/ZX677888388-N       " ); End of Example layout */
 
-    for( i = 0; i < nwipe_selected; i++ )
+    for( i = 0; i < wype_selected; i++ )
     {
         /* Device name, strip any prefixed /dev/.. leaving up to 8 right justified
          * characters eg "   sda", prefixed with space to 8 characters, note that
          * we are processing the strings right to left */
 
-        nwipe_strip_path( device, c[i]->device_name );
+        wype_strip_path( device, c[i]->device_name );
 
         extern int user_abort;
 
@@ -979,11 +979,11 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
         model[17] = 0;
 
         /* Serial No. */
-        strncpy( serial_no, c[i]->device_serial_no, NWIPE_SERIALNUMBER_LENGTH );
-        serial_no[NWIPE_SERIALNUMBER_LENGTH] = 0;
+        strncpy( serial_no, c[i]->device_serial_no, WYPE_SERIALNUMBER_LENGTH );
+        serial_no[WYPE_SERIALNUMBER_LENGTH] = 0;
         model[17] = 0;
 
-        nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+        wype_log( WYPE_LOG_NOTIMESTAMP,
                    "%s %s |%s| %s/s | %02i:%02i:%02i | %s/%s",
                    exclamation_flag,
                    device,
@@ -996,15 +996,15 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
                    serial_no );
 
         /* Create the PDF report/certificate */
-        if( nwipe_options.PDF_enable == 1 )
-        // if( strcmp( nwipe_options.PDFreportpath, "noPDF" ) != 0 )
+        if( wype_options.PDF_enable == 1 )
+        // if( strcmp( wype_options.PDFreportpath, "noPDF" ) != 0 )
         {
             /* to have some progress indication. can help if there are many/slow disks */
             fprintf( stderr, "." );
             create_single_disc_pdf( c[i] );
 
-            /* Send email with PDF certificate if enabled (BKR) */
-            nwipe_send_email( c[i] );
+            /* Send email with PDF certificate if enabled (wype) */
+            wype_send_email( c[i] );
         }
     }
 
@@ -1015,7 +1015,7 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
     Determine_C_B_nomenclature( total_throughput, total_throughput_string, 13 );
 
     /* Blank abbreviations used in summary table B=blank, NB=no blank */
-    if( nwipe_options.noblank )
+    if( wype_options.noblank )
     {
         strcpy( blank, "NB" );
     }
@@ -1025,24 +1025,24 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
     }
 
     /* Verify abbreviations used in summary table */
-    switch( nwipe_options.verify )
+    switch( wype_options.verify )
     {
-        case NWIPE_VERIFY_NONE:
+        case WYPE_VERIFY_NONE:
             strcpy( verify, "NV" );
             break;
 
-        case NWIPE_VERIFY_LAST:
+        case WYPE_VERIFY_LAST:
             strcpy( verify, "VL" );
             break;
 
-        case NWIPE_VERIFY_ALL:
+        case WYPE_VERIFY_ALL:
             strcpy( verify, "VA" );
             break;
     }
 
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+    wype_log( WYPE_LOG_NOTIMESTAMP,
                "--------------------------------------------------------------------------------" );
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+    wype_log( WYPE_LOG_NOTIMESTAMP,
                "[%i/%02i/%02i %02i:%02i:%02i] Total Throughput %s/s, %s, %iR+%s+%s",
                1900 + p->tm_year,
                1 + p->tm_mon,
@@ -1051,19 +1051,19 @@ void nwipe_log_summary( nwipe_thread_data_ptr_t* ptrx, nwipe_context_t** ptr, in
                p->tm_min,
                p->tm_sec,
                total_throughput_string,
-               nwipe_method_label( nwipe_options.method ),
-               nwipe_options.rounds,
+               wype_method_label( wype_options.method ),
+               wype_options.rounds,
                blank,
                verify );
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP,
+    wype_log( WYPE_LOG_NOTIMESTAMP,
                "********************************************************************************" );
-    nwipe_log( NWIPE_LOG_NOTIMESTAMP, "" );
+    wype_log( WYPE_LOG_NOTIMESTAMP, "" );
 
     /* Log information regarding where the PDF certificate is saved but log after the summary table so
      * this information is only printed once.
      */
-    if( strcmp( nwipe_options.PDFreportpath, "noPDF" ) != 0 )
+    if( strcmp( wype_options.PDFreportpath, "noPDF" ) != 0 )
     {
-        nwipe_log( NWIPE_LOG_NOTIMESTAMP, "Creating PDF report in %s\n", nwipe_options.PDFreportpath );
+        wype_log( WYPE_LOG_NOTIMESTAMP, "Creating PDF report in %s\n", wype_options.PDFreportpath );
     }
 }

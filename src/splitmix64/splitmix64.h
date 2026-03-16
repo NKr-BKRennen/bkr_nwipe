@@ -1,5 +1,5 @@
 /*
- * splitmix64.c: SplitMix64 PRNG for nwipe.
+ * splitmix64.c: SplitMix64 PRNG for wype.
  * Author: Copyright (c) 2026 desertwitch (dezertwitsh@gmail.com)
  * This software is provided "as is", without warranty of any kind.
  */

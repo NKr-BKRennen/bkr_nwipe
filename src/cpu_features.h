@@ -1,5 +1,5 @@
-#ifndef NWIPE_CPU_FEATURES_H
-#define NWIPE_CPU_FEATURES_H
+#ifndef WYPE_CPU_FEATURES_H
+#define WYPE_CPU_FEATURES_H
 
 #include <stdint.h>
 
@@ -15,4 +15,4 @@ int has_aes_ni( void );
 }
 #endif
 
-#endif /* NWIPE_CPU_FEATURES_H */
+#endif /* WYPE_CPU_FEATURES_H */

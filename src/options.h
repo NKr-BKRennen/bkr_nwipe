@@ -1,5 +1,5 @@
 /*
- *  options.h: Command line processing routines for nwipe.
+ *  options.h: Command line processing routines for wype.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -26,25 +26,25 @@
 #include "method.h"
 
 /* Program knobs. */
-#define NWIPE_KNOB_IDENTITY_SIZE 512
-#define NWIPE_KNOB_LABEL_SIZE 128
-#define NWIPE_KNOB_LOADAVG "/proc/loadavg"
-#define NWIPE_KNOB_LOG_BUFFERSIZE 1024  // Maximum length of a log event.
-#define NWIPE_KNOB_PARTITIONS "/proc/partitions"
-#define NWIPE_KNOB_PARTITIONS_PREFIX "/dev/"
-#define NWIPE_KNOB_PRNG_STATE_LENGTH 512  // 128 words
-#define NWIPE_KNOB_SCSI "/proc/scsi/scsi"
-#define NWIPE_KNOB_SLEEP 1
-#define NWIPE_KNOB_STAT "/proc/stat"
+#define WYPE_KNOB_IDENTITY_SIZE 512
+#define WYPE_KNOB_LABEL_SIZE 128
+#define WYPE_KNOB_LOADAVG "/proc/loadavg"
+#define WYPE_KNOB_LOG_BUFFERSIZE 1024  // Maximum length of a log event.
+#define WYPE_KNOB_PARTITIONS "/proc/partitions"
+#define WYPE_KNOB_PARTITIONS_PREFIX "/dev/"
+#define WYPE_KNOB_PRNG_STATE_LENGTH 512  // 128 words
+#define WYPE_KNOB_SCSI "/proc/scsi/scsi"
+#define WYPE_KNOB_SLEEP 1
+#define WYPE_KNOB_STAT "/proc/stat"
 #define MAX_NUMBER_EXCLUDED_DRIVES 32
 #define MAX_DRIVE_PATH_LENGTH 200  // e.g. /dev/sda is only 8 characters long, so 200 should be plenty.
 #define DEFAULT_SYNC_RATE 100000
 #define PATHNAME_MAX 2048
-#define NWIPE_USE_DIRECT_IO
+#define WYPE_USE_DIRECT_IO
 
 /* Function prototypes for loading options from the environment and command line. */
-int nwipe_options_parse( int argc, char** argv );
-void nwipe_options_log( void );
+int wype_options_parse( int argc, char** argv );
+void wype_options_log( void );
 
 /* Function to display help text */
 void display_help();
@@ -67,7 +67,7 @@ typedef struct
     char logfile[FILENAME_MAX];  // The filename to log the output to.
     char PDFreportpath[PATHNAME_MAX];  // The path to write the PDF report to.
     char exclude[MAX_NUMBER_EXCLUDED_DRIVES][MAX_DRIVE_PATH_LENGTH];  // Drives excluded from the search.
-    nwipe_prng_t* prng;  // The pseudo random number generator implementation. pointer to the function.
+    wype_prng_t* prng;  // The pseudo random number generator implementation. pointer to the function.
     int quiet;  // Anonymize serial numbers
     int rounds;  // The number of times that the wipe method should be called.
     int sync;  // A flag to indicate whether and how often writes should be sync'd.
@@ -76,15 +76,15 @@ typedef struct
     int PDF_preview_details;  // 0=Disable preview Org/Cust/date/time before drive selection, 1=Enable Preview
     int PDF_toggle_host_info;  // 0=Disable visibility of host Info on PDF. UUID & S/N
     int PDFtag;  // Enable display of hostID, such as UUID or serial no. on PDF report.
-    nwipe_verify_t verify;  // A flag to indicate whether writes should be verified.
-    nwipe_io_mode_t io_mode;  // Global runtime I/O mode selection (auto/direct/cached), note in auto mode each
+    wype_verify_t verify;  // A flag to indicate whether writes should be verified.
+    wype_io_mode_t io_mode;  // Global runtime I/O mode selection (auto/direct/cached), note in auto mode each
                               // drive may use a different I/O mode if directIO isn't supported on a given drive.
-    nwipe_io_direction_t io_direction;  // Global runtime I/O direction selection (forward/reverse), note a device
+    wype_io_direction_t io_direction;  // Global runtime I/O direction selection (forward/reverse), note a device
                                         // may use a different I/O direction internally (e.g. during error handling)
     int noretry_io_errors;  // 0 = retry on I/O error, 1 = do not retry on I/O error.
     int noabort_block_errors;  // 0 = abort on errors, 1 = Continue on errors.
-} nwipe_options_t;
+} wype_options_t;
 
-extern nwipe_options_t nwipe_options;
+extern wype_options_t wype_options;
 
 #endif /* OPTIONS_H_ */

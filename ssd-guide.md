@@ -11,7 +11,7 @@ The following information is given without any warranty and indicates best pract
 All information should be validated for the precise manufacturer / vendor SKU you want to sanitize.
 Any sanitization process should be validated by comparing the information contained on the disk before and after sanitization assuring that the previously stored data has been destroyed.
 Given that most of the manufacturer tools (excluding nvme-cli as it was open sourced from the beginning) available today are closed source, it is not possible to determine with security if the respective tool does or does not effectively verify the outcome of a sanitization.
-To assure a successful sanitization it is highly recommended to compare the data contained on the disk before and after sanitization and use the manufacturer tool together with tools such as nwipe. 
+To assure a successful sanitization it is highly recommended to compare the data contained on the disk before and after sanitization and use the manufacturer tool together with tools such as wype. 
 
 # Current Standard Commands for Sanitization & Support by Manufacturers and Vendors
 
@@ -46,6 +46,6 @@ The following table does not claim or warrant to be complete, it is highly advis
 ## Advised Procedure for Sanitization of SSD Drives
 
 1.  Complete an intial sanitization using the manufacturer tools or if supported by the manufacturer use hdparm, sg_utils or nvme;
-2.  Follow up with SHREDOS/Nwipe with a single PRNG stream with verification (PRNG data is extremely hard if not impossible to compress and therefor has to be written out by the firmware);
+2.  Follow up with SHREDOS/Wype with a single PRNG stream with verification (PRNG data is extremely hard if not impossible to compress and therefor has to be written out by the firmware);
 3.  Complete an additional sanitization using the manufacturer tools or if supported by the manufacturer use hdparm, sg_utils or nvme;
 4.  Validate that the data has been overwritten.

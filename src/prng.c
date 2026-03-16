@@ -1,5 +1,5 @@
 /*
- *  prng.c: Pseudo Random Number Generator abstractions for nwipe.
+ *  prng.c: Pseudo Random Number Generator abstractions for wype.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -19,7 +19,7 @@
 
 #define _POSIX_C_SOURCE 200809L
 
-#include "nwipe.h"
+#include "wype.h"
 #include "prng.h"
 #include "context.h"
 #include "logging.h"
@@ -33,36 +33,36 @@
 #include "aes/aes_ctr_prng.h"  // AES-NI prototype
 #include "chacha20/chacha20.h"  // ChaCha20 stream cipher CSPRNG
 
-nwipe_prng_t nwipe_twister = { "Mersenne Twister", nwipe_twister_init, nwipe_twister_read };
+wype_prng_t wype_twister = { "Mersenne Twister", wype_twister_init, wype_twister_read };
 
-nwipe_prng_t nwipe_isaac = { "ISAAC (CSPRNG)", nwipe_isaac_init, nwipe_isaac_read };
-nwipe_prng_t nwipe_isaac64 = { "ISAAC-64 (CSPRNG)", nwipe_isaac64_init, nwipe_isaac64_read };
+wype_prng_t wype_isaac = { "ISAAC (CSPRNG)", wype_isaac_init, wype_isaac_read };
+wype_prng_t wype_isaac64 = { "ISAAC-64 (CSPRNG)", wype_isaac64_init, wype_isaac64_read };
 
 /* ALFG PRNG Structure */
-nwipe_prng_t nwipe_add_lagg_fibonacci_prng = { "Lagged Fibonacci",
-                                               nwipe_add_lagg_fibonacci_prng_init,
-                                               nwipe_add_lagg_fibonacci_prng_read };
+wype_prng_t wype_add_lagg_fibonacci_prng = { "Lagged Fibonacci",
+                                               wype_add_lagg_fibonacci_prng_init,
+                                               wype_add_lagg_fibonacci_prng_read };
 /* XOROSHIRO-256 PRNG Structure */
-nwipe_prng_t nwipe_xoroshiro256_prng = { "XORoshiro-256", nwipe_xoroshiro256_prng_init, nwipe_xoroshiro256_prng_read };
+wype_prng_t wype_xoroshiro256_prng = { "XORoshiro-256", wype_xoroshiro256_prng_init, wype_xoroshiro256_prng_read };
 
 /* SplitMix64 PRNG */
-nwipe_prng_t nwipe_splitmix64_prng = { "SplitMix64", nwipe_splitmix64_prng_init, nwipe_splitmix64_prng_read };
+wype_prng_t wype_splitmix64_prng = { "SplitMix64", wype_splitmix64_prng_init, wype_splitmix64_prng_read };
 
 /* AES-CTR-NI PRNG Structure */
-nwipe_prng_t nwipe_aes_ctr_prng = { "AES-CTR (CSPRNG)", nwipe_aes_ctr_prng_init, nwipe_aes_ctr_prng_read };
+wype_prng_t wype_aes_ctr_prng = { "AES-CTR (CSPRNG)", wype_aes_ctr_prng_init, wype_aes_ctr_prng_read };
 
 /* ChaCha20 stream cipher CSPRNG */
-nwipe_prng_t nwipe_chacha20_prng = { "ChaCha20 (CSPRNG)", nwipe_chacha20_prng_init, nwipe_chacha20_prng_read };
+wype_prng_t wype_chacha20_prng = { "ChaCha20 (CSPRNG)", wype_chacha20_prng_init, wype_chacha20_prng_read };
 
-static const nwipe_prng_t* all_prngs[] = {
-    &nwipe_twister,
-    &nwipe_isaac,
-    &nwipe_isaac64,
-    &nwipe_add_lagg_fibonacci_prng,
-    &nwipe_xoroshiro256_prng,
-    &nwipe_splitmix64_prng,
-    &nwipe_aes_ctr_prng,
-    &nwipe_chacha20_prng,
+static const wype_prng_t* all_prngs[] = {
+    &wype_twister,
+    &wype_isaac,
+    &wype_isaac64,
+    &wype_add_lagg_fibonacci_prng,
+    &wype_xoroshiro256_prng,
+    &wype_splitmix64_prng,
+    &wype_aes_ctr_prng,
+    &wype_chacha20_prng,
 };
 
 /* Print given number of bytes from unsigned integer number to a byte stream buffer starting with low-endian. */
@@ -103,9 +103,9 @@ static inline u64 isaac64_nextval( rand64ctx* restrict ctx )
     return ctx->randrsl[ctx->randcnt];
 }
 
-int nwipe_twister_init( NWIPE_PRNG_INIT_SIGNATURE )
+int wype_twister_init( WYPE_PRNG_INIT_SIGNATURE )
 {
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising Mersenne Twister PRNG" );
+    wype_log( WYPE_LOG_NOTICE, "Initialising Mersenne Twister PRNG" );
 
     if( *state == NULL )
     {
@@ -116,7 +116,7 @@ int nwipe_twister_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;
 }
 
-int nwipe_twister_read( NWIPE_PRNG_READ_SIGNATURE )
+int wype_twister_read( WYPE_PRNG_READ_SIGNATURE )
 {
     u8* restrict bufpos = buffer;
     size_t words = count / SIZE_OF_TWISTER;  // the values of twister_genrand_int32 is strictly 4 bytes
@@ -139,12 +139,12 @@ int nwipe_twister_read( NWIPE_PRNG_READ_SIGNATURE )
     return 0;
 }
 
-int nwipe_isaac_init( NWIPE_PRNG_INIT_SIGNATURE )
+int wype_isaac_init( WYPE_PRNG_INIT_SIGNATURE )
 {
     int count;
     randctx* isaac_state = *state;
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising Isaac (CSPRNG)" );
+    wype_log( WYPE_LOG_NOTICE, "Initialising Isaac (CSPRNG)" );
 
     if( *state == NULL )
     {
@@ -155,8 +155,8 @@ int nwipe_isaac_init( NWIPE_PRNG_INIT_SIGNATURE )
         /* Check the memory allocation. */
         if( isaac_state == 0 )
         {
-            nwipe_perror( errno, __FUNCTION__, "malloc" );
-            nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the isaac state." );
+            wype_perror( errno, __FUNCTION__, "malloc" );
+            wype_log( WYPE_LOG_FATAL, "Unable to allocate memory for the isaac state." );
             return -1;
         }
     }
@@ -189,7 +189,7 @@ int nwipe_isaac_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;
 }
 
-int nwipe_isaac_read( NWIPE_PRNG_READ_SIGNATURE )
+int wype_isaac_read( WYPE_PRNG_READ_SIGNATURE )
 {
     randctx* isaac_state = *state;
     u8* restrict bufpos = buffer;
@@ -213,12 +213,12 @@ int nwipe_isaac_read( NWIPE_PRNG_READ_SIGNATURE )
     return 0;
 }
 
-int nwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE )
+int wype_isaac64_init( WYPE_PRNG_INIT_SIGNATURE )
 {
     int count;
     rand64ctx* isaac_state = *state;
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising ISAAC-64 (CSPRNG)" );
+    wype_log( WYPE_LOG_NOTICE, "Initialising ISAAC-64 (CSPRNG)" );
 
     if( *state == NULL )
     {
@@ -229,8 +229,8 @@ int nwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE )
         /* Check the memory allocation. */
         if( isaac_state == 0 )
         {
-            nwipe_perror( errno, __FUNCTION__, "malloc" );
-            nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the isaac state." );
+            wype_perror( errno, __FUNCTION__, "malloc" );
+            wype_log( WYPE_LOG_FATAL, "Unable to allocate memory for the isaac state." );
             return -1;
         }
     }
@@ -263,7 +263,7 @@ int nwipe_isaac64_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;
 }
 
-int nwipe_isaac64_read( NWIPE_PRNG_READ_SIGNATURE )
+int wype_isaac64_read( WYPE_PRNG_READ_SIGNATURE )
 {
     rand64ctx* isaac_state = *state;
     u8* restrict bufpos = buffer;
@@ -286,11 +286,11 @@ int nwipe_isaac64_read( NWIPE_PRNG_READ_SIGNATURE )
 }
 
 /* Implementation of Lagged Fibonacci generator a lot of random numbers */
-int nwipe_add_lagg_fibonacci_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
+int wype_add_lagg_fibonacci_prng_init( WYPE_PRNG_INIT_SIGNATURE )
 {
     if( *state == NULL )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "Initialising Lagged Fibonacci Generator PRNG" );
+        wype_log( WYPE_LOG_NOTICE, "Initialising Lagged Fibonacci Generator PRNG" );
         *state = malloc( sizeof( add_lagg_fibonacci_state_t ) );
     }
     add_lagg_fibonacci_init(
@@ -300,9 +300,9 @@ int nwipe_add_lagg_fibonacci_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
 }
 
 /* Implementation of XORoroshiro256 algorithm to provide high-quality, but a lot of random numbers */
-int nwipe_xoroshiro256_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
+int wype_xoroshiro256_prng_init( WYPE_PRNG_INIT_SIGNATURE )
 {
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising XORoroshiro-256 PRNG" );
+    wype_log( WYPE_LOG_NOTICE, "Initialising XORoroshiro-256 PRNG" );
 
     if( *state == NULL )
     {
@@ -314,7 +314,7 @@ int nwipe_xoroshiro256_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
     return 0;
 }
 
-int nwipe_add_lagg_fibonacci_prng_read( NWIPE_PRNG_READ_SIGNATURE )
+int wype_add_lagg_fibonacci_prng_read( WYPE_PRNG_READ_SIGNATURE )
 {
     u8* restrict bufpos = buffer;
     size_t words = count / SIZE_OF_ADD_LAGG_FIBONACCI_PRNG;
@@ -340,7 +340,7 @@ int nwipe_add_lagg_fibonacci_prng_read( NWIPE_PRNG_READ_SIGNATURE )
     return 0;  // Success
 }
 
-int nwipe_xoroshiro256_prng_read( NWIPE_PRNG_READ_SIGNATURE )
+int wype_xoroshiro256_prng_read( WYPE_PRNG_READ_SIGNATURE )
 {
     u8* restrict bufpos = buffer;
     size_t words = count / SIZE_OF_XOROSHIRO256_PRNG;
@@ -366,16 +366,16 @@ int nwipe_xoroshiro256_prng_read( NWIPE_PRNG_READ_SIGNATURE )
     return 0;  // Success
 }
 
-int nwipe_splitmix64_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
+int wype_splitmix64_prng_init( WYPE_PRNG_INIT_SIGNATURE )
 {
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising SplitMix64 PRNG" );
+    wype_log( WYPE_LOG_NOTICE, "Initialising SplitMix64 PRNG" );
 
     if( *state == NULL )
     {
         *state = malloc( sizeof( splitmix64_state_t ) );
         if( *state == NULL )
         {
-            nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for SplitMix64 PRNG" );
+            wype_log( WYPE_LOG_FATAL, "Unable to allocate memory for SplitMix64 PRNG" );
             return -1;
         }
     }
@@ -383,38 +383,38 @@ int nwipe_splitmix64_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
     /* Shouldn't happen with current defaults */
     if( seed->length < 8 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Seed is shorter than SplitMix64 requires (%zu/8 bytes)", seed->length );
+        wype_log( WYPE_LOG_ERROR, "Seed is shorter than SplitMix64 requires (%zu/8 bytes)", seed->length );
         return -1;
     }
 
     int rc = splitmix64_prng_init( (splitmix64_state_t*) *state, (const uint8_t*) seed->s, seed->length );
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "splitmix64_prng_init() failed" );
+        wype_log( WYPE_LOG_ERROR, "splitmix64_prng_init() failed" );
         return -1;
     }
 
     return 0;
 }
 
-int nwipe_splitmix64_prng_read( NWIPE_PRNG_READ_SIGNATURE )
+int wype_splitmix64_prng_read( WYPE_PRNG_READ_SIGNATURE )
 {
     int rc = splitmix64_prng_genrand_to_buf( (splitmix64_state_t*) *state, (uint8_t*) buffer, count );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "splitmix64_prng_genrand_to_buf() failed" );
+        wype_log( WYPE_LOG_ERROR, "splitmix64_prng_genrand_to_buf() failed" );
         return -1;
     }
 
     return 0;
 }
 
-int nwipe_chacha20_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
+int wype_chacha20_prng_init( WYPE_PRNG_INIT_SIGNATURE )
 {
     int rc;
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Initialising ChaCha20 (CSPRNG)" );
+    wype_log( WYPE_LOG_NOTICE, "Initialising ChaCha20 (CSPRNG)" );
 
     /*
      * We always run the self-tests to ensure that the CSPRNG is safe to use.
@@ -423,11 +423,11 @@ int nwipe_chacha20_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
     rc = chacha20_self_test();
     if( rc == 0 )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "Self-test has passed for ChaCha20 (CSPRNG)" );
+        wype_log( WYPE_LOG_NOTICE, "Self-test has passed for ChaCha20 (CSPRNG)" );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_SANITY,
+        wype_log( WYPE_LOG_SANITY,
                    "Self-test has FAILED (code %d) for ChaCha20 (CSPRNG), "
                    "report failure to developers and choose another PRNG",
                    rc );
@@ -439,7 +439,7 @@ int nwipe_chacha20_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
         *state = malloc( sizeof( chacha20_state_t ) );
         if( *state == NULL )
         {
-            nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for ChaCha20 (CSPRNG)" );
+            wype_log( WYPE_LOG_FATAL, "Unable to allocate memory for ChaCha20 (CSPRNG)" );
             return -1;
         }
     }
@@ -447,27 +447,27 @@ int nwipe_chacha20_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
     /* Shouldn't happen with current defaults */
     if( seed->length < 40 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Seed is shorter than ChaCha20 (CSPRNG) requires (%zu/40 bytes)", seed->length );
+        wype_log( WYPE_LOG_ERROR, "Seed is shorter than ChaCha20 (CSPRNG) requires (%zu/40 bytes)", seed->length );
         return -1;
     }
 
     rc = chacha20_prng_init( (chacha20_state_t*) *state, (const uint8_t*) seed->s, seed->length );
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "chacha20_prng_init() failed" );
+        wype_log( WYPE_LOG_ERROR, "chacha20_prng_init() failed" );
         return -1;
     }
 
     return 0;
 }
 
-int nwipe_chacha20_prng_read( NWIPE_PRNG_READ_SIGNATURE )
+int wype_chacha20_prng_read( WYPE_PRNG_READ_SIGNATURE )
 {
     int rc = chacha20_prng_genrand_to_buf( (chacha20_state_t*) *state, (uint8_t*) buffer, count );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "chacha20_prng_genrand_to_buf() failed" );
+        wype_log( WYPE_LOG_ERROR, "chacha20_prng_genrand_to_buf() failed" );
         return -1;
     }
 
@@ -487,7 +487,7 @@ int nwipe_chacha20_prng_read( NWIPE_PRNG_READ_SIGNATURE )
  * @param[in,out] state  Pointer to an opaque PRNG state handle. If `*state` is
  *                       `NULL`, this function allocates it with `calloc()`.
  * @param[in]     seed   Seed material (must contain at least 32 bytes).
- * @param[in]     ...    Remaining parameters as defined by NWIPE_PRNG_INIT_SIGNATURE.
+ * @param[in]     ...    Remaining parameters as defined by WYPE_PRNG_INIT_SIGNATURE.
  *
  * @note
  * The ring is intentionally left empty to keep init fast. Callers may choose to
@@ -501,13 +501,13 @@ int nwipe_chacha20_prng_read( NWIPE_PRNG_READ_SIGNATURE )
 /*
  * High-throughput wrapper with a thread-local ring-buffer prefetch
  * ----------------------------------------------------------------
- * This glue layer implements NWIPE_PRNG_INIT / NWIPE_PRNG_READ around the
+ * This glue layer implements WYPE_PRNG_INIT / WYPE_PRNG_READ around the
  * persistent kernel-AES PRNG. It maintains a lock-free, thread-local ring
  * buffer ("stash") that caches keystream blocks produced in fixed-size chunks
  * (SIZE_OF_AES_CTR_PRNG; e.g., 16 KiB or 256 KiB).
  *
  * Rationale:
- *  - Nwipe frequently requests small slices (e.g., 32 B, 512 B, 4 KiB). Issuing
+ *  - Wype frequently requests small slices (e.g., 32 B, 512 B, 4 KiB). Issuing
  *    one kernel call per small read would be syscall- and copy-bound.
  *  - By fetching larger chunks and serving small reads from the ring buffer,
  *    we reduce syscall rate and memory traffic and approach memcpy-limited
@@ -555,7 +555,7 @@ int nwipe_chacha20_prng_read( NWIPE_PRNG_READ_SIGNATURE )
  * @note
  * Practical choices: 512 KiB … 4 MiB depending on CHUNK size and workload.
  * For SIZE_OF_AES_CTR_PRNG = 256 KiB, 1 MiB yields four in-flight chunks and
- * works well for nwipe’s small-read patterns.
+ * works well for wype’s small-read patterns.
  */
 #ifndef STASH_CAPACITY
 #define STASH_CAPACITY ( 1u << 20 ) /* 1 MiB */
@@ -689,7 +689,7 @@ static int refill_stash_thread_local( void* state, size_t need )
  *
  * @param[in,out] state  Address of the caller’s PRNG state pointer. If `*state`
  *                       is `NULL`, this function allocates one `aes_ctr_state_t`.
- * @param[in]     seed   Seed descriptor as defined by NWIPE_PRNG_INIT_SIGNATURE.
+ * @param[in]     seed   Seed descriptor as defined by WYPE_PRNG_INIT_SIGNATURE.
  *
  * @retval 0  Success.
  * @retval -1 Allocation or backend initialization failure (logged).
@@ -698,16 +698,16 @@ static int refill_stash_thread_local( void* state, size_t need )
  * Resets the ring buffer to empty. Consider a one-time prefill if your workload
  * is dominated by tiny reads.
  */
-int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
+int wype_aes_ctr_prng_init( WYPE_PRNG_INIT_SIGNATURE )
 {
-    nwipe_log( NWIPE_LOG_NOTICE, "Initializing AES-CTR (CSPRNG)" );
+    wype_log( WYPE_LOG_NOTICE, "Initializing AES-CTR (CSPRNG)" );
 
     if( *state == NULL )
     {
         *state = calloc( 1, sizeof( aes_ctr_state_t ) );
         if( *state == NULL )
         {
-            nwipe_log( NWIPE_LOG_FATAL, "calloc() failed for PRNG state" );
+            wype_log( WYPE_LOG_FATAL, "calloc() failed for PRNG state" );
             return -1;
         }
     }
@@ -716,7 +716,7 @@ int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
         (aes_ctr_state_t*) *state, (unsigned long*) seed->s, seed->length / sizeof( unsigned long ) );
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "aes_ctr_prng_init() failed" );
+        wype_log( WYPE_LOG_ERROR, "aes_ctr_prng_init() failed" );
         return -1;
     }
 
@@ -744,7 +744,7 @@ int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
  *
  * @param[out] buffer     Destination buffer to receive keystream.
  * @param[in]  count      Number of bytes to generate and copy.
- * @param[in]  ...        Remaining parameters as defined by NWIPE_PRNG_READ_SIGNATURE.
+ * @param[in]  ...        Remaining parameters as defined by WYPE_PRNG_READ_SIGNATURE.
  *
  * @retval 0  Success (exactly @p count bytes written).
  * @retval -1 Backend/IO failure (already logged).
@@ -752,7 +752,7 @@ int nwipe_aes_ctr_prng_init( NWIPE_PRNG_INIT_SIGNATURE )
  * @warning
  * Per-thread API: do not share this state across threads.
  */
-int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
+int wype_aes_ctr_prng_read( WYPE_PRNG_READ_SIGNATURE )
 {
     unsigned char* out = buffer;
     size_t bytes_left = count;
@@ -763,7 +763,7 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
     {
         if( aes_ctr_prng_genrand_128k_to_buf( (aes_ctr_state_t*) *state, out ) != 0 )
         {
-            nwipe_log( NWIPE_LOG_ERROR, "PRNG direct fill failed" );
+            wype_log( WYPE_LOG_ERROR, "PRNG direct fill failed" );
             return -1;
         }
         out += SIZE_OF_AES_CTR_PRNG;
@@ -780,7 +780,7 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
         {
             if( refill_stash_thread_local( *state, 1 ) != 0 )
             {
-                nwipe_log( NWIPE_LOG_ERROR, "PRNG refill failed" );
+                wype_log( WYPE_LOG_ERROR, "PRNG refill failed" );
                 return -1;
             }
             if( rb_count == 0 )
@@ -803,7 +803,7 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
         {
             if( refill_stash_thread_local( *state, SIZE_OF_AES_CTR_PRNG ) != 0 )
             {
-                nwipe_log( NWIPE_LOG_ERROR, "PRNG opportunistic refill failed" );
+                wype_log( WYPE_LOG_ERROR, "PRNG opportunistic refill failed" );
                 return -1;
             }
         }
@@ -815,7 +815,7 @@ int nwipe_aes_ctr_prng_read( NWIPE_PRNG_READ_SIGNATURE )
  * PRNG benchmark / auto-selection core
  * ---------------------------------------------------------------------- */
 
-static double nwipe_prng_monotonic_seconds( void )
+static double wype_prng_monotonic_seconds( void )
 {
     struct timespec ts;
     clock_gettime( CLOCK_MONOTONIC, &ts );
@@ -823,7 +823,7 @@ static double nwipe_prng_monotonic_seconds( void )
 }
 
 /* einfacher LCG zum Seed-Befüllen – nur für Benchmark, kein Kryptokram */
-static void nwipe_prng_make_seed( unsigned char* seed, size_t len )
+static void wype_prng_make_seed( unsigned char* seed, size_t len )
 {
     unsigned long t = (unsigned long) time( NULL );
     unsigned long x = ( t ^ 0xA5A5A5A5UL ) + (unsigned long) (uintptr_t) seed;
@@ -835,7 +835,7 @@ static void nwipe_prng_make_seed( unsigned char* seed, size_t len )
     }
 }
 
-static void* nwipe_prng_alloc_aligned( size_t alignment, size_t size )
+static void* wype_prng_alloc_aligned( size_t alignment, size_t size )
 {
     void* p = NULL;
     if( posix_memalign( &p, alignment, size ) != 0 )
@@ -854,9 +854,9 @@ typedef struct
 
     /* message currently shown with spinner (includes current PRNG label) */
     char msg[160];
-} nwipe_prng_live_t;
+} wype_prng_live_t;
 
-static void nwipe_prng_live_clear_line( nwipe_prng_live_t* live )
+static void wype_prng_live_clear_line( wype_prng_live_t* live )
 {
     if( !live || !live->enabled || !live->is_tty )
         return;
@@ -865,7 +865,7 @@ static void nwipe_prng_live_clear_line( nwipe_prng_live_t* live )
     fflush( stdout );
 }
 
-static void nwipe_prng_live_set_msg_for_prng( nwipe_prng_live_t* live, const nwipe_prng_t* prng )
+static void wype_prng_live_set_msg_for_prng( wype_prng_live_t* live, const wype_prng_t* prng )
 {
     if( !live || !live->enabled )
         return;
@@ -876,7 +876,7 @@ static void nwipe_prng_live_set_msg_for_prng( nwipe_prng_live_t* live, const nwi
         snprintf( live->msg, sizeof( live->msg ), "Testing PRNG performance" );
 }
 
-static void nwipe_prng_live_render_spinner( nwipe_prng_live_t* live, int advance )
+static void wype_prng_live_render_spinner( wype_prng_live_t* live, int advance )
 {
     static const char spin[] = "-\\|/";
     if( !live || !live->enabled || !live->is_tty )
@@ -889,7 +889,7 @@ static void nwipe_prng_live_render_spinner( nwipe_prng_live_t* live, int advance
     fflush( stdout );
 }
 
-static void nwipe_prng_live_tick_if_due( nwipe_prng_live_t* live, double now )
+static void wype_prng_live_tick_if_due( wype_prng_live_t* live, double now )
 {
     if( !live || !live->enabled || !live->is_tty )
         return;
@@ -898,26 +898,26 @@ static void nwipe_prng_live_tick_if_due( nwipe_prng_live_t* live, double now )
     if( ( now - live->last_tick ) >= 0.10 )
     {
         live->last_tick = now;
-        nwipe_prng_live_render_spinner( live, /*advance=*/1 );
+        wype_prng_live_render_spinner( live, /*advance=*/1 );
     }
 }
 
 /* --- bench one PRNG (unchanged except it ticks spinner) ----------------- */
 
-static void nwipe_prng_bench_one( const nwipe_prng_t* prng,
-                                  nwipe_prng_bench_result_t* out,
+static void wype_prng_bench_one( const wype_prng_t* prng,
+                                  wype_prng_bench_result_t* out,
                                   void* io_buf,
                                   size_t io_block,
                                   double seconds_per_prng,
-                                  nwipe_prng_live_t* live )
+                                  wype_prng_live_t* live )
 {
     void* state = NULL;
 
     unsigned char seedbuf[4096];
-    nwipe_entropy_t seed;
+    wype_entropy_t seed;
     seed.s = (u8*) seedbuf;
     seed.length = sizeof( seedbuf );
-    nwipe_prng_make_seed( seedbuf, sizeof( seedbuf ) );
+    wype_prng_make_seed( seedbuf, sizeof( seedbuf ) );
 
     out->prng = prng;
     out->mbps = 0.0;
@@ -934,13 +934,13 @@ static void nwipe_prng_bench_one( const nwipe_prng_t* prng,
         return;
     }
 
-    const double t0 = nwipe_prng_monotonic_seconds();
+    const double t0 = wype_prng_monotonic_seconds();
     double now = t0;
 
     if( live && live->enabled && live->is_tty )
     {
         live->last_tick = now;
-        nwipe_prng_live_render_spinner( live, /*advance=*/0 );
+        wype_prng_live_render_spinner( live, /*advance=*/0 );
     }
 
     while( ( now - t0 ) < seconds_per_prng )
@@ -953,10 +953,10 @@ static void nwipe_prng_bench_one( const nwipe_prng_t* prng,
         }
 
         out->bytes += (unsigned long long) io_block;
-        now = nwipe_prng_monotonic_seconds();
+        now = wype_prng_monotonic_seconds();
 
         /* rotate cursor while running */
-        nwipe_prng_live_tick_if_due( live, now );
+        wype_prng_live_tick_if_due( live, now );
     }
 
     out->seconds = now - t0;
@@ -969,9 +969,9 @@ static void nwipe_prng_bench_one( const nwipe_prng_t* prng,
 
 /* --- benchmark all with live current-PRNG spinner ----------------------- */
 
-int nwipe_prng_benchmark_all_live( double seconds_per_prng,
+int wype_prng_benchmark_all_live( double seconds_per_prng,
                                    size_t io_block_bytes,
-                                   nwipe_prng_bench_result_t* results,
+                                   wype_prng_bench_result_t* results,
                                    size_t results_count,
                                    int live_print )
 {
@@ -982,43 +982,43 @@ int nwipe_prng_benchmark_all_live( double seconds_per_prng,
     if( results_count < max )
         max = results_count;
 
-    void* io_buf = nwipe_prng_alloc_aligned( 4096, io_block_bytes );
+    void* io_buf = wype_prng_alloc_aligned( 4096, io_block_bytes );
     if( !io_buf )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "PRNG benchmark: unable to allocate %zu bytes buffer", io_block_bytes );
+        wype_log( WYPE_LOG_ERROR, "PRNG benchmark: unable to allocate %zu bytes buffer", io_block_bytes );
         return -1;
     }
 
-    nwipe_prng_live_t live;
+    wype_prng_live_t live;
     memset( &live, 0, sizeof( live ) );
     live.enabled = ( live_print ? 1 : 0 );
     live.is_tty = ( live.enabled ? ( isatty( fileno( stdout ) ) ? 1 : 0 ) : 0 );
     live.spin_idx = 0;
-    live.last_tick = nwipe_prng_monotonic_seconds();
+    live.last_tick = wype_prng_monotonic_seconds();
     snprintf( live.msg, sizeof( live.msg ), "Testing PRNG performance" );
 
     for( size_t i = 0; i < max; i++ )
     {
-        nwipe_prng_bench_result_t* r = &results[i];
+        wype_prng_bench_result_t* r = &results[i];
         memset( r, 0, sizeof( *r ) );
 
-        const nwipe_prng_t* prng = all_prngs[i];
+        const wype_prng_t* prng = all_prngs[i];
 
         if( live.enabled )
         {
             if( live.is_tty )
             {
                 /* single status line with spinner showing current PRNG */
-                nwipe_prng_live_set_msg_for_prng( &live, prng );
-                live.last_tick = nwipe_prng_monotonic_seconds();
-                nwipe_prng_live_render_spinner( &live, /*advance=*/0 );
+                wype_prng_live_set_msg_for_prng( &live, prng );
+                live.last_tick = wype_prng_monotonic_seconds();
+                wype_prng_live_render_spinner( &live, /*advance=*/0 );
             }
         }
 
-        nwipe_prng_bench_one( prng, r, io_buf, io_block_bytes, seconds_per_prng, &live );
+        wype_prng_bench_one( prng, r, io_buf, io_block_bytes, seconds_per_prng, &live );
 
         if( live.enabled && live.is_tty )
-            nwipe_prng_live_clear_line( &live );
+            wype_prng_live_clear_line( &live );
 
         /* print result immediately after each PRNG */
         if( live.enabled )
@@ -1032,34 +1032,34 @@ int nwipe_prng_benchmark_all_live( double seconds_per_prng,
     }
 
     if( live.enabled && live.is_tty )
-        nwipe_prng_live_clear_line( &live );
+        wype_prng_live_clear_line( &live );
 
     free( io_buf );
     return (int) max;
 }
 
 /* keep old API intact (no live output) */
-int nwipe_prng_benchmark_all( double seconds_per_prng,
+int wype_prng_benchmark_all( double seconds_per_prng,
                               size_t io_block_bytes,
-                              nwipe_prng_bench_result_t* results,
+                              wype_prng_bench_result_t* results,
                               size_t results_count )
 {
-    return nwipe_prng_benchmark_all_live( seconds_per_prng, io_block_bytes, results, results_count, /*live_print=*/0 );
+    return wype_prng_benchmark_all_live( seconds_per_prng, io_block_bytes, results, results_count, /*live_print=*/0 );
 }
 
 /* --- select fastest: now uses live benchmark so printing is not delayed -- */
 
-const nwipe_prng_t* nwipe_prng_select_fastest( double seconds_per_prng,
+const wype_prng_t* wype_prng_select_fastest( double seconds_per_prng,
                                                size_t io_block_bytes,
-                                               nwipe_prng_bench_result_t* results,
+                                               wype_prng_bench_result_t* results,
                                                size_t results_count )
 {
     /* live_print=1 => prints per PRNG immediately (plus spinner) */
-    int n = nwipe_prng_benchmark_all_live( seconds_per_prng, io_block_bytes, results, results_count, /*live_print=*/1 );
+    int n = wype_prng_benchmark_all_live( seconds_per_prng, io_block_bytes, results, results_count, /*live_print=*/1 );
     if( n <= 0 )
         return NULL;
 
-    const nwipe_prng_t* best = NULL;
+    const wype_prng_t* best = NULL;
     double best_mbps = 0.0;
 
     for( int i = 0; i < n; i++ )
@@ -1073,7 +1073,7 @@ const nwipe_prng_t* nwipe_prng_select_fastest( double seconds_per_prng,
 
     if( best == NULL )
     {
-        nwipe_log( NWIPE_LOG_WARNING, "Auto PRNG selection: no successful PRNG benchmark" );
+        wype_log( WYPE_LOG_WARNING, "Auto PRNG selection: no successful PRNG benchmark" );
         printf( "Auto PRNG selection: no successful PRNG benchmark\n" );
         fflush( stdout );
     }

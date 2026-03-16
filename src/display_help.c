@@ -18,7 +18,7 @@ void display_help()
      *2345678901234567890123456789012345678901234567890123456789012345678901234567890< Do not exceed
      */
 
-    printf( "Usage: nwipe [options] [device1] [device2] ... \n" \
+    printf( "Usage: wype [options] [device1] [device2] ... \n" \
     BHCYN \
     "Options:\n" reset \
     BHCYN \
@@ -51,13 +51,13 @@ void display_help()
     BHCYN \
     "        0" reset " - fdatasync after the disk is completely written. fdatasync\n" \
     "        errors are not detected until completion of the wipe. 0 is not\n" \
-    "        recommended as disk errors may cause nwipe to appear to hang\n" \
+    "        recommended as disk errors may cause wype to appear to hang\n" \
     BHCYN \
     "        1" reset " - fdatasync after every write\n" \
     BRED \
     "        Warning: " reset "Lower values will reduce wipe speeds.\n" \
     "        1000 - fdatasync after 1000 writes etc.\n" \
-    "        Note: Sync is not used when nwipe is operating in direct I/O mode.\n\n" \
+    "        Note: Sync is not used when wype is operating in direct I/O mode.\n\n" \
     BHCYN \
     "      --verify=TYPE\n" reset \
     "        Whether to perform verification of erasure (default: last)\n" \
@@ -72,7 +72,7 @@ void display_help()
     BHCYN \
     "      --directio\n" reset \
     "        Force direct I/O (O_DIRECT); fail if not supported\n" \
-    "        Note: nwipe's default I/O method is to use direct I/O\n\n" \
+    "        Note: wype's default I/O method is to use direct I/O\n\n" \
     BHCYN \
     "      --cachedio\n" reset \
     "        Force kernel cached I/O; never attempt O_DIRECT\n\n" \

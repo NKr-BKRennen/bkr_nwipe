@@ -1,5 +1,5 @@
 /*
- * chacha20.h: ChaCha20 stream cipher CSPRNG for nwipe.
+ * chacha20.h: ChaCha20 stream cipher CSPRNG for wype.
  * Author: Copyright (c) 2026 desertwitch (dezertwitsh@gmail.com)
  * This software is provided "as is", without warranty of any kind.
  *

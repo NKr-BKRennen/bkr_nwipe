@@ -1,9 +1,9 @@
-# Contributing to nwipe
+# Contributing to wype
 
 
-Thank you for your interest in contributing to **nwipe**.
+Thank you for your interest in contributing to **wype**.
 
-Nwipe is a widely used disk wiping tool that prioritizes **reliability, correctness and portability**.  
+Wype is a widely used disk wiping tool that prioritizes **reliability, correctness and portability**.  
 Because the software is used in system administration and data sanitization environments, stability and careful review are essential.
 
 This document describes the preferred workflow for contributing changes.
@@ -12,7 +12,7 @@ This document describes the preferred workflow for contributing changes.
 
 # Development Setup
 
-To build nwipe for development:
+To build wype for development:
 
 ```bash
 ./configure --prefix=/usr CFLAGS='-O0 -g -Wall -Wextra'
@@ -169,7 +169,7 @@ When in doubt, prioritize **clarity and maintainability over cleverness**.
 
 # Respecting project scope
 
-Nwipe is a specialized tool used in data sanitization workflows.
+Wype is a specialized tool used in data sanitization workflows.
 
 Features should align with the project's goals:
 
@@ -188,6 +188,6 @@ Changes that significantly alter behavior may require extended discussion before
 
 All contributions code, testing, documentation, or discussion are appreciated.
 
-Maintainers and contributors work together to keep **nwipe stable, reliable, and useful for system administrators worldwide.**
+Maintainers and contributors work together to keep **wype stable, reliable, and useful for system administrators worldwide.**
 
 

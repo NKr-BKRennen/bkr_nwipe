@@ -24,7 +24,7 @@
 #include "pass_internal.h"
 
 /*
- * nwipe_static_forward_pass
+ * wype_static_forward_pass
  *
  * Writes a static pattern to the device.
  *
@@ -32,7 +32,7 @@
  * large I/O blocks (e.g. 4 MiB). The "window" offset w keeps track of where
  * in the repeating pattern we are when moving across the device.
  */
-int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
+int wype_static_forward_pass( WYPE_METHOD_SIGNATURE, wype_pattern_t* pattern )
 {
     int r;
     size_t blocksize;
@@ -47,34 +47,34 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
     u64 z = c->device_size;
     u64 bs = 0; /* pass bytes skipped */
 
-    int syncRate = nwipe_options.sync;
+    int syncRate = wype_options.sync;
 
-    io_blocksize = nwipe_effective_io_blocksize( c );
+    io_blocksize = wype_effective_io_blocksize( c );
 
     /* For direct I/O we do not need periodic fdatasync(), I/O errors are detected
      * at write() time. Keep sync for cached I/O only. */
-    if( c->io_mode == NWIPE_IO_MODE_DIRECT )
+    if( c->io_mode == WYPE_IO_MODE_DIRECT )
     {
         syncRate = 0;
-        nwipe_log( NWIPE_LOG_NOTICE, "Disabled fdatasync for %s, DirectI/O in use.", c->device_name );
+        wype_log( WYPE_LOG_NOTICE, "Disabled fdatasync for %s, DirectI/O in use.", c->device_name );
     }
     else /* for cached I/O only */
     {
         /* Compute per-write sync rate (same semantics as random pass). */
-        syncRate = nwipe_compute_sync_rate_for_device( c, io_blocksize );
+        syncRate = wype_compute_sync_rate_for_device( c, io_blocksize );
     }
 
     int i = 0;
 
     if( pattern == NULL )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: Null pattern pointer." );
+        wype_log( WYPE_LOG_SANITY, "__FUNCTION__: Null pattern pointer." );
         return -1;
     }
 
     if( pattern->length <= 0 )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: The pattern length member is %i.", pattern->length );
+        wype_log( WYPE_LOG_SANITY, "__FUNCTION__: The pattern length member is %i.", pattern->length );
         return -1;
     }
 
@@ -87,7 +87,7 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
      *
      * guarantees that we can wrap around the repeating pattern safely.
      */
-    b = (char*) nwipe_alloc_io_buffer(
+    b = (char*) wype_alloc_io_buffer(
         c, io_blocksize + (size_t) pattern->length * 2, 0, "static_pass pattern buffer" );
     if( !b )
         return -1;
@@ -102,7 +102,7 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
      * otherwise patterns whose length doesn't divide the I/O block size
      * evenly will fail under IO_DIRECT with EINVAL, as seen with Gutmann.
      */
-    wbuf = (char*) nwipe_alloc_io_buffer( c, io_blocksize, 0, "static_pass write buffer" );
+    wbuf = (char*) wype_alloc_io_buffer( c, io_blocksize, 0, "static_pass write buffer" );
     if( !wbuf )
     {
         free( b );
@@ -115,8 +115,8 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
 
     if( offset == (off64_t) -1 )
     {
-        nwipe_perror( errno, __FUNCTION__, "lseek" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
+        wype_perror( errno, __FUNCTION__, "lseek" );
+        wype_log( WYPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
         free( b );
         free( wbuf );
         return -1;
@@ -124,7 +124,7 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
 
     if( offset != 0 )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: lseek() returned a bogus offset on '%s'.", c->device_name );
+        wype_log( WYPE_LOG_SANITY, "__FUNCTION__: lseek() returned a bogus offset on '%s'.", c->device_name );
         free( b );
         free( wbuf );
         return -1;
@@ -142,7 +142,7 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
 
             if( (u64) c->device_stat.st_blksize > z )
             {
-                nwipe_log( NWIPE_LOG_WARNING,
+                wype_log( WYPE_LOG_WARNING,
                            "%s: The size of '%s' is not a multiple of its block size %i.",
                            __FUNCTION__,
                            c->device_name,
@@ -174,13 +174,13 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
             wsrc = wbuf;
         }
 
-        r = (int) nwipe_write_with_retry( c, c->device_fd, wsrc, blocksize );
+        r = (int) wype_write_with_retry( c, c->device_fd, wsrc, blocksize );
 
         if( r < 0 )
         {
             c->pass_errors += 1;
 
-            if( nwipe_options.noabort_block_errors )
+            if( wype_options.noabort_block_errors )
             {
                 /*
                  * Block write failed and the user requested to NOT abort the pass.
@@ -190,8 +190,8 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                 u64 s = (u64) blocksize;
 
                 /* Log the write error and that we are skipping this block. */
-                nwipe_perror( errno, __FUNCTION__, "write" );
-                nwipe_log( NWIPE_LOG_ERROR,
+                wype_perror( errno, __FUNCTION__, "write" );
+                wype_log( WYPE_LOG_ERROR,
                            "Write error on '%s' at offset %lld, skipping %llu bytes.",
                            c->device_name,
                            (long long) current_offset,
@@ -208,9 +208,9 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                      * If we cannot move the file offset, we cannot safely continue,
                      * so we must abort the pass even in no-abort mode.
                      */
-                    nwipe_perror( errno, __FUNCTION__, "lseek" );
-                    nwipe_log(
-                        NWIPE_LOG_FATAL, "Unable to bump the '%s' file offset after a write error.", c->device_name );
+                    wype_perror( errno, __FUNCTION__, "lseek" );
+                    wype_log(
+                        WYPE_LOG_FATAL, "Unable to bump the '%s' file offset after a write error.", c->device_name );
                     free( b );
                     free( wbuf );
                     return -1;
@@ -240,8 +240,8 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
             size_t rev_blocksize = io_blocksize;
             int rev_w = 0;
 
-            nwipe_perror( errno, __FUNCTION__, "write" );
-            nwipe_log( NWIPE_LOG_ERROR,
+            wype_perror( errno, __FUNCTION__, "write" );
+            wype_log( WYPE_LOG_ERROR,
                        "Write error on '%s' at offset %lld, starting reverse wipe.",
                        c->device_name,
                        (long long) current_offset );
@@ -251,16 +251,16 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
             bs += (u64) blocksize;
             c->round_done += (u64) blocksize;
 
-            if( nwipe_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
-                nwipe_update_bytes_erased( c, z, bs, 1 );
+            if( wype_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
+                wype_update_bytes_erased( c, z, bs, 1 );
 
-            c->io_direction = NWIPE_IO_DIRECTION_REVERSE;
+            c->io_direction = WYPE_IO_DIRECTION_REVERSE;
 
             if( c->device_size % (u64) io_blocksize != 0 )
             {
                 if( c->device_size % (u64) c->device_stat.st_blksize != 0 )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING,
+                    wype_log( WYPE_LOG_WARNING,
                                "%s: The size of '%s' is not a multiple of its block size %i.",
                                __FUNCTION__,
                                c->device_name,
@@ -290,21 +290,21 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                     wsrc = wbuf;
                 }
 
-                r = (int) nwipe_pwrite_with_retry( c, c->device_fd, wsrc, rev_blocksize, rev_offset );
+                r = (int) wype_pwrite_with_retry( c, c->device_fd, wsrc, rev_blocksize, rev_offset );
 
                 if( r < 0 )
                 {
-                    nwipe_perror( errno, __FUNCTION__, "pwrite" );
-                    nwipe_log( NWIPE_LOG_FATAL,
+                    wype_perror( errno, __FUNCTION__, "pwrite" );
+                    wype_log( WYPE_LOG_FATAL,
                                "Reverse wipe failed on '%s' at offset %lld.",
                                c->device_name,
                                (long long) rev_offset );
 
                     c->pass_errors += 1;
-                    c->io_direction = nwipe_options.io_direction;
+                    c->io_direction = wype_options.io_direction;
 
-                    if( nwipe_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
-                        nwipe_update_bytes_erased( c, z, bs, 1 );
+                    if( wype_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
+                        wype_update_bytes_erased( c, z, bs, 1 );
 
                     free( b );
                     free( wbuf );
@@ -319,7 +319,7 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                      */
                     int s = (int) rev_blocksize - r;
 
-                    nwipe_log( NWIPE_LOG_ERROR,
+                    wype_log( WYPE_LOG_ERROR,
                                "Partial write on '%s' at offset %lld, %i bytes short.",
                                c->device_name,
                                (long long) rev_offset,
@@ -339,7 +339,7 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                 c->pass_done += (u64) r;
                 c->round_done += (u64) r;
 
-                nwipe_update_bytes_erased( c, z, bs, 0 );
+                wype_update_bytes_erased( c, z, bs, 0 );
 
                 rev_offset -= (off64_t) rev_blocksize;
                 rev_blocksize = io_blocksize; /* must be a full I/O block now */
@@ -347,15 +347,15 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                 pthread_testcancel();
             }
 
-            nwipe_log( NWIPE_LOG_NOTICE,
+            wype_log( WYPE_LOG_NOTICE,
                        "Reverse wipe on '%s' reached initial bad block at offset %lld.",
                        c->device_name,
                        (long long) current_offset );
 
-            c->io_direction = nwipe_options.io_direction;
+            c->io_direction = wype_options.io_direction;
 
-            if( nwipe_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
-                nwipe_update_bytes_erased( c, z, bs, 1 );
+            if( wype_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
+                wype_update_bytes_erased( c, z, bs, 1 );
 
             /* The disk is otherwise stable, we return with non-fatal errors
              * so other passes can continue; overall result will be failure. */
@@ -372,7 +372,7 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
              */
             int s = (int) blocksize - r;
 
-            nwipe_log( NWIPE_LOG_ERROR,
+            wype_log( WYPE_LOG_ERROR,
                        "Partial write on '%s' at offset %lld, %i bytes short.",
                        c->device_name,
                        (long long) current_offset,
@@ -391,9 +391,9 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
             offset = lseek( c->device_fd, (off64_t) s, SEEK_CUR );
             if( offset == (off64_t) -1 )
             {
-                nwipe_perror( errno, __FUNCTION__, "lseek" );
-                nwipe_log(
-                    NWIPE_LOG_FATAL, "Unable to bump the '%s' file offset after a partial write.", c->device_name );
+                wype_perror( errno, __FUNCTION__, "lseek" );
+                wype_log(
+                    WYPE_LOG_FATAL, "Unable to bump the '%s' file offset after a partial write.", c->device_name );
                 free( b );
                 free( wbuf );
                 return -1;
@@ -404,7 +404,7 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
         c->pass_done += (u64) r;
         c->round_done += (u64) r;
 
-        nwipe_update_bytes_erased( c, z, bs, 0 );
+        wype_update_bytes_erased( c, z, bs, 0 );
 
         /* Periodic sync if requested. */
         if( syncRate > 0 )
@@ -413,11 +413,11 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
 
             if( i >= syncRate )
             {
-                r = nwipe_fdatasync( c, __FUNCTION__ );
+                r = wype_fdatasync( c, __FUNCTION__ );
 
                 if( r == 0 )
                 {
-                    nwipe_update_bytes_erased( c, z, bs, 1 );
+                    wype_update_bytes_erased( c, z, bs, 1 );
                 }
 
                 if( r == -1 )
@@ -439,18 +439,18 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
     free( wbuf );
 
     /* Final sync at end of pass. */
-    r = nwipe_fdatasync( c, __FUNCTION__ );
+    r = wype_fdatasync( c, __FUNCTION__ );
     if( r == 0 )
-        nwipe_update_bytes_erased( c, z, bs, 1 );
+        wype_update_bytes_erased( c, z, bs, 1 );
     if( r == -1 )
         return -1;
 
     return 0;
 
-} /* nwipe_static_forward_pass */
+} /* wype_static_forward_pass */
 
 /*
- * nwipe_static_reverse_pass
+ * wype_static_reverse_pass
  *
  * Writes a static pattern to the device.
  *
@@ -458,7 +458,7 @@ int nwipe_static_forward_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
  * large I/O blocks (e.g. 4 MiB). The "window" offset w keeps track of where
  * in the repeating pattern we are when moving across the device.
  */
-int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
+int wype_static_reverse_pass( WYPE_METHOD_SIGNATURE, wype_pattern_t* pattern )
 {
     int r;
     size_t blocksize;
@@ -472,34 +472,34 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
     u64 z = c->device_size;
     u64 bs = 0; /* pass bytes skipped */
 
-    int syncRate = nwipe_options.sync;
+    int syncRate = wype_options.sync;
 
-    io_blocksize = nwipe_effective_io_blocksize( c );
+    io_blocksize = wype_effective_io_blocksize( c );
 
     /* For direct I/O we do not need periodic fdatasync(), I/O errors are detected
      * at write() time. Keep sync for cached I/O only. */
-    if( c->io_mode == NWIPE_IO_MODE_DIRECT )
+    if( c->io_mode == WYPE_IO_MODE_DIRECT )
     {
         syncRate = 0;
-        nwipe_log( NWIPE_LOG_NOTICE, "Disabled fdatasync for %s, DirectI/O in use.", c->device_name );
+        wype_log( WYPE_LOG_NOTICE, "Disabled fdatasync for %s, DirectI/O in use.", c->device_name );
     }
     else /* for cached I/O only */
     {
         /* Compute per-write sync rate (same semantics as random pass). */
-        syncRate = nwipe_compute_sync_rate_for_device( c, io_blocksize );
+        syncRate = wype_compute_sync_rate_for_device( c, io_blocksize );
     }
 
     int i = 0;
 
     if( pattern == NULL )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: Null pattern pointer." );
+        wype_log( WYPE_LOG_SANITY, "__FUNCTION__: Null pattern pointer." );
         return -1;
     }
 
     if( pattern->length <= 0 )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "__FUNCTION__: The pattern length member is %i.", pattern->length );
+        wype_log( WYPE_LOG_SANITY, "__FUNCTION__: The pattern length member is %i.", pattern->length );
         return -1;
     }
 
@@ -512,7 +512,7 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
      *
      * guarantees that we can wrap around the repeating pattern safely.
      */
-    b = (char*) nwipe_alloc_io_buffer(
+    b = (char*) wype_alloc_io_buffer(
         c, io_blocksize + (size_t) pattern->length * 2, 0, "static_pass pattern buffer" );
     if( !b )
         return -1;
@@ -527,7 +527,7 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
      * otherwise patterns whose length doesn't divide the I/O block size
      * evenly will fail under IO_DIRECT with EINVAL, as seen with Gutmann.
      */
-    wbuf = (char*) nwipe_alloc_io_buffer( c, io_blocksize, 0, "static_pass write buffer" );
+    wbuf = (char*) wype_alloc_io_buffer( c, io_blocksize, 0, "static_pass write buffer" );
     if( !wbuf )
     {
         free( b );
@@ -549,7 +549,7 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
 
             if( (u64) c->device_stat.st_blksize > z )
             {
-                nwipe_log( NWIPE_LOG_WARNING,
+                wype_log( WYPE_LOG_WARNING,
                            "%s: The size of '%s' is not a multiple of its block size %i.",
                            __FUNCTION__,
                            c->device_name,
@@ -581,13 +581,13 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
             wsrc = wbuf;
         }
 
-        r = (int) nwipe_pwrite_with_retry( c, c->device_fd, wsrc, blocksize, current_offset );
+        r = (int) wype_pwrite_with_retry( c, c->device_fd, wsrc, blocksize, current_offset );
 
         if( r < 0 )
         {
             c->pass_errors += 1;
 
-            if( nwipe_options.noabort_block_errors )
+            if( wype_options.noabort_block_errors )
             {
                 /*
                  * Block write failed and the user requested to NOT abort the pass.
@@ -597,8 +597,8 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                 u64 s = (u64) blocksize;
 
                 /* Log the write error and that we are skipping this block. */
-                nwipe_perror( errno, __FUNCTION__, "pwrite" );
-                nwipe_log( NWIPE_LOG_ERROR,
+                wype_perror( errno, __FUNCTION__, "pwrite" );
+                wype_log( WYPE_LOG_ERROR,
                            "Write error on '%s' at offset %lld, skipping %llu bytes.",
                            c->device_name,
                            (long long) current_offset,
@@ -628,8 +628,8 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
             size_t fwd_blocksize = io_blocksize;
             int fwd_w = 0;
 
-            nwipe_perror( errno, __FUNCTION__, "pwrite" );
-            nwipe_log( NWIPE_LOG_ERROR,
+            wype_perror( errno, __FUNCTION__, "pwrite" );
+            wype_log( WYPE_LOG_ERROR,
                        "Write error on '%s' at offset %lld, starting forward wipe.",
                        c->device_name,
                        (long long) current_offset );
@@ -639,10 +639,10 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
             bs += (u64) blocksize;
             c->round_done += (u64) blocksize;
 
-            if( nwipe_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
-                nwipe_update_bytes_erased( c, z, bs, 1 );
+            if( wype_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
+                wype_update_bytes_erased( c, z, bs, 1 );
 
-            c->io_direction = NWIPE_IO_DIRECTION_FORWARD;
+            c->io_direction = WYPE_IO_DIRECTION_FORWARD;
 
             while( fwd_offset < current_offset )
             {
@@ -666,21 +666,21 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                     wsrc = wbuf;
                 }
 
-                r = (int) nwipe_pwrite_with_retry( c, c->device_fd, wsrc, fwd_blocksize, fwd_offset );
+                r = (int) wype_pwrite_with_retry( c, c->device_fd, wsrc, fwd_blocksize, fwd_offset );
 
                 if( r < 0 )
                 {
-                    nwipe_perror( errno, __FUNCTION__, "pwrite" );
-                    nwipe_log( NWIPE_LOG_FATAL,
+                    wype_perror( errno, __FUNCTION__, "pwrite" );
+                    wype_log( WYPE_LOG_FATAL,
                                "Forward wipe failed on '%s' at offset %lld.",
                                c->device_name,
                                (long long) fwd_offset );
 
                     c->pass_errors += 1;
-                    c->io_direction = nwipe_options.io_direction;
+                    c->io_direction = wype_options.io_direction;
 
-                    if( nwipe_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
-                        nwipe_update_bytes_erased( c, z, bs, 1 );
+                    if( wype_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
+                        wype_update_bytes_erased( c, z, bs, 1 );
 
                     free( b );
                     free( wbuf );
@@ -695,7 +695,7 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                      */
                     int s = (int) fwd_blocksize - r;
 
-                    nwipe_log( NWIPE_LOG_ERROR,
+                    wype_log( WYPE_LOG_ERROR,
                                "Partial write on '%s' at offset %lld, %i bytes short.",
                                c->device_name,
                                (long long) fwd_offset,
@@ -715,22 +715,22 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
                 c->pass_done += (u64) r;
                 c->round_done += (u64) r;
 
-                nwipe_update_bytes_erased( c, z, bs, 0 );
+                wype_update_bytes_erased( c, z, bs, 0 );
 
                 fwd_offset += (off64_t) fwd_blocksize;
 
                 pthread_testcancel();
             }
 
-            nwipe_log( NWIPE_LOG_NOTICE,
+            wype_log( WYPE_LOG_NOTICE,
                        "Forward wipe on '%s' reached initial bad block at offset %lld.",
                        c->device_name,
                        (long long) current_offset );
 
-            c->io_direction = nwipe_options.io_direction;
+            c->io_direction = wype_options.io_direction;
 
-            if( nwipe_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
-                nwipe_update_bytes_erased( c, z, bs, 1 );
+            if( wype_fdatasync( c, __FUNCTION__ ) == 0 ) /* Best effort */
+                wype_update_bytes_erased( c, z, bs, 1 );
 
             /* The disk is otherwise stable, we return with non-fatal errors
              * so other passes can continue; overall result will be failure. */
@@ -747,7 +747,7 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
              */
             int s = (int) blocksize - r;
 
-            nwipe_log( NWIPE_LOG_ERROR,
+            wype_log( WYPE_LOG_ERROR,
                        "Partial write on '%s' at offset %lld, %i bytes short.",
                        c->device_name,
                        (long long) current_offset,
@@ -767,7 +767,7 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
         c->pass_done += (u64) r;
         c->round_done += (u64) r;
 
-        nwipe_update_bytes_erased( c, z, bs, 0 );
+        wype_update_bytes_erased( c, z, bs, 0 );
 
         /* Periodic sync if requested. */
         if( syncRate > 0 )
@@ -776,11 +776,11 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
 
             if( i >= syncRate )
             {
-                r = nwipe_fdatasync( c, __FUNCTION__ );
+                r = wype_fdatasync( c, __FUNCTION__ );
 
                 if( r == 0 )
                 {
-                    nwipe_update_bytes_erased( c, z, bs, 1 );
+                    wype_update_bytes_erased( c, z, bs, 1 );
                 }
 
                 if( r == -1 )
@@ -802,18 +802,18 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
     free( wbuf );
 
     /* Final sync at end of pass. */
-    r = nwipe_fdatasync( c, __FUNCTION__ );
+    r = wype_fdatasync( c, __FUNCTION__ );
     if( r == 0 )
-        nwipe_update_bytes_erased( c, z, bs, 1 );
+        wype_update_bytes_erased( c, z, bs, 1 );
     if( r == -1 )
         return -1;
 
     return 0;
 
-} /* nwipe_static_reverse_pass */
+} /* wype_static_reverse_pass */
 
 /*
- * nwipe_static_forward_verify
+ * wype_static_forward_verify
  *
  * Verifies that a static pattern pass was correctly written to the device.
  *
@@ -824,7 +824,7 @@ int nwipe_static_reverse_pass( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern 
  * This version uses large I/O blocks (e.g. 4 MiB) instead of tiny
  * st_blksize-sized chunks.
  */
-int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
+int wype_static_forward_verify( WYPE_METHOD_SIGNATURE, wype_pattern_t* pattern )
 {
     int r;
     size_t blocksize;
@@ -839,19 +839,19 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
 
     if( pattern == NULL )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "nwipe_static_verify: Null entropy pointer." );
+        wype_log( WYPE_LOG_SANITY, "wype_static_verify: Null entropy pointer." );
         return -1;
     }
 
     if( pattern->length <= 0 )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "nwipe_static_verify: The pattern length member is %i.", pattern->length );
+        wype_log( WYPE_LOG_SANITY, "wype_static_verify: The pattern length member is %i.", pattern->length );
         return -1;
     }
 
-    io_blocksize = nwipe_effective_io_blocksize( c );
+    io_blocksize = wype_effective_io_blocksize( c );
 
-    b = (char*) nwipe_alloc_io_buffer( c, io_blocksize, 0, "static_verify input buffer" );
+    b = (char*) wype_alloc_io_buffer( c, io_blocksize, 0, "static_verify input buffer" );
     if( !b )
         return -1;
 
@@ -861,7 +861,7 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
      * to ensure we can always take a contiguous window of size <= io_blocksize
      * starting at any offset w within [0, pattern->length).
      */
-    d = (char*) nwipe_alloc_io_buffer(
+    d = (char*) wype_alloc_io_buffer(
         c, io_blocksize + (size_t) pattern->length * 2, 0, "static_verify pattern buffer" );
     if( !d )
     {
@@ -875,7 +875,7 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
     }
 
     /* Ensure all writes are flushed before verification. */
-    nwipe_fdatasync( c, __FUNCTION__ );
+    wype_fdatasync( c, __FUNCTION__ );
 
     /* Rewind. */
     offset = lseek( c->device_fd, 0, SEEK_SET );
@@ -883,8 +883,8 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
 
     if( offset == (off64_t) -1 )
     {
-        nwipe_perror( errno, __FUNCTION__, "lseek" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
+        wype_perror( errno, __FUNCTION__, "lseek" );
+        wype_log( WYPE_LOG_FATAL, "Unable to reset the '%s' file offset.", c->device_name );
         free( b );
         free( d );
         return -1;
@@ -892,7 +892,7 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
 
     if( offset != 0 )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "nwipe_static_verify: lseek() returned a bogus offset on '%s'.", c->device_name );
+        wype_log( WYPE_LOG_SANITY, "wype_static_verify: lseek() returned a bogus offset on '%s'.", c->device_name );
         free( b );
         free( d );
         return -1;
@@ -910,7 +910,7 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
 
             if( (u64) c->device_stat.st_blksize > z )
             {
-                nwipe_log( NWIPE_LOG_WARNING,
+                wype_log( WYPE_LOG_WARNING,
                            "%s: The size of '%s' is not a multiple of its block size %i.",
                            __FUNCTION__,
                            c->device_name,
@@ -928,13 +928,13 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
         }
 
         /* Read from the device */
-        r = (int) nwipe_read_with_retry( c, c->device_fd, b, blocksize );
+        r = (int) wype_read_with_retry( c, c->device_fd, b, blocksize );
 
         if( r < 0 )
         {
             c->verify_errors += 1;
 
-            if( nwipe_options.noabort_block_errors )
+            if( wype_options.noabort_block_errors )
             {
                 /*
                  * Block read failed and the user requested to NOT abort the pass.
@@ -944,8 +944,8 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
                 u64 s = (u64) blocksize;
 
                 /* Log the read error and that we are skipping this block. */
-                nwipe_perror( errno, __FUNCTION__, "read" );
-                nwipe_log( NWIPE_LOG_ERROR,
+                wype_perror( errno, __FUNCTION__, "read" );
+                wype_log( WYPE_LOG_ERROR,
                            "Read error on '%s' at offset %lld, skipping %llu bytes.",
                            c->device_name,
                            (long long) current_offset,
@@ -962,9 +962,9 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
                      * If we cannot move the file offset, we cannot safely continue,
                      * so we must abort the pass even in no-abort mode.
                      */
-                    nwipe_perror( errno, __FUNCTION__, "lseek" );
-                    nwipe_log(
-                        NWIPE_LOG_FATAL, "Unable to bump the '%s' file offset after a read error.", c->device_name );
+                    wype_perror( errno, __FUNCTION__, "lseek" );
+                    wype_log(
+                        WYPE_LOG_FATAL, "Unable to bump the '%s' file offset after a read error.", c->device_name );
                     free( b );
                     free( d );
                     return -1;
@@ -988,9 +988,9 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
              * Default behaviour (no no-abort option):
              * Abort the verification because of the read error.
              */
-            nwipe_perror( errno, __FUNCTION__, "read" );
-            nwipe_log(
-                NWIPE_LOG_FATAL, "Read error on '%s' at offset %lld.", c->device_name, (long long) current_offset );
+            wype_perror( errno, __FUNCTION__, "read" );
+            wype_log(
+                WYPE_LOG_FATAL, "Read error on '%s' at offset %lld.", c->device_name, (long long) current_offset );
             free( b );
             free( d );
             return -1;
@@ -1004,7 +1004,7 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
              */
             int s = (int) blocksize - r;
 
-            nwipe_log( NWIPE_LOG_ERROR,
+            wype_log( WYPE_LOG_ERROR,
                        "Partial read on '%s' at offset %lld, %i bytes short.",
                        c->device_name,
                        (long long) current_offset,
@@ -1022,9 +1022,9 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
             offset = lseek( c->device_fd, (off64_t) s, SEEK_CUR );
             if( offset == (off64_t) -1 )
             {
-                nwipe_perror( errno, __FUNCTION__, "lseek" );
-                nwipe_log(
-                    NWIPE_LOG_FATAL, "Unable to bump the '%s' file offset after a partial read.", c->device_name );
+                wype_perror( errno, __FUNCTION__, "lseek" );
+                wype_log(
+                    WYPE_LOG_FATAL, "Unable to bump the '%s' file offset after a partial read.", c->device_name );
                 free( b );
                 free( d );
                 return -1;
@@ -1050,10 +1050,10 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
 
     return 0;
 
-} /* nwipe_static_forward_verify */
+} /* wype_static_forward_verify */
 
 /*
- * nwipe_static_reverse_verify
+ * wype_static_reverse_verify
  *
  * Verifies that a static pattern pass was correctly written to the device.
  *
@@ -1064,7 +1064,7 @@ int nwipe_static_forward_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
  * This version uses large I/O blocks (e.g. 4 MiB) instead of tiny
  * st_blksize-sized chunks.
  */
-int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* pattern )
+int wype_static_reverse_verify( WYPE_METHOD_SIGNATURE, wype_pattern_t* pattern )
 {
     int r;
     size_t blocksize;
@@ -1078,19 +1078,19 @@ int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
 
     if( pattern == NULL )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "nwipe_static_verify: Null entropy pointer." );
+        wype_log( WYPE_LOG_SANITY, "wype_static_verify: Null entropy pointer." );
         return -1;
     }
 
     if( pattern->length <= 0 )
     {
-        nwipe_log( NWIPE_LOG_SANITY, "nwipe_static_verify: The pattern length member is %i.", pattern->length );
+        wype_log( WYPE_LOG_SANITY, "wype_static_verify: The pattern length member is %i.", pattern->length );
         return -1;
     }
 
-    io_blocksize = nwipe_effective_io_blocksize( c );
+    io_blocksize = wype_effective_io_blocksize( c );
 
-    b = (char*) nwipe_alloc_io_buffer( c, io_blocksize, 0, "static_verify input buffer" );
+    b = (char*) wype_alloc_io_buffer( c, io_blocksize, 0, "static_verify input buffer" );
     if( !b )
         return -1;
 
@@ -1100,7 +1100,7 @@ int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
      * to ensure we can always take a contiguous window of size <= io_blocksize
      * starting at any offset w within [0, pattern->length).
      */
-    d = (char*) nwipe_alloc_io_buffer(
+    d = (char*) wype_alloc_io_buffer(
         c, io_blocksize + (size_t) pattern->length * 2, 0, "static_verify pattern buffer" );
     if( !d )
     {
@@ -1114,7 +1114,7 @@ int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
     }
 
     /* Ensure all writes are flushed before verification. */
-    nwipe_fdatasync( c, __FUNCTION__ );
+    wype_fdatasync( c, __FUNCTION__ );
 
     /* Reset pass byte counter */
     c->pass_done = 0;
@@ -1131,7 +1131,7 @@ int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
 
             if( (u64) c->device_stat.st_blksize > z )
             {
-                nwipe_log( NWIPE_LOG_WARNING,
+                wype_log( WYPE_LOG_WARNING,
                            "%s: The size of '%s' is not a multiple of its block size %i.",
                            __FUNCTION__,
                            c->device_name,
@@ -1149,13 +1149,13 @@ int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
         }
 
         /* Read from the device */
-        r = (int) nwipe_pread_with_retry( c, c->device_fd, b, blocksize, current_offset );
+        r = (int) wype_pread_with_retry( c, c->device_fd, b, blocksize, current_offset );
 
         if( r < 0 )
         {
             c->verify_errors += 1;
 
-            if( nwipe_options.noabort_block_errors )
+            if( wype_options.noabort_block_errors )
             {
                 /*
                  * Block read failed and the user requested to NOT abort the pass.
@@ -1165,8 +1165,8 @@ int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
                 u64 s = (u64) blocksize;
 
                 /* Log the read error and that we are skipping this block. */
-                nwipe_perror( errno, __FUNCTION__, "pread" );
-                nwipe_log( NWIPE_LOG_ERROR,
+                wype_perror( errno, __FUNCTION__, "pread" );
+                wype_log( WYPE_LOG_ERROR,
                            "Read error on '%s' at offset %lld, skipping %llu bytes.",
                            c->device_name,
                            (long long) current_offset,
@@ -1190,9 +1190,9 @@ int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
              * Default behaviour (no no-abort option):
              * Abort the verification because of the read error.
              */
-            nwipe_perror( errno, __FUNCTION__, "pread" );
-            nwipe_log(
-                NWIPE_LOG_FATAL, "Read error on '%s' at offset %lld.", c->device_name, (long long) current_offset );
+            wype_perror( errno, __FUNCTION__, "pread" );
+            wype_log(
+                WYPE_LOG_FATAL, "Read error on '%s' at offset %lld.", c->device_name, (long long) current_offset );
             free( b );
             free( d );
             return -1;
@@ -1206,7 +1206,7 @@ int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
              */
             int s = (int) blocksize - r;
 
-            nwipe_log( NWIPE_LOG_ERROR,
+            wype_log( WYPE_LOG_ERROR,
                        "Partial read on '%s' at offset %lld, %i bytes short.",
                        c->device_name,
                        (long long) current_offset,
@@ -1240,4 +1240,4 @@ int nwipe_static_reverse_verify( NWIPE_METHOD_SIGNATURE, nwipe_pattern_t* patter
 
     return 0;
 
-} /* nwipe_static_reverse_verify */
+} /* wype_static_reverse_verify */

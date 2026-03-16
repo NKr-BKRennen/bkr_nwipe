@@ -28,7 +28,7 @@ For CI stability, the harness deliberately avoids:
     `xoroshiro256_prng`, `aes_ctr_prng` when AES-NI is available)
   - optional STS check per PRNG stream case (enabled in CI): parses `result.txt` pass ratio and enforces threshold
     (default `>= 0.9`)
-  - streams `nwipe` stdout/stderr live into CI logs (while still writing per-case files)
+  - streams `wype` stdout/stderr live into CI logs (while still writing per-case files)
   - asserts exit status + success log marker
   - verifies resulting data blocks (`0x00` / `0xFF`)
   - supports `full` and `smoke` modes
@@ -58,13 +58,13 @@ For CI stability, the harness deliberately avoids:
   - deterministic tests for default/OPS2/IS5 combinations
   - verifies both effective pass-size and final round-size calculations
 - `src/Makefile.am`
-  - wires `round_size.c` into `nwipe`
+  - wires `round_size.c` into `wype`
   - exposes `test_round_size` as an Automake-built test binary used by CI
-  - keeps the CLI smoke coverage in the workflow by executing `tests/ci/loopback_e2e.sh` against `./src/nwipe`
+  - keeps the CLI smoke coverage in the workflow by executing `tests/ci/loopback_e2e.sh` against `./src/wype`
 
 ## Why This Scope
 
-`nwipe` is strongly tied to real block devices and runtime state.
+`wype` is strongly tied to real block devices and runtime state.
 This approach gives fast practical coverage first, then grows deterministic unit tests where extraction is low-risk.
 
 ## Next Logical Extensions

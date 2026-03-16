@@ -1,5 +1,5 @@
 /*
- *  device.h:  Device routines for nwipe.
+ *  device.h:  Device routines for wype.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -25,8 +25,8 @@
 
 #define MAX_LENGTH_OF_DEVICE_STRING 8
 
-void nwipe_device_identify( nwipe_context_t* c );  // Get hardware information about the device.
-int nwipe_device_scan( nwipe_context_t*** c );  // Find devices that we can wipe.
+void wype_device_identify( wype_context_t* c );  // Get hardware information about the device.
+int wype_device_scan( wype_context_t*** c );  // Find devices that we can wipe.
 
 /**
  * Gets information about devices
@@ -34,14 +34,14 @@ int nwipe_device_scan( nwipe_context_t*** c );  // Find devices that we can wipe
  * @parameter device_names  A reference to a null array pointer.
  * @parameter devnamelist   An array of string pointers to the device names
  * @parameter ndevnames     Number of elements in devnamelist
- * @modifies  device_names  Populates device_names with an array of nwipe_contect_t
+ * @modifies  device_names  Populates device_names with an array of wype_contect_t
  * @returns                 The number of strings in the device_names array.
  *
  */
-int nwipe_device_get( nwipe_context_t*** c, char** devnamelist, int ndevnames );  // Get info about devices to wipe.
+int wype_device_get( wype_context_t*** c, char** devnamelist, int ndevnames );  // Get info about devices to wipe.
 
-int nwipe_get_device_bus_type_and_serialno( char* device,
-                                            nwipe_device_t* bus,
+int wype_get_device_bus_type_and_serialno( char* device,
+                                            wype_device_t* bus,
                                             int* is_ssd,
                                             char* serialnumber,
                                             char* sysfs_path,

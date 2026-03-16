@@ -1,5 +1,5 @@
-#ifndef NWIPE_ANSI_COLOR_CODES_H
-#define NWIPE_ANSI_COLOR_CODES_H
+#ifndef WYPE_ANSI_COLOR_CODES_H
+#define WYPE_ANSI_COLOR_CODES_H
 // ANSI color codes for help text
 
 // Regular text
@@ -77,4 +77,4 @@
 #define CRESET "\e[0m"
 #define COLOR_RESET "\e[0m"
 
-#endif /* NWIPE_ANSI_COLOR_CODES_H */
+#endif /* WYPE_ANSI_COLOR_CODES_H */

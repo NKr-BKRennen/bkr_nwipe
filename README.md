@@ -1,10 +1,10 @@
-# BKR_NWIPE
+# WYPE
 
-Angepasste Version von [nwipe](https://github.com/martijnvanbrummelen/nwipe) mit BKR-Branding und erweiterten Funktionen.
+Angepasste Version von [nwipe](https://github.com/martijnvanbrummelen/nwipe) mit eigenem Branding und erweiterten Funktionen.
 
 Basiert auf nwipe (Fork von `dwipe` / Darik's Boot and Nuke) mit folgenden Erweiterungen:
 
-- **BKR-Branding**: Logo, angepasstes PDF-Zertifikat-Layout, modernisierte GUI
+- **Wype-Branding**: Logo, angepasstes PDF-Zertifikat-Layout, modernisierte GUI
 - **PDF-Zertifikate**: Device hostname, Inventory number, Disposition of Device (Checkboxen), Technician/Operator ID
 - **Secure Erase / Sanitize**: Hardware-basierte Lösch-Methoden für ATA, NVMe und SCSI (inkl. SSDs)
 - **Per-Disk Metadaten**: Hostname und Inventarnummer pro Festplatte direkt in der GUI eingeben (H/I Tasten)
@@ -44,8 +44,8 @@ sudo apt install -y \
 
 ```bash
 cd /root
-git clone https://github.com/NKr-BKRennen/bkr_nwipe.git
-cd bkr_nwipe
+git clone https://github.com/NKr-BKRennen/wype.git
+cd wype
 chmod +x build.sh
 ./build.sh
 ```
@@ -62,19 +62,19 @@ sudo make install
 ### 4. Testen
 
 ```bash
-sudo nwipe
+sudo wype
 ```
 
 Oder direkt aus dem Build-Verzeichnis:
 
 ```bash
-cd /root/bkr_nwipe/src
-sudo ./nwipe
+cd /root/wype/src
+sudo ./wype
 ```
 
 ### 5. Autostart einrichten (optional)
 
-Damit nwipe beim Booten automatisch auf tty1 startet (z.B. für dedizierte Lösch-Stationen):
+Damit wype beim Booten automatisch auf tty1 startet (z.B. für dedizierte Lösch-Stationen):
 
 **Auto-Login für root auf tty1 aktivieren:**
 
@@ -87,14 +87,14 @@ ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM
 EOF
 ```
 
-**nwipe beim Login automatisch starten:**
+**wype beim Login automatisch starten:**
 
 ```bash
 cat >> /root/.bash_profile << 'PROFILE'
 
-# BKR_NWIPE Autostart auf tty1
+# WYPE Autostart auf tty1
 if [[ "$(tty)" == "/dev/tty1" ]]; then
-    nwipe
+    wype
 fi
 PROFILE
 ```
@@ -106,12 +106,12 @@ sudo systemctl daemon-reload
 sudo reboot
 ```
 
-Nach dem Neustart startet nwipe automatisch auf dem ersten Terminal.
+Nach dem Neustart startet wype automatisch auf dem ersten Terminal.
 
 ### 6. Aktualisieren
 
 ```bash
-cd /root/bkr_nwipe
+cd /root/wype
 ./update.sh
 ```
 
@@ -127,9 +127,9 @@ sudo apt update && sudo apt install -y \
   libncurses-dev libparted-dev libconfig-dev libconfig++-dev \
   dmidecode coreutils smartmontools hdparm && \
 cd /root && \
-git clone https://github.com/NKr-BKRennen/bkr_nwipe.git && \
-cd bkr_nwipe && chmod +x build.sh && ./build.sh && \
-echo "Installation abgeschlossen. Starten mit: sudo nwipe"
+git clone https://github.com/NKr-BKRennen/wype.git && \
+cd wype && chmod +x build.sh && ./build.sh && \
+echo "Installation abgeschlossen. Starten mit: sudo wype"
 ```
 
 ---
@@ -193,7 +193,7 @@ Verfügbar über **GUI** unter "Secure Erase / Sanitize >" im Methoden-Menü.
 
 ## Konfiguration
 
-Alle Einstellungen werden in `/etc/nwipe/nwipe.conf` gespeichert (libconfig-Format).
+Alle Einstellungen werden in `/etc/wype/wype.conf` gespeichert (libconfig-Format).
 Die Datei wird beim ersten Start automatisch mit Standardwerten erstellt.
 Änderungen können direkt in der Datei oder über das Config-Menü (**c**-Taste) vorgenommen werden.
 
@@ -227,7 +227,7 @@ Selected_Customer: {
 ```
 
 > Kunden können über **c** → "PDF Report - Select/Add/Delete Customer" verwaltet werden.
-> Kundendaten liegen in `/etc/nwipe/nwipe_customers.csv`.
+> Kundendaten liegen in `/etc/wype/wype_customers.csv`.
 
 ### PDF-Zertifikat-Einstellungen
 
@@ -258,7 +258,7 @@ Zusätzlich zu den globalen Einstellungen können **pro Festplatte** individuell
 3. **I** drücken → Inventarnummer eingeben → Enter
 4. In der Disk-Liste erscheint `[H:hostname I:INV-001]` als Bestätigung
 
-> Diese Werte werden **nicht** in `nwipe.conf` gespeichert, sondern nur während der Laufzeit gehalten und ins PDF geschrieben.
+> Diese Werte werden **nicht** in `wype.conf` gespeichert, sondern nur während der Laufzeit gehalten und ins PDF geschrieben.
 
 ### E-Mail-Versand (SMTP)
 
@@ -269,7 +269,7 @@ Email_Settings: {
   Email_Enable = "ENABLED"
   SMTP_Server = "mailserver.example.com"
   SMTP_Port = "25"
-  Sender_Address = "nwipe@example.com"
+  Sender_Address = "wype@example.com"
   Recipient_Address = "it-team@example.com"
 }
 ```
@@ -283,22 +283,22 @@ Email_Settings: {
 | `Recipient_Address` | Empfänger-Adresse (leer = kein Versand) |
 
 > Standardmäßig deaktiviert. Unterstützt SMTP ohne Authentifizierung (Port 25, internes Netz).
-> E-Mail-Einstellungen müssen direkt in `/etc/nwipe/nwipe.conf` editiert werden (kein GUI-Menü dafür).
+> E-Mail-Einstellungen müssen direkt in `/etc/wype/wype.conf` editiert werden (kein GUI-Menü dafür).
 
 ---
 
 ## Bootbares ISO
 
-Für ein bootbares USB/ISO-Image das direkt in BKR_NWIPE startet: [BKR ShredOS](https://github.com/NKr-BKRennen/bkr_shredos)
+Für ein bootbares USB/ISO-Image das direkt in WYPE startet: [BKR ShredOS](https://github.com/NKr-BKRennen/bkr_shredos)
 
 ---
 
 ## Bugs
 
-* BKR_NWIPE: [https://github.com/NKr-BKRennen/bkr_nwipe](https://github.com/NKr-BKRennen/bkr_nwipe)
+* WYPE: [https://github.com/NKr-BKRennen/wype](https://github.com/NKr-BKRennen/wype)
 * Original nwipe: [https://github.com/martijnvanbrummelen/nwipe](https://github.com/martijnvanbrummelen/nwipe)
 
 ## Lizenz
 
-nwipe ist lizenziert unter der **GNU General Public License v2.0**.
+wype ist lizenziert unter der **GNU General Public License v2.0**.
 Siehe `LICENSE` für Details.

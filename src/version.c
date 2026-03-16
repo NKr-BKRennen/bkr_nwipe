@@ -5,7 +5,7 @@
  * to documentation files.
  */
 const char* version_string = "0.40.02";
-const char* program_name = "nwipe";
+const char* program_name = "wype";
 const char* author_name = "Martijn van Brummelen";
 const char* email_address = "git@brumit.nl";
 const char* years = "2025";
@@ -15,4 +15,4 @@ Nick Law <shredos.eraser@gmail.com> (@PartialVolume) and others\n\
 This is free software; see the source for copying conditions.\n\
 There is NO warranty; not even for MERCHANTABILITY or FITNESS\n\
 FOR A PARTICULAR PURPOSE.\n";
-const char* banner = "nwipe 0.40.02";
+const char* banner = "wype 0.40.02";

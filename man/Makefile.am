@@ -1,1 +1,1 @@
-dist_man_MANS = nwipe.8
+dist_man_MANS = wype.8

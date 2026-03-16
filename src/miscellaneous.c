@@ -1,5 +1,5 @@
 /*
- *  miscellaneous.c: functions that may be generally used throughout nwipes code,
+ *  miscellaneous.c: functions that may be generally used throughout wypes code,
  *  mainly string processing functions but also time related functions.
  *
  *  Copyright PartialVolume <https://github.com/PartialVolume>.
@@ -28,7 +28,7 @@
 #endif
 
 #include <stdio.h>
-#include "nwipe.h"
+#include "wype.h"
 #include "context.h"
 #include "logging.h"
 #include "miscellaneous.h"
@@ -219,7 +219,7 @@ void convert_seconds_to_hours_minutes_seconds( u64 total_seconds, int* hours, in
     }
 }
 
-int nwipe_strip_path( char* output, char* input )
+int wype_strip_path( char* output, char* input )
 {
     /* Take the input string, say "/dev/sda" and remove the "/dev/", prefix the result
      * with 'length' spaces. So if length=8 and input=/dev/sda, output will
@@ -302,7 +302,7 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
      *
      * return value:
      * 0 = success
-     * -1 = Failure, see nwipe log for detail.
+     * -1 = Failure, see wype log for detail.
      */
     FILE* fp;
     int r;  // A result buffer.
@@ -315,7 +315,7 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
     fp = popen( "date +%Y", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to obtain system year using commmand = date +%Y" );
+        wype_log( WYPE_LOG_ERROR, "Failed to obtain system year using commmand = date +%Y" );
     }
     else
     {
@@ -332,8 +332,8 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
                 else
                 {
                     /* if we haven't reached the correct number of digits due to invalid data, log error */
-                    year[++idx] = 0; /* terminate the string, prior to using in nwipe_log */
-                    nwipe_log( NWIPE_LOG_ERROR,
+                    year[++idx] = 0; /* terminate the string, prior to using in wype_log */
+                    wype_log( WYPE_LOG_ERROR,
                                "Obtained system year using command = date +%Y, but result appears invalid = %s",
                                year );
                     status = -1;
@@ -351,7 +351,7 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
     fp = popen( "date +%m", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to obtain system month using the command = date +%m" );
+        wype_log( WYPE_LOG_ERROR, "Failed to obtain system month using the command = date +%m" );
     }
     else
     {
@@ -368,8 +368,8 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
                 else
                 {
                     /* if we haven't reached the correct number of digits due to invalid data, log error */
-                    month[++idx] = 0; /* terminate the string, prior to using in nwipe_log */
-                    nwipe_log( NWIPE_LOG_ERROR,
+                    month[++idx] = 0; /* terminate the string, prior to using in wype_log */
+                    wype_log( WYPE_LOG_ERROR,
                                "Obtained system month using command = date +%m, but result appears invalid = %s",
                                month );
                     status = -1;
@@ -387,7 +387,7 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
     fp = popen( "date +\%d", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to obtain system day using the command = date +\%d" );
+        wype_log( WYPE_LOG_ERROR, "Failed to obtain system day using the command = date +\%d" );
     }
     else
     {
@@ -404,8 +404,8 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
                 else
                 {
                     /* if we haven't reached the correct number of digits due to invalid data, log error */
-                    day[++idx] = 0; /* terminate the string, prior to using in nwipe_log */
-                    nwipe_log( NWIPE_LOG_ERROR,
+                    day[++idx] = 0; /* terminate the string, prior to using in wype_log */
+                    wype_log( WYPE_LOG_ERROR,
                                "Obtained system day using command = date +\%d, but result appears invalid = %s",
                                day );
                     status = -1;
@@ -423,14 +423,14 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
     fp = popen( "date +%H", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to obtain system hour using the command = date +%H" );
+        wype_log( WYPE_LOG_ERROR, "Failed to obtain system hour using the command = date +%H" );
     }
     else
     {
         /* Read the first line and validate it. Should be 2 numeric digits */
         if( fgets( hours, TWO_DIGITS + 1, fp ) != NULL )
         {
-            // nwipe_log( NWIPE_LOG_INFO, "Seconds = %s, Year = %s", seconds, year);
+            // wype_log( WYPE_LOG_INFO, "Seconds = %s, Year = %s", seconds, year);
             idx = 0;
             while( idx < 2 )
             {
@@ -441,8 +441,8 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
                 else
                 {
                     /* if we haven't reached the correct number of digits due to invalid data, log error */
-                    hours[++idx] = 0; /* terminate the string, prior to using in nwipe_log */
-                    nwipe_log( NWIPE_LOG_ERROR,
+                    hours[++idx] = 0; /* terminate the string, prior to using in wype_log */
+                    wype_log( WYPE_LOG_ERROR,
                                "Obtained system hours using command = date +%H, but result appears invalid = %s",
                                hours );
                     status = -1;
@@ -460,14 +460,14 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
     fp = popen( "date +%M", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to obtain system minutes using the command = date +%M" );
+        wype_log( WYPE_LOG_ERROR, "Failed to obtain system minutes using the command = date +%M" );
     }
     else
     {
         /* Read the first line and validate it. Should be 2 numeric digits */
         if( fgets( minutes, TWO_DIGITS + 1, fp ) != NULL )
         {
-            // nwipe_log( NWIPE_LOG_INFO, "Seconds = %s, Year = %s", seconds, year);
+            // wype_log( WYPE_LOG_INFO, "Seconds = %s, Year = %s", seconds, year);
             idx = 0;
             while( idx < 2 )
             {
@@ -478,8 +478,8 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
                 else
                 {
                     /* if we haven't reached the correct number of digits due to invalid data, log the error */
-                    minutes[++idx] = 0; /* terminate the string, prior to using in nwipe_log */
-                    nwipe_log( NWIPE_LOG_ERROR,
+                    minutes[++idx] = 0; /* terminate the string, prior to using in wype_log */
+                    wype_log( WYPE_LOG_ERROR,
                                "Obtained system minutes using command = date +%H, but result appears invalid = %s",
                                minutes );
                     status = -1;
@@ -497,14 +497,14 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
     fp = popen( "date +%S", "r" );
     if( fp == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to obtain system seconds using the command = date +%S" );
+        wype_log( WYPE_LOG_ERROR, "Failed to obtain system seconds using the command = date +%S" );
     }
     else
     {
         /* Read the first line and validate it. Should be 2 numeric digits */
         if( fgets( seconds, TWO_DIGITS + 1, fp ) != NULL )
         {
-            // nwipe_log( NWIPE_LOG_INFO, "Seconds = %s, Year = %s", seconds, year);
+            // wype_log( WYPE_LOG_INFO, "Seconds = %s, Year = %s", seconds, year);
             idx = 0;
             while( idx < 2 )
             {
@@ -515,8 +515,8 @@ int read_system_datetime( char* year, char* month, char* day, char* hours, char*
                 else
                 {
                     /* if we haven't reached the correct number of digits due to invalid data, log error */
-                    seconds[++idx] = 0; /* terminate the string, prior to using in nwipe_log */
-                    nwipe_log( NWIPE_LOG_ERROR,
+                    seconds[++idx] = 0; /* terminate the string, prior to using in wype_log */
+                    wype_log( WYPE_LOG_ERROR,
                                "Obtained system seconds using command = date +%S, but result appears invalid = %s",
                                seconds );
                     status = -1;
@@ -546,7 +546,7 @@ int write_system_datetime( char* year, char* month, char* day, char* hours, char
      *
      * return value:
      * 0 = success
-     * -1 = Failure, see nwipe log for detail.
+     * -1 = Failure, see wype log for detail.
      */
     FILE* fp;
     int r;  // A result buffer.
@@ -592,11 +592,11 @@ int write_system_datetime( char* year, char* month, char* day, char* hours, char
                 {
                     buffer[bufferIdx] = pdata[idx][bufferIdx];
                 }
-                buffer[bufferIdx] = 0; /* terminate the string, prior to using in nwipe_log */
+                buffer[bufferIdx] = 0; /* terminate the string, prior to using in wype_log */
 
                 /* A typical error will look like ..
                  * "User provided year data that appear invalid = 202£" */
-                nwipe_log( NWIPE_LOG_ERROR, "User provided %s data that appears invalid = %s", names[idx], buffer );
+                wype_log( WYPE_LOG_ERROR, "User provided %s data that appears invalid = %s", names[idx], buffer );
                 return -1;
             }
         }
@@ -616,11 +616,11 @@ int write_system_datetime( char* year, char* month, char* day, char* hours, char
 
     if( fp == NULL || r != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Failed to write system date/time using command = %s", cmd );
+        wype_log( WYPE_LOG_ERROR, "Failed to write system date/time using command = %s", cmd );
     }
     else
     {
-        nwipe_log( NWIPE_LOG_INFO, "Date/time succesfully writen to system using command = %s", cmd );
+        wype_log( WYPE_LOG_INFO, "Date/time succesfully writen to system using command = %s", cmd );
     }
 
     return 0;

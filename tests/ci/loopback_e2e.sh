@@ -2,20 +2,20 @@
 set -euo pipefail
 
 MODE="${1:-full}"
-NWIPE_BIN="${2:-./src/nwipe}"
-ARTIFACT_DIR="${NWIPE_CI_ARTIFACT_DIR:-}"
-STS_BIN="${NWIPE_STS_BIN:-}"
-STS_MIN_RATIO="${NWIPE_STS_MIN_RATIO:-0.9}"
-STS_ITERATIONS="${NWIPE_STS_ITERATIONS:-4}"
-STS_RETRIES="${NWIPE_STS_RETRIES:-0}"
+WYPE_BIN="${2:-./src/wype}"
+ARTIFACT_DIR="${WYPE_CI_ARTIFACT_DIR:-}"
+STS_BIN="${WYPE_STS_BIN:-}"
+STS_MIN_RATIO="${WYPE_STS_MIN_RATIO:-0.9}"
+STS_ITERATIONS="${WYPE_STS_ITERATIONS:-4}"
+STS_RETRIES="${WYPE_STS_RETRIES:-0}"
 
 if [[ "${MODE}" != "full" && "${MODE}" != "smoke" ]]; then
-    echo "Usage: $0 [full|smoke] [path-to-nwipe-binary]"
+    echo "Usage: $0 [full|smoke] [path-to-wype-binary]"
     exit 2
 fi
 
-if [[ ! -x "${NWIPE_BIN}" ]]; then
-    echo "Error: nwipe binary not executable: ${NWIPE_BIN}"
+if [[ ! -x "${WYPE_BIN}" ]]; then
+    echo "Error: wype binary not executable: ${WYPE_BIN}"
     exit 2
 fi
 
@@ -36,7 +36,7 @@ for cmd in losetup truncate dd hexdump grep mktemp tail tee awk; do
     require_cmd "${cmd}"
 done
 
-WORKDIR="$(mktemp -d /tmp/nwipe-ci-loopback.XXXXXX)"
+WORKDIR="$(mktemp -d /tmp/wype-ci-loopback.XXXXXX)"
 BACKING_FILE="${WORKDIR}/disk.img"
 LOG_DIR="${WORKDIR}/logs"
 mkdir -p "${LOG_DIR}"
@@ -166,7 +166,7 @@ assert_block_is_byte() {
     return 1
 }
 
-run_nwipe_case() {
+run_wype_case() {
     local case_name="$1"
     local io="$2"
     local method="$3"
@@ -186,7 +186,7 @@ run_nwipe_case() {
     echo "==> Running case: ${case_name} (io=${io} method=${method}, verify=${verify}, prng=${prng})"
 
     set +e
-    "${NWIPE_BIN}" \
+    "${WYPE_BIN}" \
         --autonuke \
         --nogui \
         --nowait \
@@ -215,7 +215,7 @@ run_nwipe_case() {
         return 1
     fi
 
-    assert_log_contains "${log_file}" "Nwipe successfully completed."
+    assert_log_contains "${log_file}" "Wype successfully completed."
 }
 
 cpu_supports_aes_ni() {
@@ -226,60 +226,60 @@ echo "Preparing temporary loopback block device..."
 truncate -s 32M "${BACKING_FILE}"
 LOOP_DEV="$(losetup --find --show "${BACKING_FILE}")"
 echo "Loop device: ${LOOP_DEV}"
-echo "Using nwipe binary: ${NWIPE_BIN}"
-"${NWIPE_BIN}" --version || true
+echo "Using wype binary: ${WYPE_BIN}"
+"${WYPE_BIN}" --version || true
 
 # Zero wipe + zero verify, direct I/O
-run_nwipe_case "wipe_zero" "directio" "zero" "all"
+run_wype_case "wipe_zero" "directio" "zero" "all"
 assert_block_is_byte "00"
-run_nwipe_case "verify_zero" "directio" "verify_zero" "off"
+run_wype_case "verify_zero" "directio" "verify_zero" "off"
 
 # Zero wipe + zero verify, cached I/O
-run_nwipe_case "wipe_zero" "cachedio" "zero" "all"
+run_wype_case "wipe_zero" "cachedio" "zero" "all"
 assert_block_is_byte "00"
-run_nwipe_case "verify_zero" "cachedio" "verify_zero" "off"
+run_wype_case "verify_zero" "cachedio" "verify_zero" "off"
 
 if [[ "${MODE}" == "full" ]]; then
     # One wipe + one verify, direct I/O
-    run_nwipe_case "wipe_one" "directio" "one" "all"
+    run_wype_case "wipe_one" "directio" "one" "all"
     assert_block_is_byte "ff"
-    run_nwipe_case "verify_one" "directio" "verify_one" "off"
+    run_wype_case "verify_one" "directio" "verify_one" "off"
 
     # One wipe + one verify, cached I/O
-    run_nwipe_case "wipe_one" "cachedio" "one" "all"
+    run_wype_case "wipe_one" "cachedio" "one" "all"
     assert_block_is_byte "ff"
-    run_nwipe_case "verify_one" "cachedio" "verify_one" "off"
+    run_wype_case "verify_one" "cachedio" "verify_one" "off"
 
     # PRNG wipe + PRNG verification, direct + cached I/O
-    run_nwipe_case "wipe_prng" "directio" "prng" "all"
-    run_nwipe_case "wipe_prng" "cachedio" "prng" "all"
+    run_wype_case "wipe_prng" "directio" "prng" "all"
+    run_wype_case "wipe_prng" "cachedio" "prng" "all"
 
     # Run --reverse tests (different routines), direct + cached I/O:
-    run_nwipe_case "reverse_wipe_one" "directio" "one" "all" "isaac" 1
-    run_nwipe_case "reverse_wipe_prng" "directio" "prng" "all" "isaac" 1
-    run_nwipe_case "reverse_wipe_one" "cachedio" "one" "all" "isaac" 1
-    run_nwipe_case "reverse_wipe_prng" "cachedio" "prng" "all" "isaac" 1
+    run_wype_case "reverse_wipe_one" "directio" "one" "all" "isaac" 1
+    run_wype_case "reverse_wipe_prng" "directio" "prng" "all" "isaac" 1
+    run_wype_case "reverse_wipe_one" "cachedio" "one" "all" "isaac" 1
+    run_wype_case "reverse_wipe_prng" "cachedio" "prng" "all" "isaac" 1
 
     # PRNG statistical cases (STS)
     # Run these in direct I/O so we're not verifying a cache
     echo "==> Running PRNG Stream coverage cases (each PRNG once)"
-    run_nwipe_case "prng_stream_twister" "directio" "prng" "all" "twister"
+    run_wype_case "prng_stream_twister" "directio" "prng" "all" "twister"
     run_sts_ratio_check "prng_stream_twister"
-    run_nwipe_case "prng_stream_isaac" "directio" "prng" "all" "isaac"
+    run_wype_case "prng_stream_isaac" "directio" "prng" "all" "isaac"
     run_sts_ratio_check "prng_stream_isaac"
-    run_nwipe_case "prng_stream_isaac64" "directio" "prng" "all" "isaac64"
+    run_wype_case "prng_stream_isaac64" "directio" "prng" "all" "isaac64"
     run_sts_ratio_check "prng_stream_isaac64"
-    run_nwipe_case "prng_stream_alfg" "directio" "prng" "all" "add_lagg_fibonacci_prng"
+    run_wype_case "prng_stream_alfg" "directio" "prng" "all" "add_lagg_fibonacci_prng"
     run_sts_ratio_check "prng_stream_alfg"
-    run_nwipe_case "prng_stream_xoroshiro256" "directio" "prng" "all" "xoroshiro256_prng"
+    run_wype_case "prng_stream_xoroshiro256" "directio" "prng" "all" "xoroshiro256_prng"
     run_sts_ratio_check "prng_stream_xoroshiro256"
-    run_nwipe_case "prng_stream_splitmix64" "directio" "prng" "all" "splitmix64"
+    run_wype_case "prng_stream_splitmix64" "directio" "prng" "all" "splitmix64"
     run_sts_ratio_check "prng_stream_splitmix64"
-    run_nwipe_case "prng_stream_chacha20" "directio" "prng" "all" "chacha20"
+    run_wype_case "prng_stream_chacha20" "directio" "prng" "all" "chacha20"
     run_sts_ratio_check "prng_stream_chacha20"
 
     if cpu_supports_aes_ni; then
-        run_nwipe_case "prng_stream_aes_ctr" "directio" "prng" "all" "aes_ctr_prng"
+        run_wype_case "prng_stream_aes_ctr" "directio" "prng" "all" "aes_ctr_prng"
         run_sts_ratio_check "prng_stream_aes_ctr"
     else
         echo "Skipping aes_ctr_prng case: CPU does not expose AES-NI."

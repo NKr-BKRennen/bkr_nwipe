@@ -1,5 +1,5 @@
 /*.
- *  nwipe.h: The header file of the nwipe program.
+ *  wype.h: The header file of the wype program.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -20,8 +20,8 @@
  *
  */
 
-#ifndef NWIPE_H_
-#define NWIPE_H_
+#ifndef WYPE_H_
+#define WYPE_H_
 
 /* Function prototypes */
 int cleanup();
@@ -111,4 +111,4 @@ typedef unsigned char u8;
 /* This is required for ioctl FDFLUSH. */
 #include <linux/fd.h>
 
-#endif /* NWIPE_H_ */
+#endif /* WYPE_H_ */

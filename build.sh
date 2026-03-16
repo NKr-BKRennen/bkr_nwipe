@@ -1,10 +1,10 @@
 #!/bin/bash
-# BKR_NWIPE Build-Skript
-# Baut nwipe und installiert es nach /usr/local/bin.
+# WYPE Build-Skript
+# Baut wype und installiert es nach /usr/local/bin.
 
 set -e
 
-echo "=== BKR_NWIPE Build ==="
+echo "=== WYPE Build ==="
 echo ""
 
 # Ins Skript-Verzeichnis wechseln
@@ -31,7 +31,7 @@ sudo make install
 echo ""
 echo "=== Installation abgeschlossen ==="
 echo ""
-read -p "nwipe jetzt starten? [j/N] " answer
+read -p "wype jetzt starten? [j/N] " answer
 if [[ "$answer" =~ ^[jJyY]$ ]]; then
-    sudo nwipe
+    sudo wype
 fi

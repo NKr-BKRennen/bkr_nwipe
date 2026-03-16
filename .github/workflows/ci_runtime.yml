@@ -41,11 +41,11 @@ jobs:
           make -C src test_round_size
           ./src/test_round_size
 
-      - name: Run CLI unit smoke test (executes nwipe --nogui)
+      - name: Run CLI unit smoke test (executes wype --nogui)
         run: |
           chmod +x tests/ci/loopback_e2e.sh
-          sudo -E env NWIPE_CI_ARTIFACT_DIR="$PWD/ci-artifacts/unit-cli" \
-            tests/ci/loopback_e2e.sh smoke ./src/nwipe
+          sudo -E env WYPE_CI_ARTIFACT_DIR="$PWD/ci-artifacts/unit-cli" \
+            tests/ci/loopback_e2e.sh smoke ./src/wype
 
       - name: Upload unit CLI artifacts
         if: always()
@@ -98,12 +98,12 @@ jobs:
         run: |
           chmod +x tests/ci/loopback_e2e.sh
           sudo -E env \
-            NWIPE_CI_ARTIFACT_DIR="$PWD/ci-artifacts/integration" \
-            NWIPE_STS_BIN="/tmp/sts/sts_legacy_fft" \
-            NWIPE_STS_MIN_RATIO="0.9" \
-            NWIPE_STS_ITERATIONS="32" \
-            NWIPE_STS_RETRIES="1" \
-            tests/ci/loopback_e2e.sh full ./src/nwipe
+            WYPE_CI_ARTIFACT_DIR="$PWD/ci-artifacts/integration" \
+            WYPE_STS_BIN="/tmp/sts/sts_legacy_fft" \
+            WYPE_STS_MIN_RATIO="0.9" \
+            WYPE_STS_ITERATIONS="32" \
+            WYPE_STS_RETRIES="1" \
+            tests/ci/loopback_e2e.sh full ./src/wype
 
       - name: Upload integration artifacts
         if: always()
@@ -151,8 +151,8 @@ jobs:
       - name: Run fault injection tests
         run: |
           chmod +x tests/ci/fault_injection.sh
-          sudo -E env NWIPE_CI_ARTIFACT_DIR="$PWD/ci-artifacts/fault-inj" \
-            tests/ci/fault_injection.sh ./src/nwipe
+          sudo -E env WYPE_CI_ARTIFACT_DIR="$PWD/ci-artifacts/fault-inj" \
+            tests/ci/fault_injection.sh ./src/wype
 
       - name: Upload fault injection artifacts
         if: always()
@@ -209,8 +209,8 @@ jobs:
           sudo -E env \
             ASAN_OPTIONS="$ASAN_OPTIONS" \
             UBSAN_OPTIONS="$UBSAN_OPTIONS" \
-            NWIPE_CI_ARTIFACT_DIR="$PWD/ci-artifacts/sanitizer" \
-            tests/ci/loopback_e2e.sh smoke ./src/nwipe
+            WYPE_CI_ARTIFACT_DIR="$PWD/ci-artifacts/sanitizer" \
+            tests/ci/loopback_e2e.sh smoke ./src/wype
 
       - name: Upload sanitizer artifacts
         if: always()

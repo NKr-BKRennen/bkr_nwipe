@@ -9,7 +9,7 @@
  *   - Thread-safety: Not safe unless externally synchronized.
  *
  * Public state remains exactly 256 bits (4×64-bit words) to allow for
- * minimalistic integration in nwipe and similar tools.
+ * minimalistic integration in wype and similar tools.
  */
 
 #include <stdint.h>
@@ -48,7 +48,7 @@ int aes_ctr_prng_genrand_128k_to_buf(aes_ctr_state_t *state,
 
 /* Optional: Close the persistent AF_ALG socket at program shutdown.
  *
- * Not required by nwipe, but recommended for tools embedding this code.
+ * Not required by wype, but recommended for tools embedding this code.
  */
 int aes_ctr_prng_shutdown(void);
 

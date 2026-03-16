@@ -28,7 +28,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "nwipe.h"
+#include "wype.h"
 #include "context.h"
 #include "create_pdf.h"
 #include "PDFGen/pdfgen.h"
@@ -37,7 +37,7 @@
 #include "embedded_images/shred_db.jpg.h"
 #include "embedded_images/tick_erased.jpg.h"
 #include "embedded_images/redcross.h"
-#include "embedded_images/nwipe_exclamation.jpg.h"
+#include "embedded_images/wype_exclamation.jpg.h"
 #include "logging.h"
 #include "options.h"
 #include "prng.h"
@@ -61,33 +61,33 @@ extern float height;
 extern float page_width;
 extern int status_icon;
 
-int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
+int create_system_multi_disc_pdf( wype_thread_data_ptr_t* ptrx )
 {
 
-    extern nwipe_prng_t nwipe_twister;
-    extern nwipe_prng_t nwipe_isaac;
-    extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_add_lagg_fibonacci_prng;
-    extern nwipe_prng_t nwipe_xoroshiro256_prng;
-    extern nwipe_prng_t nwipe_xorshift128plus_prng;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
-    extern nwipe_prng_t nwipe_chacha20_prng;
+    extern wype_prng_t wype_twister;
+    extern wype_prng_t wype_isaac;
+    extern wype_prng_t wype_isaac64;
+    extern wype_prng_t wype_add_lagg_fibonacci_prng;
+    extern wype_prng_t wype_xoroshiro256_prng;
+    extern wype_prng_t wype_xorshift128plus_prng;
+    extern wype_prng_t wype_aes_ctr_prng;
+    extern wype_prng_t wype_chacha20_prng;
 
-    /* Used by libconfig functions to retrieve data from nwipe.conf defined in conf.c */
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    /* Used by libconfig functions to retrieve data from wype.conf defined in conf.c */
+    extern config_t wype_cfg;
+    extern char wype_config_file[];
 
     //    char pdf_footer[MAX_PDF_FOOTER_TEXT_LENGTH];
 
     /* Set up the structs we will use for the data required. */
-    nwipe_thread_data_ptr_t* nwipe_thread_data_ptr;
-    nwipe_context_t** c;
-    nwipe_misc_thread_data_t* nwipe_misc_thread_data;
+    wype_thread_data_ptr_t* wype_thread_data_ptr;
+    wype_context_t** c;
+    wype_misc_thread_data_t* wype_misc_thread_data;
 
     /* Retrieve from the pointer passed to the function. */
-    nwipe_thread_data_ptr = (nwipe_thread_data_ptr_t*) ptrx;
-    c = nwipe_thread_data_ptr->c;
-    nwipe_misc_thread_data = nwipe_thread_data_ptr->nwipe_misc_thread_data;
+    wype_thread_data_ptr = (wype_thread_data_ptr_t*) ptrx;
+    c = wype_thread_data_ptr->c;
+    wype_misc_thread_data = wype_thread_data_ptr->wype_misc_thread_data;
 
     int i;  // general index
 
@@ -114,9 +114,9 @@ int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
     //    float page_width;
 
     struct pdf_info info = { .creator = "https://github.com/PartialVolume/shredos.x86_64",
-                             .producer = "https://github.com/martijnvanbrummelen/nwipe",
+                             .producer = "https://github.com/martijnvanbrummelen/wype",
                              .title = "PDF Disk Erasure Certificate",
-                             .author = "Nwipe",
+                             .author = "Wype",
                              .subject = "Disk Erase Certificate",
                              .date = "Today" };
 
@@ -134,12 +134,12 @@ int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
     /* Used to display correct icon on page 2 */
     status_icon = 0;  // zero don't display icon, see header STATUS_ICON_..
 
-    // nwipe_log( NWIPE_LOG_NOTICE, "Create the PDF disk erasure certificate" );
+    // wype_log( WYPE_LOG_NOTICE, "Create the PDF disk erasure certificate" );
     // struct pdf_doc* pdf = pdf_create( PDF_A4_WIDTH, PDF_A4_HEIGHT, &info );
     pdf = pdf_create( PDF_A4_WIDTH, PDF_A4_HEIGHT, &info );
 
     /* Create footer text string and append the version */
-    snprintf( pdf_footer, sizeof( pdf_footer ), "Disc Erasure by NWIPE version %s", version_string );
+    snprintf( pdf_footer, sizeof( pdf_footer ), "Disc Erasure by WYPE version %s", version_string );
 
     pdf_set_font( pdf, "Helvetica" );
     struct pdf_object* page_1 = pdf_append_page( pdf );
@@ -164,8 +164,8 @@ int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
     pdf_add_text( pdf, NULL, "Contact Name:", 12, 60, 570, PDF_GRAY );
     pdf_add_text( pdf, NULL, "Contact Phone:", 12, 300, 570, PDF_GRAY );
 
-    /* Obtain organisational details from nwipe.conf - See conf.c */
-    setting = config_lookup( &nwipe_cfg, "Organisation_Details" );
+    /* Obtain organisational details from wype.conf - See conf.c */
+    setting = config_lookup( &wype_cfg, "Organisation_Details" );
     if( setting != NULL )
     {
         pdf_set_font( pdf, "Helvetica-Bold" );
@@ -189,7 +189,7 @@ int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
     }
     else
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Cannot locate group [Organisation_Details] in %s", nwipe_config_file );
+        wype_log( WYPE_LOG_ERROR, "Cannot locate group [Organisation_Details] in %s", wype_config_file );
     }
 
     /* -------------------- */
@@ -203,8 +203,8 @@ int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
     pdf_add_text( pdf, NULL, "Inventory number:", 12, 300, 490, PDF_GRAY );
     pdf_add_text( pdf, NULL, "Contact Phone:", 12, 300, 470, PDF_GRAY );
 
-    /* Obtain current customer details from nwipe.conf - See conf.c */
-    setting = config_lookup( &nwipe_cfg, "Selected_Customer" );
+    /* Obtain current customer details from wype.conf - See conf.c */
+    setting = config_lookup( &wype_cfg, "Selected_Customer" );
     if( setting != NULL )
     {
         pdf_set_font( pdf, "Helvetica-Bold" );
@@ -228,7 +228,7 @@ int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
     }
     else
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Cannot locate group [Selected_Customer] in %s", nwipe_config_file );
+        wype_log( WYPE_LOG_ERROR, "Cannot locate group [Selected_Customer] in %s", wype_config_file );
     }
 
     /******************
@@ -238,14 +238,14 @@ int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
     pdf_add_text( pdf, NULL, "Disk Information", 12, 50, 430, PDF_BLUE );
 
     /* For each disc wiped, print an entry */
-    for( i = 0; i < nwipe_misc_thread_data->nwipe_enumerated; i++ )
+    for( i = 0; i < wype_misc_thread_data->wype_enumerated; i++ )
     {
         if( c[0]->device_serial_no[0] == 0 )
         {
             snprintf( c[0]->device_serial_no, sizeof( c[0]->device_serial_no ), "Unknown" );
         }
-        // WARNING DELETE THIS NWIPE_LOG command
-        nwipe_log( NWIPE_LOG_WARNING, "Model: %s", c[i]->device_name_without_path );
+        // WARNING DELETE THIS WYPE_LOG command
+        wype_log( WYPE_LOG_WARNING, "Model: %s", c[i]->device_name_without_path );
 
         /************
          * Make/model/serial number
@@ -256,8 +256,8 @@ int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
         pdf_add_text( pdf, NULL, "S/N:", text_size_data, 200, 410, PDF_DARK_GREEN );
         pdf_add_text( pdf, NULL, c[i]->device_serial_no, text_size_data, 230, 410, PDF_DARK_GREEN );
         snprintf( device_size, sizeof( device_size ), "%s, %lli bytes", c[i]->device_size_text, c[i]->device_size );
-        if( ( c[i]->device_size == c[i]->Calculated_real_max_size_in_bytes ) || c[i]->device_type == NWIPE_DEVICE_NVME
-            || c[i]->device_type == NWIPE_DEVICE_VIRT || c[i]->HPA_status == HPA_NOT_APPLICABLE
+        if( ( c[i]->device_size == c[i]->Calculated_real_max_size_in_bytes ) || c[i]->device_type == WYPE_DEVICE_NVME
+            || c[i]->device_type == WYPE_DEVICE_VIRT || c[i]->HPA_status == HPA_NOT_APPLICABLE
             || c[i]->HPA_status != HPA_UNKNOWN )
         {
             pdf_add_text( pdf, NULL, device_size, text_size_data, 350, 410, PDF_DARK_GREEN );
@@ -276,7 +276,7 @@ int create_system_multi_disc_pdf( nwipe_thread_data_ptr_t* ptrx )
      */
     char PDF_filename[FILENAME_MAX];  // The filename of the PDF certificate/report.
     replace_non_alphanumeric( end_time_text, '-' );
-    snprintf( PDF_filename, sizeof( PDF_filename ), "nwipe_report_system.pdf" );
+    snprintf( PDF_filename, sizeof( PDF_filename ), "wype_report_system.pdf" );
 
     pdf_save( pdf, PDF_filename );
     pdf_destroy( pdf );

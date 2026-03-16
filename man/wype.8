@@ -1,14 +1,14 @@
-.TH NWIPE "5" "Feb 2026" "nwipe version 0.40" "User Commands"
+.TH WYPE "5" "Feb 2026" "wype version 0.40" "User Commands"
 .SH NAME
-nwipe \- securely erase disks
+wype \- securely erase disks
 .SH SYNOPSIS
-.B nwipe
+.B wype
 [\fIoptions\fR] [\fIdevice1\fR] [\fIdevice2\fR] ...
 .SH DESCRIPTION
-nwipe is a command that will securely erase disks using a variety of
+wype is a command that will securely erase disks using a variety of
 recognized methods.  It is a fork of the dwipe command used by Darik's Boot
-and Nuke (DBAN).  nwipe is included with partedmagic if you want a quick and
-easy bootable CD version.  nwipe was created out of a need to run the DBAN
+and Nuke (DBAN).  wype is included with partedmagic if you want a quick and
+easy bootable CD version.  wype was created out of a need to run the DBAN
 dwipe command outside of DBAN, in order to allow its use with any host
 distribution, thus giving better hardware support.  It is essentially the
 same as dwipe, with a few changes:
@@ -41,7 +41,7 @@ Devices can be specified either as block device nodes (for example
 .IR /dev/mapper/cryptroot )
 or via stable symlinks under
 .IR /dev/disk/by-id/ .
-nwipe will resolve these paths and operate on the underlying block device.
+wype will resolve these paths and operate on the underlying block device.
 
 .SH OPTIONS
 .TP
@@ -61,14 +61,14 @@ Power off system on completion of wipe delayed for one minute. During
 this one minute delay you can abort the shutdown by typing sudo shutdown -c
 .TP
 \fB\-\-sync\fR=\fINUM\fR
-Specify how often nwipe performs an fdatasync() during cached I/O mode.  
+Specify how often wype performs an fdatasync() during cached I/O mode.  
 The value refers to the number of *device hardware blocks* (commonly 512 or
-4096 bytes) written before triggering a sync. Since nwipe now writes using
+4096 bytes) written before triggering a sync. Since wype now writes using
 large multi-megabyte buffers, this value is automatically scaled so the sync
 interval in bytes is consistent with historic behaviour.
 
 The default value (100000) results in a sync approximately every 50–400 MB,
-similar to earlier nwipe releases. This ensures timely detection of I/O errors
+similar to earlier wype releases. This ensures timely detection of I/O errors
 while maintaining good throughput.
 
 This setting has no effect when using --directio, as write() returns errors
@@ -183,7 +183,7 @@ bmb                    \- Chinese BMB21-2019 State Secrets Bureau standard.
 Filename to log to. Default is STDOUT.
 .TP
 \fB\-P\fR, \fB\-\-PDFreportpath\fR=\fIDIR\fR
-Directory to write the PDF nwipe reports/certificates to.
+Directory to write the PDF wype reports/certificates to.
 Defaults to ".".
 If \fIDIR\fR is set to \fInoPDF\fR no report PDF files are written.
 .TP
@@ -212,10 +212,10 @@ Up to ten comma separated devices to be excluded, examples:
  --dev/disk/by-path/pci-0000:00:17.0-ata-1
 .SH BUGS
 Please see the GitHub site for the latest list:
-(https://github.com/martijnvanbrummelen/nwipe/issues)
+(https://github.com/martijnvanbrummelen/wype/issues)
 
 .SH AUTHOR
-nwipe is developed by Martijn van Brummelen <github@brumit.nl>.
+wype is developed by Martijn van Brummelen <github@brumit.nl>.
 
 .SH "SEE ALSO"
 .BR shred (1),

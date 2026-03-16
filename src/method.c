@@ -1,5 +1,5 @@
 /*
- *  method.c: Method implementations for nwipe.
+ *  method.c: Method implementations for wype.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -22,9 +22,9 @@
 /* HOWTO:  Add another wipe method.
  *
  *  1.  Create a new function here and add the prototype to the 'method.h' file.
- *  2.  Update nwipe_method_label() appropriately.
- *  3.  Put the passes that you wish to run into a nwipe_pattern_t array.
- *  4.  Call nwipe_runmethod() with your array of patterns.
+ *  2.  Update wype_method_label() appropriately.
+ *  3.  Put the passes that you wish to run into a wype_pattern_t array.
+ *  4.  Call wype_runmethod() with your array of patterns.
  *  5.  Copy-and-paste within the 'options.c' file so that the new method can be invoked.
  *  6.  Optionally try to plug your function into 'gui.c'.
  *  7.  Update the function 'calculate_round_size()' with the new method.
@@ -32,16 +32,16 @@
  *
  * WARNING: Remember to pad all pattern arrays with { 0, NULL }.
  *
- * WARNING: Never change nwipe_options after calling a method.
+ * WARNING: Never change wype_options after calling a method.
  *
- * NOTE: The nwipe_runmethod function appends a user selectable final blanking (zero) pass to all methods.
+ * NOTE: The wype_runmethod function appends a user selectable final blanking (zero) pass to all methods.
  *
  */
 
 #include <stdint.h>
 #include <string.h>
 
-#include "nwipe.h"
+#include "wype.h"
 #include "context.h"
 #include "method.h"
 #include "prng.h"
@@ -70,7 +70,7 @@
  * @return On success, returns (ssize_t)len.
  *         On error, returns -errno and leaves errno set.
  */
-static ssize_t nwipe_read_entropy( void* buf, size_t len )
+static ssize_t wype_read_entropy( void* buf, size_t len )
 {
     unsigned char* p = (unsigned char*) buf;
     size_t n = len;
@@ -108,107 +108,107 @@ static ssize_t nwipe_read_entropy( void* buf, size_t len )
  *
  */
 
-const char* nwipe_dod522022m_label = "DoD 5220.22-M";
-const char* nwipe_dodshort_label = "DoD Short";
-const char* nwipe_gutmann_label = "Gutmann Wipe";
-const char* nwipe_ops2_label = "RCMP TSSIT OPS-II";
-const char* nwipe_random_label = "PRNG Stream";
-const char* nwipe_zero_label = "Fill With Zeros";
-const char* nwipe_one_label = "Fill With Ones";
-const char* nwipe_verify_zero_label = "Verify Zeros (0x00)";
-const char* nwipe_verify_one_label = "Verify Ones  (0xFF)";
-const char* nwipe_is5enh_label = "HMG IS5 Enhanced";
-const char* nwipe_bruce7_label = "Bruce Schneier 7-Pass";
-const char* nwipe_bmb_label = "BMB21-2019";
-const char* nwipe_secure_erase_label = "Secure Erase (ATA/NVMe)";
-const char* nwipe_secure_erase_prng_verify_label = "Secure Erase + PRNG + Verify";
-const char* nwipe_sanitize_crypto_erase_label = "Sanitize Crypto Erase (ATA/SCSI/NVMe)";
-const char* nwipe_sanitize_block_erase_label = "Sanitize Block Erase (ATA/SCSI/NVMe)";
-const char* nwipe_sanitize_overwrite_label = "Sanitize Overwrite (ATA/SCSI/NVMe)";
+const char* wype_dod522022m_label = "DoD 5220.22-M";
+const char* wype_dodshort_label = "DoD Short";
+const char* wype_gutmann_label = "Gutmann Wipe";
+const char* wype_ops2_label = "RCMP TSSIT OPS-II";
+const char* wype_random_label = "PRNG Stream";
+const char* wype_zero_label = "Fill With Zeros";
+const char* wype_one_label = "Fill With Ones";
+const char* wype_verify_zero_label = "Verify Zeros (0x00)";
+const char* wype_verify_one_label = "Verify Ones  (0xFF)";
+const char* wype_is5enh_label = "HMG IS5 Enhanced";
+const char* wype_bruce7_label = "Bruce Schneier 7-Pass";
+const char* wype_bmb_label = "BMB21-2019";
+const char* wype_secure_erase_label = "Secure Erase (ATA/NVMe)";
+const char* wype_secure_erase_prng_verify_label = "Secure Erase + PRNG + Verify";
+const char* wype_sanitize_crypto_erase_label = "Sanitize Crypto Erase (ATA/SCSI/NVMe)";
+const char* wype_sanitize_block_erase_label = "Sanitize Block Erase (ATA/SCSI/NVMe)";
+const char* wype_sanitize_overwrite_label = "Sanitize Overwrite (ATA/SCSI/NVMe)";
 
-const char* nwipe_unknown_label = "Unknown Method (FIXME)";
+const char* wype_unknown_label = "Unknown Method (FIXME)";
 
-const char* nwipe_method_label( void* method )
+const char* wype_method_label( void* method )
 {
     /**
      *  Returns a pointer to the name of the method function.
      *
      */
 
-    if( method == &nwipe_dod522022m )
+    if( method == &wype_dod522022m )
     {
-        return nwipe_dod522022m_label;
+        return wype_dod522022m_label;
     }
-    if( method == &nwipe_dodshort )
+    if( method == &wype_dodshort )
     {
-        return nwipe_dodshort_label;
+        return wype_dodshort_label;
     }
-    if( method == &nwipe_gutmann )
+    if( method == &wype_gutmann )
     {
-        return nwipe_gutmann_label;
+        return wype_gutmann_label;
     }
-    if( method == &nwipe_ops2 )
+    if( method == &wype_ops2 )
     {
-        return nwipe_ops2_label;
+        return wype_ops2_label;
     }
-    if( method == &nwipe_random )
+    if( method == &wype_random )
     {
-        return nwipe_random_label;
+        return wype_random_label;
     }
-    if( method == &nwipe_zero )
+    if( method == &wype_zero )
     {
-        return nwipe_zero_label;
+        return wype_zero_label;
     }
-    if( method == &nwipe_one )
+    if( method == &wype_one )
     {
-        return nwipe_one_label;
+        return wype_one_label;
     }
-    if( method == &nwipe_verify_zero )
+    if( method == &wype_verify_zero )
     {
-        return nwipe_verify_zero_label;
+        return wype_verify_zero_label;
     }
-    if( method == &nwipe_verify_one )
+    if( method == &wype_verify_one )
     {
-        return nwipe_verify_one_label;
+        return wype_verify_one_label;
     }
-    if( method == &nwipe_is5enh )
+    if( method == &wype_is5enh )
     {
-        return nwipe_is5enh_label;
+        return wype_is5enh_label;
     }
-    if( method == &nwipe_bruce7 )
+    if( method == &wype_bruce7 )
     {
-        return nwipe_bruce7_label;
+        return wype_bruce7_label;
     }
-    if( method == &nwipe_bmb )
+    if( method == &wype_bmb )
     {
-        return nwipe_bmb_label;
+        return wype_bmb_label;
     }
-    if( method == &nwipe_secure_erase )
+    if( method == &wype_secure_erase )
     {
-        return nwipe_secure_erase_label;
+        return wype_secure_erase_label;
     }
-    if( method == &nwipe_secure_erase_prng_verify )
+    if( method == &wype_secure_erase_prng_verify )
     {
-        return nwipe_secure_erase_prng_verify_label;
+        return wype_secure_erase_prng_verify_label;
     }
 
-    if( method == &nwipe_sanitize_crypto_erase )
+    if( method == &wype_sanitize_crypto_erase )
     {
-        return nwipe_sanitize_crypto_erase_label;
+        return wype_sanitize_crypto_erase_label;
     }
-    if( method == &nwipe_sanitize_block_erase )
+    if( method == &wype_sanitize_block_erase )
     {
-        return nwipe_sanitize_block_erase_label;
+        return wype_sanitize_block_erase_label;
     }
-    if( method == &nwipe_sanitize_overwrite )
+    if( method == &wype_sanitize_overwrite )
     {
-        return nwipe_sanitize_overwrite_label;
+        return wype_sanitize_overwrite_label;
     }
 
     /* else */
-    return nwipe_unknown_label;
+    return wype_unknown_label;
 
-} /* nwipe_method_label */
+} /* wype_method_label */
 
 /*
  * Execute ATA Secure Erase using the external hdparm(8) utility.
@@ -224,14 +224,14 @@ const char* nwipe_method_label( void* method )
  *
  * Returns 0 on success, -1 on failure.
  */
-static int nwipe_execute_ata_secure_erase( nwipe_context_t* c )
+static int wype_execute_ata_secure_erase( wype_context_t* c )
 {
     char cmd[512];
     int rc;
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Secure Erase: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "ATA Secure Erase: invalid context or device name." );
         return -1;
     }
 
@@ -244,7 +244,7 @@ static int nwipe_execute_ata_secure_erase( nwipe_context_t* c )
      *   - We redirect all output to /dev/null to keep the GUI clean.
      *   - The password "NULL" is arbitrary but consistent with common
      *     hdparm usage for temporary erase passwords.
-     *   - The user is expected to run nwipe as root, so hdparm will
+     *   - The user is expected to run wype as root, so hdparm will
      *     have the necessary privileges.
      */
     rc = snprintf( cmd,
@@ -255,11 +255,11 @@ static int nwipe_execute_ata_secure_erase( nwipe_context_t* c )
 
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Secure Erase: command line for device %s is too long.", c->device_name );
+        wype_log( WYPE_LOG_ERROR, "ATA Secure Erase: command line for device %s is too long.", c->device_name );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting ATA Secure Erase via hdparm on %s.", c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "Starting ATA Secure Erase via hdparm on %s.", c->device_name );
 
     errno = 0;
     rc = system( cmd );
@@ -270,8 +270,8 @@ static int nwipe_execute_ata_secure_erase( nwipe_context_t* c )
          * system() itself failed (fork/exec or similar). This usually
          * indicates a serious problem (e.g. no memory, no /bin/sh).
          */
-        nwipe_perror( errno, __FUNCTION__, "system" );
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Secure Erase: failed to invoke hdparm for %s.", c->device_name );
+        wype_perror( errno, __FUNCTION__, "system" );
+        wype_log( WYPE_LOG_ERROR, "ATA Secure Erase: failed to invoke hdparm for %s.", c->device_name );
         return -1;
     }
 
@@ -282,11 +282,11 @@ static int nwipe_execute_ata_secure_erase( nwipe_context_t* c )
      */
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Secure Erase: hdparm reported failure on %s (rc=%d).", c->device_name, rc );
+        wype_log( WYPE_LOG_ERROR, "ATA Secure Erase: hdparm reported failure on %s (rc=%d).", c->device_name, rc );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "ATA Secure Erase completed successfully on %s.", c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "ATA Secure Erase completed successfully on %s.", c->device_name );
 
     return 0;
 }
@@ -309,7 +309,7 @@ static int nwipe_execute_ata_secure_erase( nwipe_context_t* c )
 /* -------------------- Sanitize (Crypto Erase) helpers -------------------- */
 
 /* Best-effort: map /dev/nvme0n1 -> /dev/nvme0 (controller char device) */
-static int nwipe_nvme_controller_from_node( const char* in, char* out, size_t out_sz )
+static int wype_nvme_controller_from_node( const char* in, char* out, size_t out_sz )
 {
     if( in == NULL || out == NULL || out_sz < 8 )
     {
@@ -352,7 +352,7 @@ static int nwipe_nvme_controller_from_node( const char* in, char* out, size_t ou
 }
 
 /* Best-effort: map /dev/sda1 -> /dev/sda (for sg_sanitize/hdparm) */
-static int nwipe_strip_partition_suffix( const char* in, char* out, size_t out_sz )
+static int wype_strip_partition_suffix( const char* in, char* out, size_t out_sz )
 {
     if( in == NULL || out == NULL || out_sz < 8 )
     {
@@ -380,7 +380,7 @@ static int nwipe_strip_partition_suffix( const char* in, char* out, size_t out_s
     return 0;
 }
 
-static int nwipe_execute_nvme_sanitize_crypto_erase( nwipe_context_t* c )
+static int wype_execute_nvme_sanitize_crypto_erase( wype_context_t* c )
 {
     char cmd[512];
     char ctrl[256];
@@ -388,14 +388,14 @@ static int nwipe_execute_nvme_sanitize_crypto_erase( nwipe_context_t* c )
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Sanitize Crypto Erase: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Crypto Erase: invalid context or device name." );
         return -1;
     }
 
-    if( nwipe_nvme_controller_from_node( c->device_name, ctrl, sizeof( ctrl ) ) != 0 )
+    if( wype_nvme_controller_from_node( c->device_name, ctrl, sizeof( ctrl ) ) != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "NVMe Sanitize Crypto Erase: unable to derive controller node from %s.", c->device_name );
+        wype_log(
+            WYPE_LOG_ERROR, "NVMe Sanitize Crypto Erase: unable to derive controller node from %s.", c->device_name );
         return -1;
     }
 
@@ -406,25 +406,25 @@ static int nwipe_execute_nvme_sanitize_crypto_erase( nwipe_context_t* c )
     rc = snprintf( cmd, sizeof( cmd ), "nvme sanitize '%s' -a 4 >/dev/null 2>&1", ctrl );
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Sanitize Crypto Erase: command line for device %s is too long.", ctrl );
+        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Crypto Erase: command line for device %s is too long.", ctrl );
         return -1;
     }
 
-    nwipe_log(
-        NWIPE_LOG_NOTICE, "Starting NVMe Sanitize Crypto Erase via nvme on %s (from %s).", ctrl, c->device_name );
+    wype_log(
+        WYPE_LOG_NOTICE, "Starting NVMe Sanitize Crypto Erase via nvme on %s (from %s).", ctrl, c->device_name );
 
     errno = 0;
     rc = system( cmd );
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Sanitize Crypto Erase failed on %s (rc=%d).", ctrl, rc );
+        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Crypto Erase failed on %s (rc=%d).", ctrl, rc );
         return -1;
     }
 
     return 0;
 }
 
-static int nwipe_execute_ata_sanitize_crypto_scramble( nwipe_context_t* c )
+static int wype_execute_ata_sanitize_crypto_scramble( wype_context_t* c )
 {
     char cmd[512];
     char dev[256];
@@ -432,14 +432,14 @@ static int nwipe_execute_ata_sanitize_crypto_scramble( nwipe_context_t* c )
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Sanitize Crypto Scramble: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "ATA Sanitize Crypto Scramble: invalid context or device name." );
         return -1;
     }
 
-    if( nwipe_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
+    if( wype_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "ATA Sanitize Crypto Scramble: unable to normalize device node from %s.", c->device_name );
+        wype_log(
+            WYPE_LOG_ERROR, "ATA Sanitize Crypto Scramble: unable to normalize device node from %s.", c->device_name );
         return -1;
     }
 
@@ -454,25 +454,25 @@ static int nwipe_execute_ata_sanitize_crypto_scramble( nwipe_context_t* c )
 
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Sanitize Crypto Scramble: command line for device %s is too long.", dev );
+        wype_log( WYPE_LOG_ERROR, "ATA Sanitize Crypto Scramble: command line for device %s is too long.", dev );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting ATA Sanitize Crypto Scramble via hdparm on %s.", dev );
+    wype_log( WYPE_LOG_NOTICE, "Starting ATA Sanitize Crypto Scramble via hdparm on %s.", dev );
 
     errno = 0;
     rc = system( cmd );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Sanitize Crypto Scramble failed on %s (rc=%d).", dev, rc );
+        wype_log( WYPE_LOG_ERROR, "ATA Sanitize Crypto Scramble failed on %s (rc=%d).", dev, rc );
         return -1;
     }
 
     return 0;
 }
 
-static int nwipe_execute_scsi_sanitize_crypto_erase( nwipe_context_t* c )
+static int wype_execute_scsi_sanitize_crypto_erase( wype_context_t* c )
 {
     char cmd[512];
     char dev[256];
@@ -480,14 +480,14 @@ static int nwipe_execute_scsi_sanitize_crypto_erase( nwipe_context_t* c )
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "SCSI Sanitize Crypto Erase: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "SCSI Sanitize Crypto Erase: invalid context or device name." );
         return -1;
     }
 
-    if( nwipe_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
+    if( wype_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "SCSI Sanitize Crypto Erase: unable to normalize device node from %s.", c->device_name );
+        wype_log(
+            WYPE_LOG_ERROR, "SCSI Sanitize Crypto Erase: unable to normalize device node from %s.", c->device_name );
         return -1;
     }
 
@@ -499,18 +499,18 @@ static int nwipe_execute_scsi_sanitize_crypto_erase( nwipe_context_t* c )
 
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "SCSI Sanitize Crypto Erase: command line for device %s is too long.", dev );
+        wype_log( WYPE_LOG_ERROR, "SCSI Sanitize Crypto Erase: command line for device %s is too long.", dev );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting SCSI Sanitize Crypto Erase via sg_sanitize on %s.", dev );
+    wype_log( WYPE_LOG_NOTICE, "Starting SCSI Sanitize Crypto Erase via sg_sanitize on %s.", dev );
 
     errno = 0;
     rc = system( cmd );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "SCSI Sanitize Crypto Erase failed on %s (rc=%d).", dev, rc );
+        wype_log( WYPE_LOG_ERROR, "SCSI Sanitize Crypto Erase failed on %s (rc=%d).", dev, rc );
         return -1;
     }
 
@@ -519,7 +519,7 @@ static int nwipe_execute_scsi_sanitize_crypto_erase( nwipe_context_t* c )
 
 /* ------------------------------------------------------------------------ */
 
-static int nwipe_execute_nvme_sanitize_block_erase( nwipe_context_t* c )
+static int wype_execute_nvme_sanitize_block_erase( wype_context_t* c )
 {
     char cmd[512];
     char ctrl[256];
@@ -527,14 +527,14 @@ static int nwipe_execute_nvme_sanitize_block_erase( nwipe_context_t* c )
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Sanitize Block Erase: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Block Erase: invalid context or device name." );
         return -1;
     }
 
-    if( nwipe_nvme_controller_from_node( c->device_name, ctrl, sizeof( ctrl ) ) != 0 )
+    if( wype_nvme_controller_from_node( c->device_name, ctrl, sizeof( ctrl ) ) != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "NVMe Sanitize Block Erase: unable to derive controller node from %s.", c->device_name );
+        wype_log(
+            WYPE_LOG_ERROR, "NVMe Sanitize Block Erase: unable to derive controller node from %s.", c->device_name );
         return -1;
     }
 
@@ -542,25 +542,25 @@ static int nwipe_execute_nvme_sanitize_block_erase( nwipe_context_t* c )
     rc = snprintf( cmd, sizeof( cmd ), "nvme sanitize '%s' -a 2 >/dev/null 2>&1", ctrl );
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Sanitize Block Erase: command line for device %s is too long.", ctrl );
+        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Block Erase: command line for device %s is too long.", ctrl );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting NVMe Sanitize Block Erase via nvme on %s (from %s).", ctrl, c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "Starting NVMe Sanitize Block Erase via nvme on %s (from %s).", ctrl, c->device_name );
 
     errno = 0;
     rc = system( cmd );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Sanitize Block Erase failed on %s (rc=%d).", ctrl, rc );
+        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Block Erase failed on %s (rc=%d).", ctrl, rc );
         return -1;
     }
 
     return 0;
 }
 
-static int nwipe_execute_nvme_sanitize_overwrite( nwipe_context_t* c )
+static int wype_execute_nvme_sanitize_overwrite( wype_context_t* c )
 {
     char cmd[512];
     char ctrl[256];
@@ -568,14 +568,14 @@ static int nwipe_execute_nvme_sanitize_overwrite( nwipe_context_t* c )
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Sanitize Overwrite: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Overwrite: invalid context or device name." );
         return -1;
     }
 
-    if( nwipe_nvme_controller_from_node( c->device_name, ctrl, sizeof( ctrl ) ) != 0 )
+    if( wype_nvme_controller_from_node( c->device_name, ctrl, sizeof( ctrl ) ) != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "NVMe Sanitize Overwrite: unable to derive controller node from %s.", c->device_name );
+        wype_log(
+            WYPE_LOG_ERROR, "NVMe Sanitize Overwrite: unable to derive controller node from %s.", c->device_name );
         return -1;
     }
 
@@ -583,25 +583,25 @@ static int nwipe_execute_nvme_sanitize_overwrite( nwipe_context_t* c )
     rc = snprintf( cmd, sizeof( cmd ), "nvme sanitize '%s' -a 3 >/dev/null 2>&1", ctrl );
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Sanitize Overwrite: command line for device %s is too long.", ctrl );
+        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Overwrite: command line for device %s is too long.", ctrl );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting NVMe Sanitize Overwrite via nvme on %s (from %s).", ctrl, c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "Starting NVMe Sanitize Overwrite via nvme on %s (from %s).", ctrl, c->device_name );
 
     errno = 0;
     rc = system( cmd );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Sanitize Overwrite failed on %s (rc=%d).", ctrl, rc );
+        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Overwrite failed on %s (rc=%d).", ctrl, rc );
         return -1;
     }
 
     return 0;
 }
 
-static int nwipe_execute_ata_sanitize_block_erase( nwipe_context_t* c )
+static int wype_execute_ata_sanitize_block_erase( wype_context_t* c )
 {
     char cmd[512];
     char dev[256];
@@ -609,14 +609,14 @@ static int nwipe_execute_ata_sanitize_block_erase( nwipe_context_t* c )
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Sanitize Block Erase: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "ATA Sanitize Block Erase: invalid context or device name." );
         return -1;
     }
 
-    if( nwipe_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
+    if( wype_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "ATA Sanitize Block Erase: unable to normalize device node from %s.", c->device_name );
+        wype_log(
+            WYPE_LOG_ERROR, "ATA Sanitize Block Erase: unable to normalize device node from %s.", c->device_name );
         return -1;
     }
 
@@ -624,25 +624,25 @@ static int nwipe_execute_ata_sanitize_block_erase( nwipe_context_t* c )
         cmd, sizeof( cmd ), "hdparm --yes-i-know-what-i-am-doing --sanitize-block-erase '%s' >/dev/null 2>&1", dev );
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Sanitize Block Erase: command line for device %s is too long.", dev );
+        wype_log( WYPE_LOG_ERROR, "ATA Sanitize Block Erase: command line for device %s is too long.", dev );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting ATA Sanitize Block Erase via hdparm on %s.", dev );
+    wype_log( WYPE_LOG_NOTICE, "Starting ATA Sanitize Block Erase via hdparm on %s.", dev );
 
     errno = 0;
     rc = system( cmd );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Sanitize Block Erase failed on %s (rc=%d).", dev, rc );
+        wype_log( WYPE_LOG_ERROR, "ATA Sanitize Block Erase failed on %s (rc=%d).", dev, rc );
         return -1;
     }
 
     return 0;
 }
 
-static int nwipe_execute_ata_sanitize_overwrite( nwipe_context_t* c )
+static int wype_execute_ata_sanitize_overwrite( wype_context_t* c )
 {
     char cmd[512];
     char dev[256];
@@ -650,14 +650,14 @@ static int nwipe_execute_ata_sanitize_overwrite( nwipe_context_t* c )
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Sanitize Overwrite: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "ATA Sanitize Overwrite: invalid context or device name." );
         return -1;
     }
 
-    if( nwipe_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
+    if( wype_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "ATA Sanitize Overwrite: unable to normalize device node from %s.", c->device_name );
+        wype_log(
+            WYPE_LOG_ERROR, "ATA Sanitize Overwrite: unable to normalize device node from %s.", c->device_name );
         return -1;
     }
 
@@ -673,25 +673,25 @@ static int nwipe_execute_ata_sanitize_overwrite( nwipe_context_t* c )
         dev );
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Sanitize Overwrite: command line for device %s is too long.", dev );
+        wype_log( WYPE_LOG_ERROR, "ATA Sanitize Overwrite: command line for device %s is too long.", dev );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting ATA Sanitize Overwrite via hdparm on %s.", dev );
+    wype_log( WYPE_LOG_NOTICE, "Starting ATA Sanitize Overwrite via hdparm on %s.", dev );
 
     errno = 0;
     rc = system( cmd );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "ATA Sanitize Overwrite failed on %s (rc=%d).", dev, rc );
+        wype_log( WYPE_LOG_ERROR, "ATA Sanitize Overwrite failed on %s (rc=%d).", dev, rc );
         return -1;
     }
 
     return 0;
 }
 
-static int nwipe_execute_scsi_sanitize_block_erase( nwipe_context_t* c )
+static int wype_execute_scsi_sanitize_block_erase( wype_context_t* c )
 {
     char cmd[512];
     char dev[256];
@@ -699,39 +699,39 @@ static int nwipe_execute_scsi_sanitize_block_erase( nwipe_context_t* c )
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "SCSI Sanitize Block Erase: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "SCSI Sanitize Block Erase: invalid context or device name." );
         return -1;
     }
 
-    if( nwipe_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
+    if( wype_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "SCSI Sanitize Block Erase: unable to normalize device node from %s.", c->device_name );
+        wype_log(
+            WYPE_LOG_ERROR, "SCSI Sanitize Block Erase: unable to normalize device node from %s.", c->device_name );
         return -1;
     }
 
     rc = snprintf( cmd, sizeof( cmd ), "sg_sanitize --block '%s' >/dev/null 2>&1", dev );
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "SCSI Sanitize Block Erase: command line for device %s is too long.", dev );
+        wype_log( WYPE_LOG_ERROR, "SCSI Sanitize Block Erase: command line for device %s is too long.", dev );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting SCSI Sanitize Block Erase via sg_sanitize on %s.", dev );
+    wype_log( WYPE_LOG_NOTICE, "Starting SCSI Sanitize Block Erase via sg_sanitize on %s.", dev );
 
     errno = 0;
     rc = system( cmd );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "SCSI Sanitize Block Erase failed on %s (rc=%d).", dev, rc );
+        wype_log( WYPE_LOG_ERROR, "SCSI Sanitize Block Erase failed on %s (rc=%d).", dev, rc );
         return -1;
     }
 
     return 0;
 }
 
-static int nwipe_execute_scsi_sanitize_overwrite( nwipe_context_t* c )
+static int wype_execute_scsi_sanitize_overwrite( wype_context_t* c )
 {
     char cmd[512];
     char dev[256];
@@ -739,14 +739,14 @@ static int nwipe_execute_scsi_sanitize_overwrite( nwipe_context_t* c )
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "SCSI Sanitize Overwrite: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "SCSI Sanitize Overwrite: invalid context or device name." );
         return -1;
     }
 
-    if( nwipe_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
+    if( wype_strip_partition_suffix( c->device_name, dev, sizeof( dev ) ) != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "SCSI Sanitize Overwrite: unable to normalize device node from %s.", c->device_name );
+        wype_log(
+            WYPE_LOG_ERROR, "SCSI Sanitize Overwrite: unable to normalize device node from %s.", c->device_name );
         return -1;
     }
 
@@ -754,32 +754,32 @@ static int nwipe_execute_scsi_sanitize_overwrite( nwipe_context_t* c )
     rc = snprintf( cmd, sizeof( cmd ), "sg_sanitize --overwrite --zero '%s' >/dev/null 2>&1", dev );
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "SCSI Sanitize Overwrite: command line for device %s is too long.", dev );
+        wype_log( WYPE_LOG_ERROR, "SCSI Sanitize Overwrite: command line for device %s is too long.", dev );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting SCSI Sanitize Overwrite via sg_sanitize on %s.", dev );
+    wype_log( WYPE_LOG_NOTICE, "Starting SCSI Sanitize Overwrite via sg_sanitize on %s.", dev );
 
     errno = 0;
     rc = system( cmd );
 
     if( rc != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "SCSI Sanitize Overwrite failed on %s (rc=%d).", dev, rc );
+        wype_log( WYPE_LOG_ERROR, "SCSI Sanitize Overwrite failed on %s (rc=%d).", dev, rc );
         return -1;
     }
 
     return 0;
 }
 
-static int nwipe_execute_nvme_secure_erase( nwipe_context_t* c )
+static int wype_execute_nvme_secure_erase( wype_context_t* c )
 {
     char cmd[512];
     int rc;
 
     if( c == NULL || c->device_name == NULL )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Secure Erase: invalid context or device name." );
+        wype_log( WYPE_LOG_ERROR, "NVMe Secure Erase: invalid context or device name." );
         return -1;
     }
 
@@ -799,11 +799,11 @@ static int nwipe_execute_nvme_secure_erase( nwipe_context_t* c )
 
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Secure Erase: command line for device %s is too long.", c->device_name );
+        wype_log( WYPE_LOG_ERROR, "NVMe Secure Erase: command line for device %s is too long.", c->device_name );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting NVMe Secure Erase via nvme format on %s.", c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "Starting NVMe Secure Erase via nvme format on %s.", c->device_name );
 
     errno = 0;
     rc = system( cmd );
@@ -814,8 +814,8 @@ static int nwipe_execute_nvme_secure_erase( nwipe_context_t* c )
          * system() itself failed (fork/exec or similar). This usually
          * indicates a serious problem (e.g. no memory, no /bin/sh).
          */
-        nwipe_perror( errno, __FUNCTION__, "system" );
-        nwipe_log( NWIPE_LOG_ERROR, "NVMe Secure Erase: failed to invoke nvme for %s.", c->device_name );
+        wype_perror( errno, __FUNCTION__, "system" );
+        wype_log( WYPE_LOG_ERROR, "NVMe Secure Erase: failed to invoke nvme for %s.", c->device_name );
         return -1;
     }
 
@@ -825,24 +825,24 @@ static int nwipe_execute_nvme_secure_erase( nwipe_context_t* c )
      */
     if( rc != 0 )
     {
-        nwipe_log(
-            NWIPE_LOG_ERROR, "NVMe Secure Erase: nvme format reported failure on %s (rc=%d).", c->device_name, rc );
+        wype_log(
+            WYPE_LOG_ERROR, "NVMe Secure Erase: nvme format reported failure on %s (rc=%d).", c->device_name, rc );
         return -1;
     }
 
-    nwipe_log( NWIPE_LOG_NOTICE, "NVMe Secure Erase completed successfully on %s.", c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "NVMe Secure Erase completed successfully on %s.", c->device_name );
 
     return 0;
 }
 
-void* nwipe_zero( void* ptr )
+void* wype_zero( void* ptr )
 {
     /**
      * Fill the device with zeroes.
      */
 
-    nwipe_context_t* c;
-    c = (nwipe_context_t*) ptr;
+    wype_context_t* c;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -853,11 +853,11 @@ void* nwipe_zero( void* ptr )
     /* setup for a zero-fill. */
 
     char zerofill[1] = { '\x00' };
-    nwipe_pattern_t patterns[] = { { 1, &zerofill[0] },  // pass 1: 0s
+    wype_pattern_t patterns[] = { { 1, &zerofill[0] },  // pass 1: 0s
                                    { 0, NULL } };
 
     /* Run the method. */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Finished. Set the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -866,16 +866,16 @@ void* nwipe_zero( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_zero */
+} /* wype_zero */
 
-void* nwipe_one( void* ptr )
+void* wype_one( void* ptr )
 {
     /**
      * Fill the device with ones.
      */
 
-    nwipe_context_t* c;
-    c = (nwipe_context_t*) ptr;
+    wype_context_t* c;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -886,11 +886,11 @@ void* nwipe_one( void* ptr )
     /* setup for a one-fill. */
 
     char onefill[1] = { '\xFF' };
-    nwipe_pattern_t patterns[] = { { 1, &onefill[0] },  // pass 1: 1s
+    wype_pattern_t patterns[] = { { 1, &onefill[0] },  // pass 1: 1s
                                    { 0, NULL } };
 
     /* Run the method. */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Finished. Set the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -899,16 +899,16 @@ void* nwipe_one( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_one */
+} /* wype_one */
 
-void* nwipe_verify_zero( void* ptr )
+void* wype_verify_zero( void* ptr )
 {
     /**
      * Verify the device is full of zeros.
      */
 
-    nwipe_context_t* c;
-    c = (nwipe_context_t*) ptr;
+    wype_context_t* c;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -916,11 +916,11 @@ void* nwipe_verify_zero( void* ptr )
     /* set wipe in progress flag for GUI */
     c->wipe_status = 1;
 
-    /* Do nothing because nwipe_runmethod appends a zero-fill. */
-    nwipe_pattern_t patterns[] = { { 0, NULL } };
+    /* Do nothing because wype_runmethod appends a zero-fill. */
+    wype_pattern_t patterns[] = { { 0, NULL } };
 
     /* Run the method. */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Finished. Set the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -929,16 +929,16 @@ void* nwipe_verify_zero( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_verify zeros */
+} /* wype_verify zeros */
 
-void* nwipe_verify_one( void* ptr )
+void* wype_verify_one( void* ptr )
 {
     /**
      * Verify the device is full of ones.
      */
 
-    nwipe_context_t* c;
-    c = (nwipe_context_t*) ptr;
+    wype_context_t* c;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -946,11 +946,11 @@ void* nwipe_verify_one( void* ptr )
     /* set wipe in progress flag for GUI */
     c->wipe_status = 1;
 
-    /* Do nothing because nwipe_runmethod appends a zero-fill. */
-    nwipe_pattern_t patterns[] = { { 0, NULL } };
+    /* Do nothing because wype_runmethod appends a zero-fill. */
+    wype_pattern_t patterns[] = { { 0, NULL } };
 
     /* Run the method. */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Finished. Set the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -959,17 +959,17 @@ void* nwipe_verify_one( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_verify */
+} /* wype_verify */
 
-void* nwipe_dod522022m( void* ptr )
+void* wype_dod522022m( void* ptr )
 {
     /**
      * United States Department of Defense 5220.22-M standard wipe.
      *
      */
 
-    nwipe_context_t* c;
-    c = (nwipe_context_t*) ptr;
+    wype_context_t* c;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -983,7 +983,7 @@ void* nwipe_dod522022m( void* ptr )
     /* Random characters. (Elements 2 and 6 are unused.) */
     char dod[7];
 
-    nwipe_pattern_t patterns[] = { { 1, &dod[0] },  // Pass 1: A random character.
+    wype_pattern_t patterns[] = { { 1, &dod[0] },  // Pass 1: A random character.
                                    { 1, &dod[1] },  // Pass 2: The bitwise complement of pass 1.
                                    { -1, "" },  // Pass 3: A random stream.
                                    { 1, &dod[3] },  // Pass 4: A random character.
@@ -993,7 +993,7 @@ void* nwipe_dod522022m( void* ptr )
                                    { 0, NULL } };
 
     /* Load the array with random characters. */
-    r = nwipe_read_entropy( &dod, sizeof( dod ) );
+    r = wype_read_entropy( &dod, sizeof( dod ) );
 
     /* NOTE: Only the random data in dod[0], dod[3], and dod[4] is actually used. */
 
@@ -1001,8 +1001,8 @@ void* nwipe_dod522022m( void* ptr )
     if( r != sizeof( dod ) )
     {
         r = errno;
-        nwipe_perror( r, __FUNCTION__, "read" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to seed the %s method.", nwipe_dod522022m_label );
+        wype_perror( r, __FUNCTION__, "read" );
+        wype_log( WYPE_LOG_FATAL, "Unable to seed the %s method.", wype_dod522022m_label );
 
         /* Ensure a negative return. */
         if( r < 0 )
@@ -1024,7 +1024,7 @@ void* nwipe_dod522022m( void* ptr )
     dod[5] = ~dod[4];
 
     /* Run the DoD 5220.22-M method. */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Finished. Set the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -1033,9 +1033,9 @@ void* nwipe_dod522022m( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_dod522022m */
+} /* wype_dod522022m */
 
-void* nwipe_dodshort( void* ptr )
+void* wype_dodshort( void* ptr )
 {
     /**
      * United States Department of Defense 5220.22-M short wipe.
@@ -1043,8 +1043,8 @@ void* nwipe_dodshort( void* ptr )
      *
      */
 
-    nwipe_context_t* c;
-    c = (nwipe_context_t*) ptr;
+    wype_context_t* c;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -1058,13 +1058,13 @@ void* nwipe_dodshort( void* ptr )
     /* Random characters. (Element 3 is unused.) */
     char dod[3];
 
-    nwipe_pattern_t patterns[] = { { 1, &dod[0] },  // Pass 1: A random character.
+    wype_pattern_t patterns[] = { { 1, &dod[0] },  // Pass 1: A random character.
                                    { 1, &dod[1] },  // Pass 2: The bitwise complement of pass 1.
                                    { -1, "" },  // Pass 3: A random stream.
                                    { 0, NULL } };
 
     /* Load the array with random characters. */
-    r = nwipe_read_entropy( &dod, sizeof( dod ) );
+    r = wype_read_entropy( &dod, sizeof( dod ) );
 
     /* NOTE: Only the random data in dod[0] is actually used. */
 
@@ -1072,8 +1072,8 @@ void* nwipe_dodshort( void* ptr )
     if( r != sizeof( dod ) )
     {
         r = errno;
-        nwipe_perror( r, __FUNCTION__, "read" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to seed the %s method.", nwipe_dodshort_label );
+        wype_perror( r, __FUNCTION__, "read" );
+        wype_log( WYPE_LOG_FATAL, "Unable to seed the %s method.", wype_dodshort_label );
 
         /* Ensure a negative return. */
         if( r < 0 )
@@ -1092,7 +1092,7 @@ void* nwipe_dodshort( void* ptr )
     dod[1] = ~dod[0];
 
     /* Run the DoD 5220.022-M short method. */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Finished. Set the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -1101,17 +1101,17 @@ void* nwipe_dodshort( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_dodshort */
+} /* wype_dodshort */
 
-void* nwipe_gutmann( void* ptr )
+void* wype_gutmann( void* ptr )
 {
     /**
      * Peter Gutmann's wipe.
      *
      */
 
-    nwipe_context_t* c;
-    c = (nwipe_context_t*) ptr;
+    wype_context_t* c;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -1120,7 +1120,7 @@ void* nwipe_gutmann( void* ptr )
     c->wipe_status = 1;
 
     /* Define the Gutmann method. */
-    nwipe_pattern_t book[] = { { -1, "" },  // Random pass.
+    wype_pattern_t book[] = { { -1, "" },  // Random pass.
                                { -1, "" },  // Random pass.
                                { -1, "" },  // Random pass.
                                { -1, "" },  // Random pass.
@@ -1158,18 +1158,18 @@ void* nwipe_gutmann( void* ptr )
                                { 0, NULL } };
 
     /* Put the book array into this array in random order. */
-    nwipe_pattern_t patterns[36];
+    wype_pattern_t patterns[36];
 
     /* An entropy buffer. */
     u16 s[27];
 
     /* Load the array with random characters. */
-    ssize_t r = nwipe_read_entropy( &s, sizeof( s ) );
+    ssize_t r = wype_read_entropy( &s, sizeof( s ) );
     if( r != sizeof( s ) )
     {
         r = errno;
-        nwipe_perror( r, __FUNCTION__, "read" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to seed the %s method.", nwipe_gutmann_label );
+        wype_perror( r, __FUNCTION__, "read" );
+        wype_log( WYPE_LOG_FATAL, "Unable to seed the %s method.", wype_gutmann_label );
 
         /* Ensure a negative return. */
         if( r < 0 )
@@ -1227,7 +1227,7 @@ void* nwipe_gutmann( void* ptr )
     patterns[35].s = NULL;
 
     /* Run the Gutmann method. */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Finished. Set the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -1236,21 +1236,21 @@ void* nwipe_gutmann( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_gutmann */
+} /* wype_gutmann */
 
-void* nwipe_ops2( void* ptr )
+void* wype_ops2( void* ptr )
 {
     /**
      *  Royal Canadian Mounted Police
      *  Technical Security Standard for Information Technology
      *  Appendix OPS-II: Media Sanitization
      *
-     *  NOTE: The last pass of this method is specially handled by nwipe_runmethod.
+     *  NOTE: The last pass of this method is specially handled by wype_runmethod.
      *
      */
 
-    nwipe_context_t* c;
-    c = (nwipe_context_t*) ptr;
+    wype_context_t* c;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -1274,21 +1274,21 @@ void* nwipe_ops2( void* ptr )
     u32 u;
 
     /* The pattern array for this method is dynamically allocated. */
-    nwipe_pattern_t* patterns;
+    wype_pattern_t* patterns;
 
     /* The element count of 'patterns'. */
     u32 q;
 
     /* We need one random character per round. */
-    u = 1 * nwipe_options.rounds;
+    u = 1 * wype_options.rounds;
 
     /* Allocate the array of random characters. */
     s = malloc( sizeof( char ) * u );
 
     if( s == NULL )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate the random character array." );
+        wype_perror( errno, __FUNCTION__, "malloc" );
+        wype_log( WYPE_LOG_FATAL, "Unable to allocate the random character array." );
         c->result = -1;
         return NULL;
     }
@@ -1298,8 +1298,8 @@ void* nwipe_ops2( void* ptr )
 
     if( t == NULL )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate the complement character array." );
+        wype_perror( errno, __FUNCTION__, "malloc" );
+        wype_log( WYPE_LOG_FATAL, "Unable to allocate the complement character array." );
         c->result = -1;
         free( s );
         return NULL;
@@ -1309,12 +1309,12 @@ void* nwipe_ops2( void* ptr )
     q = 8 * u + 1;
 
     /* Allocate the pattern array. */
-    patterns = malloc( sizeof( nwipe_pattern_t ) * q );
+    patterns = malloc( sizeof( wype_pattern_t ) * q );
 
     if( patterns == NULL )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate the pattern array." );
+        wype_perror( errno, __FUNCTION__, "malloc" );
+        wype_log( WYPE_LOG_FATAL, "Unable to allocate the pattern array." );
         c->result = -1;
         free( s );
         free( t );
@@ -1322,13 +1322,13 @@ void* nwipe_ops2( void* ptr )
     }
 
     /* Load the array of random characters. */
-    r = nwipe_read_entropy( s, u );
+    r = wype_read_entropy( s, u );
 
     if( r != u )
     {
         r = errno;
-        nwipe_perror( r, __FUNCTION__, "read" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to seed the %s method.", nwipe_ops2_label );
+        wype_perror( r, __FUNCTION__, "read" );
+        wype_log( WYPE_LOG_FATAL, "Unable to seed the %s method.", wype_ops2_label );
 
         if( r < 0 )
         {
@@ -1384,7 +1384,7 @@ void* nwipe_ops2( void* ptr )
     patterns[q - 1].s = NULL;
 
     /* Run the TSSIT OPS-II method. */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Release the random character buffer. */
     free( s );
@@ -1404,11 +1404,11 @@ void* nwipe_ops2( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_ops2 */
+} /* wype_ops2 */
 
-void* nwipe_is5enh( void* ptr )
+void* wype_is5enh( void* ptr )
 {
-    nwipe_context_t* c = (nwipe_context_t*) ptr;
+    wype_context_t* c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -1416,11 +1416,11 @@ void* nwipe_is5enh( void* ptr )
     c->wipe_status = 1;
 
     char is5enh[3] = { '\x00', '\xFF', '\x00' };
-    nwipe_pattern_t patterns[] = { { 1, &is5enh[0] },  // Pass 1: 0s
+    wype_pattern_t patterns[] = { { 1, &is5enh[0] },  // Pass 1: 0s
                                    { 1, &is5enh[1] },  // Pass 2: 1s
                                    { -1, &is5enh[2] },  // Pass 3: random bytes with verification
                                    { 0, NULL } };
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     c->wipe_status = 0;
 
@@ -1428,17 +1428,17 @@ void* nwipe_is5enh( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_is5enh */
+} /* wype_is5enh */
 
-void* nwipe_random( void* ptr )
+void* wype_random( void* ptr )
 {
     /**
      * Fill the device with a stream from the PRNG.
      *
      */
 
-    nwipe_context_t* c;
-    c = (nwipe_context_t*) ptr;
+    wype_context_t* c;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -1447,10 +1447,10 @@ void* nwipe_random( void* ptr )
     c->wipe_status = 1;
 
     /* Define the random method. */
-    nwipe_pattern_t patterns[] = { { -1, "" }, { 0, NULL } };
+    wype_pattern_t patterns[] = { { -1, "" }, { 0, NULL } };
 
     /* Run the method. */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Finished. Set the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -1459,9 +1459,9 @@ void* nwipe_random( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_random */
+} /* wype_random */
 
-void* nwipe_bruce7( void* ptr )
+void* wype_bruce7( void* ptr )
 {
     /**
      * Bruce Schneier 7-Pass wiping method.
@@ -1471,7 +1471,7 @@ void* nwipe_bruce7( void* ptr )
      * Pass 3-7: Overwrite the drive with five passes of random data.
      */
 
-    nwipe_context_t* c = (nwipe_context_t*) ptr;
+    wype_context_t* c = (wype_context_t*) ptr;
 
     /* Get current time at the start of the wipe */
     time( &c->start_time );
@@ -1482,7 +1482,7 @@ void* nwipe_bruce7( void* ptr )
     /* Setup for Bruce Schneier 7-Pass method */
     char onefill[1] = { '\xFF' };
     char zerofill[1] = { '\x00' };
-    nwipe_pattern_t patterns[] = {
+    wype_pattern_t patterns[] = {
         { 1, &onefill[0] },  // Pass 1: Overwrite with ones
         { 1, &zerofill[0] },  // Pass 2: Overwrite with zeroes
         { -1, "" },  // Pass 3: Random data
@@ -1494,7 +1494,7 @@ void* nwipe_bruce7( void* ptr )
     };
 
     /* Run the Bruce Schneier 7-Pass method */
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     /* Finished. Set the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -1505,7 +1505,7 @@ void* nwipe_bruce7( void* ptr )
     return NULL;
 }
 
-void* nwipe_bmb( void* ptr )
+void* wype_bmb( void* ptr )
 {
     /**
      * BMB Secure Wipe Method:
@@ -1515,7 +1515,7 @@ void* nwipe_bmb( void* ptr )
      * Pass 6: 0xFF
      */
 
-    nwipe_context_t* c = (nwipe_context_t*) ptr;
+    wype_context_t* c = (wype_context_t*) ptr;
 
     time( &c->start_time );
     c->wipe_status = 1;
@@ -1523,7 +1523,7 @@ void* nwipe_bmb( void* ptr )
     char onefill[1] = { '\xFF' };
     char zerofill[1] = { '\x00' };
 
-    nwipe_pattern_t patterns[] = {
+    wype_pattern_t patterns[] = {
         { 1, &onefill[0] },  // 0xFF
         { 1, &zerofill[0] },  // 0x00
         { -1, "" },  // RANDOM
@@ -1533,14 +1533,14 @@ void* nwipe_bmb( void* ptr )
         { 0, NULL }  // 0X00
     };
 
-    c->result = nwipe_runmethod( c, patterns );
+    c->result = wype_runmethod( c, patterns );
 
     c->wipe_status = 0;
     time( &c->end_time );
 
     return NULL;
 }
-void* nwipe_secure_erase( void* ptr )
+void* wype_secure_erase( void* ptr )
 {
     /**
      * Perform a drive-internal secure erase (ATA/NVMe) and then verify
@@ -1548,13 +1548,13 @@ void* nwipe_secure_erase( void* ptr )
      *
      * This method does NOT write patterns itself. Instead it:
      *   1) issues the appropriate secure-erase operation for the bus type
-     *   2) performs a full-device zero verification pass using nwipe_static_verify()
+     *   2) performs a full-device zero verification pass using wype_static_verify()
      */
 
-    nwipe_context_t* c;
+    wype_context_t* c;
     int op_result = -1;
 
-    c = (nwipe_context_t*) ptr;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe  */
     time( &c->start_time );
@@ -1567,17 +1567,17 @@ void* nwipe_secure_erase( void* ptr )
      */
     switch( c->device_type )
     {
-        case NWIPE_DEVICE_NVME:
-            nwipe_log(
-                NWIPE_LOG_NOTICE, "Attempting NVMe Secure Erase on %s (%s).", c->device_name, c->device_type_str );
-            op_result = nwipe_execute_nvme_secure_erase( c );
+        case WYPE_DEVICE_NVME:
+            wype_log(
+                WYPE_LOG_NOTICE, "Attempting NVMe Secure Erase on %s (%s).", c->device_name, c->device_type_str );
+            op_result = wype_execute_nvme_secure_erase( c );
             break;
 
-        case NWIPE_DEVICE_ATA:
-        case NWIPE_DEVICE_SAS:
-            nwipe_log(
-                NWIPE_LOG_NOTICE, "Attempting ATA Secure Erase on %s (%s).", c->device_name, c->device_type_str );
-            op_result = nwipe_execute_ata_secure_erase( c );
+        case WYPE_DEVICE_ATA:
+        case WYPE_DEVICE_SAS:
+            wype_log(
+                WYPE_LOG_NOTICE, "Attempting ATA Secure Erase on %s (%s).", c->device_name, c->device_type_str );
+            op_result = wype_execute_ata_secure_erase( c );
             break;
 
         default:
@@ -1585,7 +1585,7 @@ void* nwipe_secure_erase( void* ptr )
              * For other bus types we currently do not support a drive-internal
              * secure erase operation.
              */
-            nwipe_log( NWIPE_LOG_WARNING,
+            wype_log( WYPE_LOG_WARNING,
                        "Secure Erase method is not supported on bus type %s (device %s).",
                        c->device_type_str,
                        c->device_name );
@@ -1598,7 +1598,7 @@ void* nwipe_secure_erase( void* ptr )
      */
     if( op_result != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Secure Erase could not be executed on %s. Aborting method.", c->device_name );
+        wype_log( WYPE_LOG_ERROR, "Secure Erase could not be executed on %s. Aborting method.", c->device_name );
         c->result = -1;
 
         c->wipe_status = 0;
@@ -1608,13 +1608,13 @@ void* nwipe_secure_erase( void* ptr )
 
     /*
      * Step 2: Verify that the device now reads back as all zeros.
-     * We reuse nwipe_static_verify() with a single 0x00 pattern and
+     * We reuse wype_static_verify() with a single 0x00 pattern and
      * set up the progress counters so that the GUI shows a single
      * full-device verify pass.
      */
 
     /* Single-byte zero pattern. */
-    nwipe_pattern_t pattern_zero = { 1, "\x00" };
+    wype_pattern_t pattern_zero = { 1, "\x00" };
 
     /* Initialize progress accounting for a single verify pass. */
     c->round_count = 1;
@@ -1628,15 +1628,15 @@ void* nwipe_secure_erase( void* ptr )
     c->pass_size = c->device_size;
 
     /* Mark this pass as a verification pass. */
-    c->pass_type = NWIPE_PASS_VERIFY;
+    c->pass_type = WYPE_PASS_VERIFY;
 
-    nwipe_log( NWIPE_LOG_NOTICE, "Secure erase completed for %s, starting zero verification pass.", c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "Secure erase completed for %s, starting zero verification pass.", c->device_name );
 
     /* Perform the verification. */
-    c->result = nwipe_static_verify( c, &pattern_zero );
+    c->result = wype_static_verify( c, &pattern_zero );
 
     /* Reset pass type. */
-    c->pass_type = NWIPE_PASS_NONE;
+    c->pass_type = WYPE_PASS_NONE;
 
     /* Finished. Clear the wipe_status flag so that the GUI knows */
     c->wipe_status = 0;
@@ -1645,9 +1645,9 @@ void* nwipe_secure_erase( void* ptr )
     time( &c->end_time );
 
     return NULL;
-} /* nwipe_secure_erase */
+} /* wype_secure_erase */
 
-void* nwipe_secure_erase_prng_verify( void* ptr )
+void* wype_secure_erase_prng_verify( void* ptr )
 {
     /**
      * Perform a drive-internal secure erase (ATA/NVMe), then overwrite the
@@ -1658,11 +1658,11 @@ void* nwipe_secure_erase_prng_verify( void* ptr )
      * an additional host-driven overwrite and deterministic verification.
      */
 
-    nwipe_context_t* c;
+    wype_context_t* c;
     int op_result = -1;
     ssize_t r;
 
-    c = (nwipe_context_t*) ptr;
+    c = (wype_context_t*) ptr;
 
     /* get current time at the start of the wipe */
     time( &c->start_time );
@@ -1673,21 +1673,21 @@ void* nwipe_secure_erase_prng_verify( void* ptr )
     /* Step 1: Execute the drive's internal secure erase, depending on bus type. */
     switch( c->device_type )
     {
-        case NWIPE_DEVICE_NVME:
-            nwipe_log(
-                NWIPE_LOG_NOTICE, "Attempting NVMe Secure Erase on %s (%s).", c->device_name, c->device_type_str );
-            op_result = nwipe_execute_nvme_secure_erase( c );
+        case WYPE_DEVICE_NVME:
+            wype_log(
+                WYPE_LOG_NOTICE, "Attempting NVMe Secure Erase on %s (%s).", c->device_name, c->device_type_str );
+            op_result = wype_execute_nvme_secure_erase( c );
             break;
 
-        case NWIPE_DEVICE_ATA:
-        case NWIPE_DEVICE_SAS:
-            nwipe_log(
-                NWIPE_LOG_NOTICE, "Attempting ATA Secure Erase on %s (%s).", c->device_name, c->device_type_str );
-            op_result = nwipe_execute_ata_secure_erase( c );
+        case WYPE_DEVICE_ATA:
+        case WYPE_DEVICE_SAS:
+            wype_log(
+                WYPE_LOG_NOTICE, "Attempting ATA Secure Erase on %s (%s).", c->device_name, c->device_type_str );
+            op_result = wype_execute_ata_secure_erase( c );
             break;
 
         default:
-            nwipe_log( NWIPE_LOG_WARNING,
+            wype_log( WYPE_LOG_WARNING,
                        "Secure Erase method is not supported on bus type %s (device %s).",
                        c->device_type_str,
                        c->device_name );
@@ -1697,7 +1697,7 @@ void* nwipe_secure_erase_prng_verify( void* ptr )
 
     if( op_result != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Secure Erase could not be executed on %s. Aborting method.", c->device_name );
+        wype_log( WYPE_LOG_ERROR, "Secure Erase could not be executed on %s. Aborting method.", c->device_name );
         c->result = -1;
 
         c->wipe_status = 0;
@@ -1707,27 +1707,27 @@ void* nwipe_secure_erase_prng_verify( void* ptr )
 
     /* Step 2: Seed PRNG and run a single PRNG write + verify pass. */
 
-    /* Allocate the PRNG seed buffer (mirrors nwipe_runmethod()). */
-    c->prng_seed.length = NWIPE_KNOB_PRNG_STATE_LENGTH;
+    /* Allocate the PRNG seed buffer (mirrors wype_runmethod()). */
+    c->prng_seed.length = WYPE_KNOB_PRNG_STATE_LENGTH;
     c->prng_seed.s = malloc( c->prng_seed.length );
 
     if( !c->prng_seed.s )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the prng seed buffer." );
+        wype_perror( errno, __FUNCTION__, "malloc" );
+        wype_log( WYPE_LOG_FATAL, "Unable to allocate memory for the prng seed buffer." );
         c->result = -1;
         c->wipe_status = 0;
         time( &c->end_time );
         return NULL;
     }
 
-    /* Fill the seed with entropy (mirrors random passes in nwipe_runmethod()). */
-    r = nwipe_read_entropy( c->prng_seed.s, c->prng_seed.length );
+    /* Fill the seed with entropy (mirrors random passes in wype_runmethod()). */
+    r = wype_read_entropy( c->prng_seed.s, c->prng_seed.length );
 
     if( r < 0 || r != c->prng_seed.length )
     {
-        nwipe_perror( errno, __FUNCTION__, "getrandom" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to seed the PRNG (insufficient entropy?)." );
+        wype_perror( errno, __FUNCTION__, "getrandom" );
+        wype_log( WYPE_LOG_FATAL, "Unable to seed the PRNG (insufficient entropy?)." );
         c->result = -1;
 
         c->prng_seed.length = 0;
@@ -1753,14 +1753,14 @@ void* nwipe_secure_erase_prng_verify( void* ptr )
 
     /* Pass 1: PRNG write. */
     c->pass_working = 1;
-    c->pass_type = NWIPE_PASS_WRITE;
-    nwipe_log( NWIPE_LOG_NOTICE, "Secure erase completed for %s, starting PRNG overwrite pass.", c->device_name );
+    c->pass_type = WYPE_PASS_WRITE;
+    wype_log( WYPE_LOG_NOTICE, "Secure erase completed for %s, starting PRNG overwrite pass.", c->device_name );
 
-    c->result = nwipe_random_pass( c );
+    c->result = wype_random_pass( c );
 
     if( c->result < 0 )
     {
-        c->pass_type = NWIPE_PASS_NONE;
+        c->pass_type = WYPE_PASS_NONE;
         c->prng_seed.length = 0;
         free( c->prng_seed.s );
         c->prng_seed.s = NULL;
@@ -1772,13 +1772,13 @@ void* nwipe_secure_erase_prng_verify( void* ptr )
 
     /* Pass 2: PRNG verify. */
     c->pass_working = 2;
-    c->pass_type = NWIPE_PASS_VERIFY;
-    nwipe_log( NWIPE_LOG_NOTICE, "Starting PRNG verification pass for %s.", c->device_name );
+    c->pass_type = WYPE_PASS_VERIFY;
+    wype_log( WYPE_LOG_NOTICE, "Starting PRNG verification pass for %s.", c->device_name );
 
-    c->result = nwipe_random_verify( c );
+    c->result = wype_random_verify( c );
 
     /* Reset pass type. */
-    c->pass_type = NWIPE_PASS_NONE;
+    c->pass_type = WYPE_PASS_NONE;
 
     /* Release the seed buffer. */
     c->prng_seed.length = 0;
@@ -1794,7 +1794,7 @@ void* nwipe_secure_erase_prng_verify( void* ptr )
     return NULL;
 }
 
-void* nwipe_sanitize_crypto_erase( void* ptr )
+void* wype_sanitize_crypto_erase( void* ptr )
 {
     /**
      * Perform a Sanitize "Crypto Erase" operation where supported:
@@ -1808,10 +1808,10 @@ void* nwipe_sanitize_crypto_erase( void* ptr )
      * intentionally do NOT run a zero-verify pass here.
      */
 
-    nwipe_context_t* c;
+    wype_context_t* c;
     int op_result = -1;
 
-    c = (nwipe_context_t*) ptr;
+    c = (wype_context_t*) ptr;
 
     if( c == NULL )
     {
@@ -1824,32 +1824,32 @@ void* nwipe_sanitize_crypto_erase( void* ptr )
 
     switch( c->device_type )
     {
-        case NWIPE_DEVICE_NVME:
-            nwipe_log( NWIPE_LOG_NOTICE,
+        case WYPE_DEVICE_NVME:
+            wype_log( WYPE_LOG_NOTICE,
                        "Attempting NVMe Sanitize Crypto Erase on %s (%s).",
                        c->device_name,
                        c->device_type_str );
-            op_result = nwipe_execute_nvme_sanitize_crypto_erase( c );
+            op_result = wype_execute_nvme_sanitize_crypto_erase( c );
             break;
 
-        case NWIPE_DEVICE_ATA:
-            nwipe_log( NWIPE_LOG_NOTICE,
+        case WYPE_DEVICE_ATA:
+            wype_log( WYPE_LOG_NOTICE,
                        "Attempting ATA Sanitize Crypto Scramble on %s (%s).",
                        c->device_name,
                        c->device_type_str );
-            op_result = nwipe_execute_ata_sanitize_crypto_scramble( c );
+            op_result = wype_execute_ata_sanitize_crypto_scramble( c );
             break;
 
-        case NWIPE_DEVICE_SAS:
-            nwipe_log( NWIPE_LOG_NOTICE,
+        case WYPE_DEVICE_SAS:
+            wype_log( WYPE_LOG_NOTICE,
                        "Attempting SCSI Sanitize Crypto Erase on %s (%s).",
                        c->device_name,
                        c->device_type_str );
-            op_result = nwipe_execute_scsi_sanitize_crypto_erase( c );
+            op_result = wype_execute_scsi_sanitize_crypto_erase( c );
             break;
 
         default:
-            nwipe_log( NWIPE_LOG_WARNING,
+            wype_log( WYPE_LOG_WARNING,
                        "Sanitize Crypto Erase method is not supported on bus type %s (device %s).",
                        c->device_type_str,
                        c->device_name );
@@ -1859,21 +1859,21 @@ void* nwipe_sanitize_crypto_erase( void* ptr )
 
     if( op_result != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Sanitize Crypto Erase failed on %s.", c->device_name );
+        wype_log( WYPE_LOG_ERROR, "Sanitize Crypto Erase failed on %s.", c->device_name );
         c->wipe_status = 0;
         time( &c->end_time );
         return NULL;
     }
 
     /* Successful completion. */
-    nwipe_log( NWIPE_LOG_NOTICE, "Sanitize Crypto Erase completed on %s.", c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "Sanitize Crypto Erase completed on %s.", c->device_name );
 
     c->wipe_status = 0;
     time( &c->end_time );
     return NULL;
 }
 
-void* nwipe_sanitize_block_erase( void* ptr )
+void* wype_sanitize_block_erase( void* ptr )
 {
     /**
      * Perform a Sanitize "Block Erase" operation where supported:
@@ -1886,10 +1886,10 @@ void* nwipe_sanitize_block_erase( void* ptr )
      * on some devices. We therefore do NOT run a verification pass here.
      */
 
-    nwipe_context_t* c;
+    wype_context_t* c;
     int op_result = -1;
 
-    c = (nwipe_context_t*) ptr;
+    c = (wype_context_t*) ptr;
 
     if( c == NULL )
     {
@@ -1902,32 +1902,32 @@ void* nwipe_sanitize_block_erase( void* ptr )
 
     switch( c->device_type )
     {
-        case NWIPE_DEVICE_NVME:
-            nwipe_log( NWIPE_LOG_NOTICE,
+        case WYPE_DEVICE_NVME:
+            wype_log( WYPE_LOG_NOTICE,
                        "Attempting NVMe Sanitize Block Erase on %s (%s).",
                        c->device_name,
                        c->device_type_str );
-            op_result = nwipe_execute_nvme_sanitize_block_erase( c );
+            op_result = wype_execute_nvme_sanitize_block_erase( c );
             break;
 
-        case NWIPE_DEVICE_ATA:
-            nwipe_log( NWIPE_LOG_NOTICE,
+        case WYPE_DEVICE_ATA:
+            wype_log( WYPE_LOG_NOTICE,
                        "Attempting ATA Sanitize Block Erase on %s (%s).",
                        c->device_name,
                        c->device_type_str );
-            op_result = nwipe_execute_ata_sanitize_block_erase( c );
+            op_result = wype_execute_ata_sanitize_block_erase( c );
             break;
 
-        case NWIPE_DEVICE_SAS:
-            nwipe_log( NWIPE_LOG_NOTICE,
+        case WYPE_DEVICE_SAS:
+            wype_log( WYPE_LOG_NOTICE,
                        "Attempting SCSI Sanitize Block Erase on %s (%s).",
                        c->device_name,
                        c->device_type_str );
-            op_result = nwipe_execute_scsi_sanitize_block_erase( c );
+            op_result = wype_execute_scsi_sanitize_block_erase( c );
             break;
 
         default:
-            nwipe_log( NWIPE_LOG_WARNING,
+            wype_log( WYPE_LOG_WARNING,
                        "Sanitize Block Erase method is not supported on bus type %s (device %s).",
                        c->device_type_str,
                        c->device_name );
@@ -1937,21 +1937,21 @@ void* nwipe_sanitize_block_erase( void* ptr )
 
     if( op_result != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Sanitize Block Erase failed on %s.", c->device_name );
+        wype_log( WYPE_LOG_ERROR, "Sanitize Block Erase failed on %s.", c->device_name );
         c->wipe_status = 0;
         time( &c->end_time );
         return NULL;
     }
 
     /* Successful completion. */
-    nwipe_log( NWIPE_LOG_NOTICE, "Sanitize Block Erase completed on %s.", c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "Sanitize Block Erase completed on %s.", c->device_name );
 
     c->wipe_status = 0;
     time( &c->end_time );
     return NULL;
 }
 
-void* nwipe_sanitize_overwrite( void* ptr )
+void* wype_sanitize_overwrite( void* ptr )
 {
     /**
      * Perform a Sanitize "Overwrite" operation where supported:
@@ -1964,10 +1964,10 @@ void* nwipe_sanitize_overwrite( void* ptr )
      * across all devices/firmware combinations. We therefore do NOT run a verify pass here.
      */
 
-    nwipe_context_t* c;
+    wype_context_t* c;
     int op_result = -1;
 
-    c = (nwipe_context_t*) ptr;
+    c = (wype_context_t*) ptr;
 
     if( c == NULL )
     {
@@ -1980,30 +1980,30 @@ void* nwipe_sanitize_overwrite( void* ptr )
 
     switch( c->device_type )
     {
-        case NWIPE_DEVICE_NVME:
-            nwipe_log( NWIPE_LOG_NOTICE,
+        case WYPE_DEVICE_NVME:
+            wype_log( WYPE_LOG_NOTICE,
                        "Attempting NVMe Sanitize Overwrite on %s (%s).",
                        c->device_name,
                        c->device_type_str );
-            op_result = nwipe_execute_nvme_sanitize_overwrite( c );
+            op_result = wype_execute_nvme_sanitize_overwrite( c );
             break;
 
-        case NWIPE_DEVICE_ATA:
-            nwipe_log(
-                NWIPE_LOG_NOTICE, "Attempting ATA Sanitize Overwrite on %s (%s).", c->device_name, c->device_type_str );
-            op_result = nwipe_execute_ata_sanitize_overwrite( c );
+        case WYPE_DEVICE_ATA:
+            wype_log(
+                WYPE_LOG_NOTICE, "Attempting ATA Sanitize Overwrite on %s (%s).", c->device_name, c->device_type_str );
+            op_result = wype_execute_ata_sanitize_overwrite( c );
             break;
 
-        case NWIPE_DEVICE_SAS:
-            nwipe_log( NWIPE_LOG_NOTICE,
+        case WYPE_DEVICE_SAS:
+            wype_log( WYPE_LOG_NOTICE,
                        "Attempting SCSI Sanitize Overwrite on %s (%s).",
                        c->device_name,
                        c->device_type_str );
-            op_result = nwipe_execute_scsi_sanitize_overwrite( c );
+            op_result = wype_execute_scsi_sanitize_overwrite( c );
             break;
 
         default:
-            nwipe_log( NWIPE_LOG_WARNING,
+            wype_log( WYPE_LOG_WARNING,
                        "Sanitize Overwrite method is not supported on bus type %s (device %s).",
                        c->device_type_str,
                        c->device_name );
@@ -2013,14 +2013,14 @@ void* nwipe_sanitize_overwrite( void* ptr )
 
     if( op_result != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Sanitize Overwrite failed on %s.", c->device_name );
+        wype_log( WYPE_LOG_ERROR, "Sanitize Overwrite failed on %s.", c->device_name );
         c->wipe_status = 0;
         time( &c->end_time );
         return NULL;
     }
 
     /* Successful completion. */
-    nwipe_log( NWIPE_LOG_NOTICE, "Sanitize Overwrite completed on %s.", c->device_name );
+    wype_log( WYPE_LOG_NOTICE, "Sanitize Overwrite completed on %s.", c->device_name );
 
     c->wipe_status = 0;
     time( &c->end_time );
@@ -2036,12 +2036,12 @@ void* nwipe_sanitize_overwrite( void* ptr )
  *
  * Returns 1 if verification should be skipped, 0 otherwise.
  */
-static int nwipe_should_skip_verify( nwipe_context_t* c )
+static int wype_should_skip_verify( wype_context_t* c )
 {
     if( c->pass_errors == 0 )
         return 0;
 
-    nwipe_log( NWIPE_LOG_WARNING,
+    wype_log( WYPE_LOG_WARNING,
                "Skipping verification of pass %i/%i on %s due to %llu pass errors.",
                c->pass_working,
                c->pass_count,
@@ -2052,7 +2052,7 @@ static int nwipe_should_skip_verify( nwipe_context_t* c )
     return 1;
 }
 
-int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
+int wype_runmethod( wype_context_t* c, wype_pattern_t* patterns )
 {
     /**
      * Writes patterns to the device.
@@ -2071,20 +2071,20 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
     i = 0;
 
     /* The zero-fill pattern for the final pass of most methods. */
-    nwipe_pattern_t pattern_zero = { 1, "\x00" };
+    wype_pattern_t pattern_zero = { 1, "\x00" };
 
     /* The one-fill pattern for verification of the ones fill */
-    nwipe_pattern_t pattern_one = { 1, "\xFF" };
+    wype_pattern_t pattern_one = { 1, "\xFF" };
 
     /* Create the PRNG state buffer. */
-    c->prng_seed.length = NWIPE_KNOB_PRNG_STATE_LENGTH;
+    c->prng_seed.length = WYPE_KNOB_PRNG_STATE_LENGTH;
     c->prng_seed.s = malloc( c->prng_seed.length );
 
     /* Check the memory allocation. */
     if( !c->prng_seed.s )
     {
-        nwipe_perror( errno, __FUNCTION__, "malloc" );
-        nwipe_log( NWIPE_LOG_FATAL, "Unable to allocate memory for the prng seed buffer." );
+        wype_perror( errno, __FUNCTION__, "malloc" );
+        wype_log( WYPE_LOG_FATAL, "Unable to allocate memory for the prng seed buffer." );
         return -1;
     }
 
@@ -2104,7 +2104,7 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
     calculate_round_size( c );
 
     /* If only verifying then the round size is the device size */
-    if( nwipe_options.method == &nwipe_verify_zero || nwipe_options.method == &nwipe_verify_one )
+    if( wype_options.method == &wype_verify_zero || wype_options.method == &wype_verify_one )
     {
         c->round_size = c->device_size;
     }
@@ -2112,16 +2112,16 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
     /* Initialize the working round counter. */
     c->round_working = 0;
 
-    nwipe_log(
-        NWIPE_LOG_NOTICE, "Invoking method '%s' on %s", nwipe_method_label( nwipe_options.method ), c->device_name );
+    wype_log(
+        WYPE_LOG_NOTICE, "Invoking method '%s' on %s", wype_method_label( wype_options.method ), c->device_name );
 
     while( c->round_working < c->round_count )
     {
         /* Increment the round counter. */
         c->round_working += 1;
 
-        nwipe_log(
-            NWIPE_LOG_NOTICE, "Starting round %i of %i on %s", c->round_working, c->round_count, c->device_name );
+        wype_log(
+            WYPE_LOG_NOTICE, "Starting round %i of %i on %s", c->round_working, c->round_count, c->device_name );
 
         /* Initialize the working pass counter. */
         c->pass_working = 0;
@@ -2132,16 +2132,16 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
             c->pass_working += 1;
 
             /* Check if this is the last pass. */
-            if( nwipe_options.verify == NWIPE_VERIFY_LAST && nwipe_options.method != &nwipe_ops2 )
+            if( wype_options.verify == WYPE_VERIFY_LAST && wype_options.method != &wype_ops2 )
             {
-                if( nwipe_options.noblank == 1 && c->round_working == c->round_count
+                if( wype_options.noblank == 1 && c->round_working == c->round_count
                     && c->pass_working == c->pass_count )
                 {
                     lastpass = 1;
                 }
             }
 
-            nwipe_log( NWIPE_LOG_NOTICE,
+            wype_log( WYPE_LOG_NOTICE,
                        "Starting pass %i/%i, round %i/%i, on %s",
                        c->pass_working,
                        c->pass_count,
@@ -2152,7 +2152,7 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
             if( patterns[i].length == 0 )
             {
                 /* Caught insanity. */
-                nwipe_log( NWIPE_LOG_SANITY, "nwipe_runmethod: A non-terminating pattern element has zero length." );
+                wype_log( WYPE_LOG_SANITY, "wype_runmethod: A non-terminating pattern element has zero length." );
                 return -1;
             }
 
@@ -2160,12 +2160,12 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
             {
 
                 /* Write a static pass. */
-                c->pass_type = NWIPE_PASS_WRITE;
-                r = nwipe_static_pass( c, &patterns[i] );
-                c->pass_type = NWIPE_PASS_NONE;
+                c->pass_type = WYPE_PASS_WRITE;
+                r = wype_static_pass( c, &patterns[i] );
+                c->pass_type = WYPE_PASS_NONE;
 
                 /* Log number of bytes written to disk */
-                nwipe_log( NWIPE_LOG_NOTICE, "%llu bytes written to %s", c->pass_done, c->device_name );
+                wype_log( WYPE_LOG_NOTICE, "%llu bytes written to %s", c->pass_done, c->device_name );
 
                 /* Check for a fatal error. */
                 if( r < 0 )
@@ -2173,11 +2173,11 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
                     return r;
                 }
 
-                if( nwipe_options.verify == NWIPE_VERIFY_ALL || lastpass == 1 )
+                if( wype_options.verify == WYPE_VERIFY_ALL || lastpass == 1 )
                 {
-                    if( !nwipe_should_skip_verify( c ) )
+                    if( !wype_should_skip_verify( c ) )
                     {
-                        nwipe_log( NWIPE_LOG_NOTICE,
+                        wype_log( WYPE_LOG_NOTICE,
                                    "Verifying pass %i of %i, round %i of %i, on %s",
                                    c->pass_working,
                                    c->pass_count,
@@ -2186,11 +2186,11 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
                                    c->device_name );
 
                         /* Verify this pass. */
-                        c->pass_type = NWIPE_PASS_VERIFY;
-                        r = nwipe_static_verify( c, &patterns[i] );
-                        c->pass_type = NWIPE_PASS_NONE;
+                        c->pass_type = WYPE_PASS_VERIFY;
+                        r = wype_static_verify( c, &patterns[i] );
+                        c->pass_type = WYPE_PASS_NONE;
 
-                        nwipe_log( NWIPE_LOG_NOTICE, "%llu bytes read from %s", c->pass_done, c->device_name );
+                        wype_log( WYPE_LOG_NOTICE, "%llu bytes read from %s", c->pass_done, c->device_name );
 
                         /* Check for a fatal error. */
                         if( r < 0 )
@@ -2198,7 +2198,7 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
                             return r;
                         }
 
-                        nwipe_log( NWIPE_LOG_NOTICE,
+                        wype_log( WYPE_LOG_NOTICE,
                                    "Verified pass %i of %i, round %i of %i, on '%s'.",
                                    c->pass_working,
                                    c->pass_count,
@@ -2212,17 +2212,17 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
 
             else
             {
-                c->pass_type = NWIPE_PASS_WRITE;
+                c->pass_type = WYPE_PASS_WRITE;
 
                 /* Seed the PRNG. */
-                r = nwipe_read_entropy( c->prng_seed.s, c->prng_seed.length );
+                r = wype_read_entropy( c->prng_seed.s, c->prng_seed.length );
 
                 /* Check the result. */
                 if( r < 0 )
                 {
-                    c->pass_type = NWIPE_PASS_NONE;
-                    nwipe_perror( errno, __FUNCTION__, "getrandom" );
-                    nwipe_log( NWIPE_LOG_FATAL, "Unable to seed the PRNG." );
+                    c->pass_type = WYPE_PASS_NONE;
+                    wype_perror( errno, __FUNCTION__, "getrandom" );
+                    wype_log( WYPE_LOG_FATAL, "Unable to seed the PRNG." );
                     return -1;
                 }
 
@@ -2230,16 +2230,16 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
                 if( r != c->prng_seed.length )
                 {
                     /* TODO: Handle partial reads. */
-                    nwipe_log( NWIPE_LOG_FATAL, "Insufficient entropy is available." );
+                    wype_log( WYPE_LOG_FATAL, "Insufficient entropy is available." );
                     return -1;
                 }
 
                 /* Write the random pass. */
-                r = nwipe_random_pass( c );
-                c->pass_type = NWIPE_PASS_NONE;
+                r = wype_random_pass( c );
+                c->pass_type = WYPE_PASS_NONE;
 
                 /* Log number of bytes written to disk */
-                nwipe_log( NWIPE_LOG_NOTICE, "%llu bytes written to %s", c->pass_done, c->device_name );
+                wype_log( WYPE_LOG_NOTICE, "%llu bytes written to %s", c->pass_done, c->device_name );
 
                 /* Check for a fatal error. */
                 if( r < 0 )
@@ -2250,11 +2250,11 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
                 /* Make sure IS5 enhanced always verifies its PRNG pass regardless */
                 /* of the current combination of the --noblank (which influences   */
                 /* the lastpass variable) and --verify options.                    */
-                if( nwipe_options.verify == NWIPE_VERIFY_ALL || lastpass == 1 || nwipe_options.method == &nwipe_is5enh )
+                if( wype_options.verify == WYPE_VERIFY_ALL || lastpass == 1 || wype_options.method == &wype_is5enh )
                 {
-                    if( !nwipe_should_skip_verify( c ) )
+                    if( !wype_should_skip_verify( c ) )
                     {
-                        nwipe_log( NWIPE_LOG_NOTICE,
+                        wype_log( WYPE_LOG_NOTICE,
                                    "Verifying pass %i of %i, round %i of %i, on %s",
                                    c->pass_working,
                                    c->pass_count,
@@ -2263,11 +2263,11 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
                                    c->device_name );
 
                         /* Verify this pass. */
-                        c->pass_type = NWIPE_PASS_VERIFY;
-                        r = nwipe_random_verify( c );
-                        c->pass_type = NWIPE_PASS_NONE;
+                        c->pass_type = WYPE_PASS_VERIFY;
+                        r = wype_random_verify( c );
+                        c->pass_type = WYPE_PASS_NONE;
 
-                        nwipe_log( NWIPE_LOG_NOTICE, "%llu bytes read from %s", c->pass_done, c->device_name );
+                        wype_log( WYPE_LOG_NOTICE, "%llu bytes read from %s", c->pass_done, c->device_name );
 
                         /* Check for a fatal error. */
                         if( r < 0 )
@@ -2275,7 +2275,7 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
                             return r;
                         }
 
-                        nwipe_log( NWIPE_LOG_NOTICE,
+                        wype_log( WYPE_LOG_NOTICE,
                                    "Verified pass %i of %i, round %i of %i, on '%s'.",
                                    c->pass_working,
                                    c->pass_count,
@@ -2287,7 +2287,7 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
 
             } /* random pass */
 
-            nwipe_log( NWIPE_LOG_NOTICE,
+            wype_log( WYPE_LOG_NOTICE,
                        "Finished pass %i/%i, round %i/%i, on %s",
                        c->pass_working,
                        c->pass_count,
@@ -2299,12 +2299,12 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
 
         if( c->round_working < c->round_count )
         {
-            nwipe_log(
-                NWIPE_LOG_NOTICE, "Finished round %i of %i on %s", c->round_working, c->round_count, c->device_name );
+            wype_log(
+                WYPE_LOG_NOTICE, "Finished round %i of %i on %s", c->round_working, c->round_count, c->device_name );
         }
         else
         {
-            nwipe_log( NWIPE_LOG_NOTICE,
+            wype_log( WYPE_LOG_NOTICE,
                        "Finished final round %i of %i on %s",
                        c->round_working,
                        c->round_count,
@@ -2313,21 +2313,21 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
 
     } /* while rounds */
 
-    if( nwipe_options.method == &nwipe_ops2 )
+    if( wype_options.method == &wype_ops2 )
     {
         /* NOTE: The OPS-II method specifically requires that a random pattern be left on the device. */
 
         /* Tell the parent that we are running the final pass. */
-        c->pass_type = NWIPE_PASS_FINAL_OPS2;
+        c->pass_type = WYPE_PASS_FINAL_OPS2;
 
         /* Seed the PRNG. */
-        r = nwipe_read_entropy( c->prng_seed.s, c->prng_seed.length );
+        r = wype_read_entropy( c->prng_seed.s, c->prng_seed.length );
 
         /* Check the result. */
         if( r < 0 )
         {
-            nwipe_perror( errno, __FUNCTION__, "getrandom" );
-            nwipe_log( NWIPE_LOG_FATAL, "Unable to seed the PRNG." );
+            wype_perror( errno, __FUNCTION__, "getrandom" );
+            wype_log( WYPE_LOG_FATAL, "Unable to seed the PRNG." );
             return -1;
         }
 
@@ -2335,16 +2335,16 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
         if( r != c->prng_seed.length )
         {
             /* TODO: Handle partial reads. */
-            nwipe_log( NWIPE_LOG_FATAL, "Insufficient entropy is available." );
+            wype_log( WYPE_LOG_FATAL, "Insufficient entropy is available." );
             return -1;
         }
 
-        nwipe_log( NWIPE_LOG_NOTICE, "Writing final random pattern to '%s'.", c->device_name );
+        wype_log( WYPE_LOG_NOTICE, "Writing final random pattern to '%s'.", c->device_name );
 
         /* The final ops2 pass. */
-        r = nwipe_random_pass( c );
+        r = wype_random_pass( c );
 
-        nwipe_log( NWIPE_LOG_NOTICE, "%llu bytes written to %s", c->pass_done, c->device_name );
+        wype_log( WYPE_LOG_NOTICE, "%llu bytes written to %s", c->pass_done, c->device_name );
 
         /* Check for a fatal error. */
         if( r < 0 )
@@ -2352,16 +2352,16 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
             return r;
         }
 
-        if( nwipe_options.verify == NWIPE_VERIFY_LAST || nwipe_options.verify == NWIPE_VERIFY_ALL )
+        if( wype_options.verify == WYPE_VERIFY_LAST || wype_options.verify == WYPE_VERIFY_ALL )
         {
-            if( !nwipe_should_skip_verify( c ) )
+            if( !wype_should_skip_verify( c ) )
             {
-                nwipe_log( NWIPE_LOG_NOTICE, "Verifying final random pattern FRP on %s", c->device_name );
+                wype_log( WYPE_LOG_NOTICE, "Verifying final random pattern FRP on %s", c->device_name );
 
                 /* Verify the final zero pass. */
-                r = nwipe_random_verify( c );
+                r = wype_random_verify( c );
 
-                nwipe_log( NWIPE_LOG_NOTICE, "%llu bytes read from %s", c->pass_done, c->device_name );
+                wype_log( WYPE_LOG_NOTICE, "%llu bytes read from %s", c->pass_done, c->device_name );
 
                 /* Check for a fatal error. */
                 if( r < 0 )
@@ -2369,20 +2369,20 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
                     return r;
                 }
 
-                nwipe_log( NWIPE_LOG_NOTICE, "[SUCCESS] Verified FRP on '%s' matches", c->device_name );
+                wype_log( WYPE_LOG_NOTICE, "[SUCCESS] Verified FRP on '%s' matches", c->device_name );
             }
         }
 
     } /* final ops2 */
 
-    else if( nwipe_options.method == &nwipe_verify_zero )
+    else if( wype_options.method == &wype_verify_zero )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "Verifying that %s is zeroed", c->device_name );
+        wype_log( WYPE_LOG_NOTICE, "Verifying that %s is zeroed", c->device_name );
 
         /* Verify the final zero pass. */
-        c->pass_type = NWIPE_PASS_VERIFY;
-        r = nwipe_static_verify( c, &pattern_zero );
-        c->pass_type = NWIPE_PASS_NONE;
+        c->pass_type = WYPE_PASS_VERIFY;
+        r = wype_static_verify( c, &pattern_zero );
+        c->pass_type = WYPE_PASS_NONE;
 
         /* Check for a fatal error. */
         if( r < 0 )
@@ -2391,23 +2391,23 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
         }
         if( c->verify_errors == 0 )
         {
-            nwipe_log( NWIPE_LOG_NOTICE, "[SUCCESS] Verified that %s is Zeroed.", c->device_name );
+            wype_log( WYPE_LOG_NOTICE, "[SUCCESS] Verified that %s is Zeroed.", c->device_name );
         }
         else
         {
-            nwipe_log( NWIPE_LOG_ERROR, "[FAILURE] %s has not been Zeroed .", c->device_name );
+            wype_log( WYPE_LOG_ERROR, "[FAILURE] %s has not been Zeroed .", c->device_name );
         }
 
     } /* verify */
 
-    else if( nwipe_options.method == &nwipe_verify_one )
+    else if( wype_options.method == &wype_verify_one )
     {
-        nwipe_log( NWIPE_LOG_NOTICE, "Verifying that %s is Ones (0xFF)", c->device_name );
+        wype_log( WYPE_LOG_NOTICE, "Verifying that %s is Ones (0xFF)", c->device_name );
 
         /* Verify the final ones pass. */
-        c->pass_type = NWIPE_PASS_VERIFY;
-        r = nwipe_static_verify( c, &pattern_one );
-        c->pass_type = NWIPE_PASS_NONE;
+        c->pass_type = WYPE_PASS_VERIFY;
+        r = wype_static_verify( c, &pattern_one );
+        c->pass_type = WYPE_PASS_NONE;
 
         /* Check for a fatal error. */
         if( r < 0 )
@@ -2416,27 +2416,27 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
         }
         if( c->verify_errors == 0 )
         {
-            nwipe_log( NWIPE_LOG_NOTICE, "[SUCCESS] Verified that %s is full of ones (0xFF).", c->device_name );
+            wype_log( WYPE_LOG_NOTICE, "[SUCCESS] Verified that %s is full of ones (0xFF).", c->device_name );
         }
         else
         {
-            nwipe_log( NWIPE_LOG_ERROR, "[FAILURE] %s is not full of ones (0xFF).", c->device_name );
+            wype_log( WYPE_LOG_ERROR, "[FAILURE] %s is not full of ones (0xFF).", c->device_name );
         }
 
     } /* verify */
 
-    else if( nwipe_options.noblank == 0 )
+    else if( wype_options.noblank == 0 )
     {
         /* Tell the user that we are on the final pass. */
-        c->pass_type = NWIPE_PASS_FINAL_BLANK;
+        c->pass_type = WYPE_PASS_FINAL_BLANK;
 
-        nwipe_log( NWIPE_LOG_NOTICE, "Blanking device %s", c->device_name );
+        wype_log( WYPE_LOG_NOTICE, "Blanking device %s", c->device_name );
 
         /* The final zero pass. */
-        r = nwipe_static_pass( c, &pattern_zero );
+        r = wype_static_pass( c, &pattern_zero );
 
         /* Log number of bytes written to disk */
-        nwipe_log( NWIPE_LOG_NOTICE, "%llu bytes written to %s", c->pass_done, c->device_name );
+        wype_log( WYPE_LOG_NOTICE, "%llu bytes written to %s", c->pass_done, c->device_name );
 
         /* Check for a fatal error. */
         if( r < 0 )
@@ -2444,19 +2444,19 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
             return r;
         }
 
-        if( nwipe_options.verify == NWIPE_VERIFY_LAST || nwipe_options.verify == NWIPE_VERIFY_ALL )
+        if( wype_options.verify == WYPE_VERIFY_LAST || wype_options.verify == WYPE_VERIFY_ALL )
         {
-            if( !nwipe_should_skip_verify( c ) )
+            if( !wype_should_skip_verify( c ) )
             {
-                nwipe_log( NWIPE_LOG_NOTICE, "Verifying that %s is empty.", c->device_name );
+                wype_log( WYPE_LOG_NOTICE, "Verifying that %s is empty.", c->device_name );
 
                 /* Verify the final zero pass. */
-                c->pass_type = NWIPE_PASS_VERIFY;
-                r = nwipe_static_verify( c, &pattern_zero );
-                c->pass_type = NWIPE_PASS_NONE;
+                c->pass_type = WYPE_PASS_VERIFY;
+                r = wype_static_verify( c, &pattern_zero );
+                c->pass_type = WYPE_PASS_NONE;
 
                 /* Log number of bytes read from disk */
-                nwipe_log( NWIPE_LOG_NOTICE, "%llu bytes read from %s", c->pass_done, c->device_name );
+                wype_log( WYPE_LOG_NOTICE, "%llu bytes read from %s", c->pass_done, c->device_name );
 
                 /* Check for a fatal error. */
                 if( r < 0 )
@@ -2466,22 +2466,22 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
 
                 if( c->verify_errors == 0 )
                 {
-                    nwipe_log( NWIPE_LOG_NOTICE, "[SUCCESS] Verified that %s is empty.", c->device_name );
+                    wype_log( WYPE_LOG_NOTICE, "[SUCCESS] Verified that %s is empty.", c->device_name );
                 }
                 else
                 {
-                    nwipe_log( NWIPE_LOG_NOTICE, "[FAILURE] %s Verification errors, not empty", c->device_name );
+                    wype_log( WYPE_LOG_NOTICE, "[FAILURE] %s Verification errors, not empty", c->device_name );
                 }
             }
         }
 
         if( c->verify_errors == 0 && c->pass_errors == 0 && c->fsyncdata_errors == 0 )
         {
-            nwipe_log( NWIPE_LOG_NOTICE, "[SUCCESS] Blanked device %s", c->device_name );
+            wype_log( WYPE_LOG_NOTICE, "[SUCCESS] Blanked device %s", c->device_name );
         }
         else
         {
-            nwipe_log( NWIPE_LOG_NOTICE, "[FAILURE] %s may not be blanked", c->device_name );
+            wype_log( WYPE_LOG_NOTICE, "[FAILURE] %s may not be blanked", c->device_name );
         }
 
     } /* final blank */
@@ -2491,24 +2491,24 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
     free( c->prng_seed.s );
 
     /* Tell the parent that we have fininshed the final pass. */
-    c->pass_type = NWIPE_PASS_NONE;
+    c->pass_type = WYPE_PASS_NONE;
 
     if( c->verify_errors > 0 )
     {
         /* We finished, but with non-fatal verification errors. */
-        nwipe_log( NWIPE_LOG_ERROR, "%llu verification errors on '%s'.", c->verify_errors, c->device_name );
+        wype_log( WYPE_LOG_ERROR, "%llu verification errors on '%s'.", c->verify_errors, c->device_name );
     }
 
     if( c->pass_errors > 0 )
     {
         /* We finished, but with non-fatal wipe errors. */
-        nwipe_log( NWIPE_LOG_ERROR, "%llu wipe errors on '%s'.", c->pass_errors, c->device_name );
+        wype_log( WYPE_LOG_ERROR, "%llu wipe errors on '%s'.", c->pass_errors, c->device_name );
     }
 
     if( c->fsyncdata_errors > 0 )
     {
         /* We finished, but with non-fatal sync errors. */
-        nwipe_log( NWIPE_LOG_ERROR, "%llu sync errors on '%s'.", c->fsyncdata_errors, c->device_name );
+        wype_log( WYPE_LOG_ERROR, "%llu sync errors on '%s'.", c->fsyncdata_errors, c->device_name );
     }
 
     if( c->pass_errors > 0 || c->verify_errors > 0 || c->fsyncdata_errors > 0 )
@@ -2520,28 +2520,28 @@ int nwipe_runmethod( nwipe_context_t* c, nwipe_pattern_t* patterns )
     /* We finished successfully. */
     return 0;
 
-} /* nwipe_runmethod */
+} /* wype_runmethod */
 
-void calculate_round_size( nwipe_context_t* c )
+void calculate_round_size( wype_context_t* c )
 {
-    nwipe_round_method_class_t method_class = NWIPE_ROUND_METHOD_DEFAULT;
+    wype_round_method_class_t method_class = WYPE_ROUND_METHOD_DEFAULT;
     uint64_t effective_pass_size = (uint64_t) c->pass_size;
 
-    if( nwipe_options.method == &nwipe_ops2 )
+    if( wype_options.method == &wype_ops2 )
     {
-        method_class = NWIPE_ROUND_METHOD_OPS2;
+        method_class = WYPE_ROUND_METHOD_OPS2;
     }
-    else if( nwipe_options.method == &nwipe_is5enh )
+    else if( wype_options.method == &wype_is5enh )
     {
-        method_class = NWIPE_ROUND_METHOD_IS5ENH;
+        method_class = WYPE_ROUND_METHOD_IS5ENH;
     }
 
-    c->round_count = nwipe_options.rounds;
-    c->round_size = (u64) nwipe_calculate_round_size_bytes( (uint64_t) c->pass_size,
+    c->round_count = wype_options.rounds;
+    c->round_size = (u64) wype_calculate_round_size_bytes( (uint64_t) c->pass_size,
                                                             (uint64_t) c->device_size,
                                                             c->round_count,
-                                                            nwipe_options.noblank,
-                                                            (nwipe_round_verify_t) nwipe_options.verify,
+                                                            wype_options.noblank,
+                                                            (wype_round_verify_t) wype_options.verify,
                                                             method_class,
                                                             &effective_pass_size );
     c->pass_size = (u64) effective_pass_size;

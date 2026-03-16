@@ -1,5 +1,5 @@
 /*
- *  context.h: The internal state representation of nwipe.
+ *  context.h: The internal state representation of wype.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -23,79 +23,79 @@
 #ifndef CONTEXT_H_
 #define CONTEXT_H_
 
-#include "nwipe.h"
+#include "wype.h"
 #include "prng.h"
 #ifndef __HDDTEMP_H__
 #include "hddtemp_scsi/hddtemp.h"
 #endif /* __HDDTEMP_H__ */
 
-typedef enum nwipe_device_t_ {
-    NWIPE_DEVICE_UNKNOWN = 0,  // Unknown device.
-    NWIPE_DEVICE_IDE,
-    NWIPE_DEVICE_SCSI,
-    NWIPE_DEVICE_COMPAQ,  // Unimplemented.
-    NWIPE_DEVICE_USB,
-    NWIPE_DEVICE_IEEE1394,  // Unimplemented.
-    NWIPE_DEVICE_ATA,
-    NWIPE_DEVICE_NVME,
-    NWIPE_DEVICE_VIRT,
-    NWIPE_DEVICE_SAS,
-    NWIPE_DEVICE_MMC
-} nwipe_device_t;
+typedef enum wype_device_t_ {
+    WYPE_DEVICE_UNKNOWN = 0,  // Unknown device.
+    WYPE_DEVICE_IDE,
+    WYPE_DEVICE_SCSI,
+    WYPE_DEVICE_COMPAQ,  // Unimplemented.
+    WYPE_DEVICE_USB,
+    WYPE_DEVICE_IEEE1394,  // Unimplemented.
+    WYPE_DEVICE_ATA,
+    WYPE_DEVICE_NVME,
+    WYPE_DEVICE_VIRT,
+    WYPE_DEVICE_SAS,
+    WYPE_DEVICE_MMC
+} wype_device_t;
 
-typedef enum nwipe_pass_t_ {
-    NWIPE_PASS_NONE = 0,  // Not running.
-    NWIPE_PASS_WRITE,  // Writing patterns to the device.
-    NWIPE_PASS_VERIFY,  // Verifying a pass.
-    NWIPE_PASS_FINAL_BLANK,  // Filling the device with zeros.
-    NWIPE_PASS_FINAL_OPS2  // Special case for nwipe_ops2.
-} nwipe_pass_t;
+typedef enum wype_pass_t_ {
+    WYPE_PASS_NONE = 0,  // Not running.
+    WYPE_PASS_WRITE,  // Writing patterns to the device.
+    WYPE_PASS_VERIFY,  // Verifying a pass.
+    WYPE_PASS_FINAL_BLANK,  // Filling the device with zeros.
+    WYPE_PASS_FINAL_OPS2  // Special case for wype_ops2.
+} wype_pass_t;
 
-typedef enum nwipe_select_t_ {
-    NWIPE_SELECT_NONE = 0,  // Unused.
-    NWIPE_SELECT_TRUE,  // Wipe this device.
-    NWIPE_SELECT_TRUE_PARENT,  // A parent of this device has been selected, so the wipe is implied.
-    NWIPE_SELECT_FALSE,  // Do not wipe this device.
-    NWIPE_SELECT_FALSE_CHILD,  // A child of this device has been selected, so we can't wipe this device.
-    NWIPE_SELECT_DISABLED,  // We cannot wipe this device for technical reasons (do not allow selection).
-    NWIPE_SELECT_DISABLED_BUSY,  // The device is in use and --force is not set (do not allow selection).
-} nwipe_select_t;
+typedef enum wype_select_t_ {
+    WYPE_SELECT_NONE = 0,  // Unused.
+    WYPE_SELECT_TRUE,  // Wipe this device.
+    WYPE_SELECT_TRUE_PARENT,  // A parent of this device has been selected, so the wipe is implied.
+    WYPE_SELECT_FALSE,  // Do not wipe this device.
+    WYPE_SELECT_FALSE_CHILD,  // A child of this device has been selected, so we can't wipe this device.
+    WYPE_SELECT_DISABLED,  // We cannot wipe this device for technical reasons (do not allow selection).
+    WYPE_SELECT_DISABLED_BUSY,  // The device is in use and --force is not set (do not allow selection).
+} wype_select_t;
 
 /* I/O mode for data path: auto, direct, or cached. */
 typedef enum {
-    NWIPE_IO_MODE_AUTO = 0, /* Try O_DIRECT, fall back to cached I/O if not supported. */
-    NWIPE_IO_MODE_DIRECT, /* Force O_DIRECT, fail if not supported. */
-    NWIPE_IO_MODE_CACHED /* Force cached I/O, never attempt O_DIRECT. */
-} nwipe_io_mode_t;
+    WYPE_IO_MODE_AUTO = 0, /* Try O_DIRECT, fall back to cached I/O if not supported. */
+    WYPE_IO_MODE_DIRECT, /* Force O_DIRECT, fail if not supported. */
+    WYPE_IO_MODE_CACHED /* Force cached I/O, never attempt O_DIRECT. */
+} wype_io_mode_t;
 
 /* I/O direction for data path. */
 typedef enum {
-    NWIPE_IO_DIRECTION_FORWARD = 0, /* Start -> End */
-    NWIPE_IO_DIRECTION_REVERSE, /* End -> Start */
-} nwipe_io_direction_t;
+    WYPE_IO_DIRECTION_FORWARD = 0, /* Start -> End */
+    WYPE_IO_DIRECTION_REVERSE, /* End -> Start */
+} wype_io_direction_t;
 
-#define NWIPE_KNOB_SPEEDRING_SIZE 30
-#define NWIPE_KNOB_SPEEDRING_GRANULARITY 10
+#define WYPE_KNOB_SPEEDRING_SIZE 30
+#define WYPE_KNOB_SPEEDRING_GRANULARITY 10
 
-typedef struct nwipe_speedring_t_
+typedef struct wype_speedring_t_
 {
-    u64 bytes[NWIPE_KNOB_SPEEDRING_SIZE];
+    u64 bytes[WYPE_KNOB_SPEEDRING_SIZE];
     u64 bytestotal;
     u64 byteslast;
-    time_t times[NWIPE_KNOB_SPEEDRING_SIZE];
+    time_t times[WYPE_KNOB_SPEEDRING_SIZE];
     time_t timestotal;
     time_t timeslast;
     u32 position;
-} nwipe_speedring_t;
+} wype_speedring_t;
 
-#define NWIPE_DEVICE_LABEL_LENGTH 200
-#define NWIPE_DEVICE_SIZE_TXT_LENGTH 8
+#define WYPE_DEVICE_LABEL_LENGTH 200
+#define WYPE_DEVICE_SIZE_TXT_LENGTH 8
 
 // Arbitrary length, so far most paths don't exceed about 25 characters
 #define MAX_HWMON_PATH_LENGTH 100
 
 // 20 chracters for serial number plus null Byte
-#define NWIPE_SERIALNUMBER_LENGTH 20
+#define WYPE_SERIALNUMBER_LENGTH 20
 
 // UUID size
 #define UUID_SIZE 40
@@ -103,9 +103,9 @@ typedef struct nwipe_speedring_t_
 // Device name max size including /dev/ path
 #define DEVICE_NAME_MAX_SIZE 100
 
-#define NWIPE_DEVICE_SYSFS_PATH_LENGTH 512
+#define WYPE_DEVICE_SYSFS_PATH_LENGTH 512
 
-typedef struct nwipe_context_t_
+typedef struct wype_context_t_
 {
     /*
      * Device fields
@@ -125,7 +125,7 @@ typedef struct nwipe_context_t_
     char* device_name;  // The device file name.
     char device_name_without_path[DEVICE_NAME_MAX_SIZE];
     char gui_device_name[DEVICE_NAME_MAX_SIZE];
-    char device_sysfs_path[NWIPE_DEVICE_SYSFS_PATH_LENGTH];  // sysfs path for topology view
+    char device_sysfs_path[WYPE_DEVICE_SYSFS_PATH_LENGTH];  // sysfs path for topology view
     char device_name_terse[DEVICE_NAME_MAX_SIZE];
     unsigned long long device_size;  // The device size in bytes.
     u64 device_size_in_sectors;  // The device size in number of logical sectors, this may be 512 or 4096 sectors
@@ -134,14 +134,14 @@ typedef struct nwipe_context_t_
     unsigned long long bytes_erased;  // Irrespective of pass, this how much of the drive has been erased, CANNOT be
                                       // greater than device_size.
     char* device_size_text;  // The device size in a more (human)readable format.
-    char device_size_txt[NWIPE_DEVICE_SIZE_TXT_LENGTH];  // The device size in a more (human)readable format.
+    char device_size_txt[WYPE_DEVICE_SIZE_TXT_LENGTH];  // The device size in a more (human)readable format.
     char* device_model;  // The model of the device.
-    char device_label[NWIPE_DEVICE_LABEL_LENGTH];  // The label (name, model, size and serial) of the device.
+    char device_label[WYPE_DEVICE_LABEL_LENGTH];  // The label (name, model, size and serial) of the device.
     struct stat device_stat;  // The device file state from fstat().
-    nwipe_device_t device_type;  // Indicates an IDE, SCSI, or Compaq SMART device in enumerated form (int)
-    char device_type_str[14];  // Indicates an IDE, SCSI, USB etc as per nwipe_device_t but in ascii
+    wype_device_t device_type;  // Indicates an IDE, SCSI, or Compaq SMART device in enumerated form (int)
+    char device_type_str[14];  // Indicates an IDE, SCSI, USB etc as per wype_device_t but in ascii
     int device_is_ssd;  // 0 = no SSD, 1 = is a SSD
-    char device_serial_no[NWIPE_SERIALNUMBER_LENGTH
+    char device_serial_no[WYPE_SERIALNUMBER_LENGTH
                           + 1];  // Serial number(processed, 20 characters plus null termination) of the device.
     char device_UUID[UUID_SIZE];  // Only populated with the UUID if device is a partition
     int device_target;  // The device target.
@@ -151,10 +151,10 @@ typedef struct nwipe_context_t_
     u64 pass_done;  // The number of bytes that have already been i/o'd in this pass.
     u64 pass_errors;  // The number of errors across all passes.
     u64 pass_size;  // The total number of i/o bytes across all passes.
-    nwipe_pass_t pass_type;  // The type of the current working pass.
+    wype_pass_t pass_type;  // The type of the current working pass.
     int pass_working;  // The current working pass.
-    nwipe_prng_t* prng;  // The PRNG implementation.
-    nwipe_entropy_t prng_seed;  // The random data that is used to seed the PRNG.
+    wype_prng_t* prng;  // The PRNG implementation.
+    wype_entropy_t prng_seed;  // The random data that is used to seed the PRNG.
     void* prng_state;  // The private internal state of the PRNG.
     int result;  // The process return value.
     int round_count;  // The number of rounds requested by the user for the working wipe method.
@@ -163,9 +163,9 @@ typedef struct nwipe_context_t_
     u64 round_size;  // The total number of i/o bytes across all rounds.
     double round_percent;  // The percentage complete across all rounds.
     int round_working;  // The current working round.
-    nwipe_select_t select;  // Indicates whether this device should be wiped.
+    wype_select_t select;  // Indicates whether this device should be wiped.
     int signal;  // Set when the child is killed by a signal.
-    nwipe_speedring_t speedring;  // Ring buffer for computing the rolling throughput average.
+    wype_speedring_t speedring;  // Ring buffer for computing the rolling throughput average.
     short sync_status;  // A flag to indicate when the method is syncing.
     short retry_status;  // A flag to indicate when the method is retrying.
     pthread_t thread;  // The ID of the thread.
@@ -211,28 +211,28 @@ typedef struct nwipe_context_t_
     u64 Calculated_real_max_size_in_bytes;  // This value is determined from all the possible variations for drives that
                                             // don't support DCO/HPA and those that do. Also drives that can't provide
                                             // HPA/DCO due to the chips they use (USB adapters)
-    char DCO_reported_real_max_size_text[NWIPE_DEVICE_SIZE_TXT_LENGTH];  // real max size in human readable form i.e 1TB
-    char Calculated_real_max_size_in_bytes_text[NWIPE_DEVICE_SIZE_TXT_LENGTH];  // calculated real max human readable
+    char DCO_reported_real_max_size_text[WYPE_DEVICE_SIZE_TXT_LENGTH];  // real max size in human readable form i.e 1TB
+    char Calculated_real_max_size_in_bytes_text[WYPE_DEVICE_SIZE_TXT_LENGTH];  // calculated real max human readable
     u64 HPA_sectors;  // The size of the host protected area in sectors
-    char HPA_size_text[NWIPE_DEVICE_SIZE_TXT_LENGTH];  // Human readable size bytes, KB, MB, GB ..
+    char HPA_size_text[WYPE_DEVICE_SIZE_TXT_LENGTH];  // Human readable size bytes, KB, MB, GB ..
     int HPA_display_toggle_state;  // 0 or 1 Used to toggle between "[1TB] [ 33C]" and [HDA STATUS]
     time_t HPA_toggle_time;  // records a time, then if for instance 3 seconds has elapsed the display changes
-    nwipe_io_mode_t io_mode;  // specific I/O method for a given drive, direct or cached.
-    nwipe_io_direction_t io_direction;  // specific I/O direction for a given drive, forward or reverse.
+    wype_io_mode_t io_mode;  // specific I/O method for a given drive, direct or cached.
+    wype_io_direction_t io_direction;  // specific I/O direction for a given drive, forward or reverse.
     int test_use1;
     int test_use2;
 
-    char device_hostname[256];  // User-entered hostname for this device (BKR)
-    char inventory_number[256];  // User-entered inventory number for this device (BKR)
+    char device_hostname[256];  // User-entered hostname for this device (wype)
+    char inventory_number[256];  // User-entered inventory number for this device (wype)
 
     /*
      * Identity contains the raw serial number of the drive
-     * (where applicable), however, for use within nwipe use the
+     * (where applicable), however, for use within wype use the
      * processed serial_no[21] string above. To access serial no. use
      * c[i]->serial_no) and not c[i]->identity.serial_no);
      */
     struct hd_driveid identity;
-} nwipe_context_t;
+} wype_context_t;
 
 /*
  * We use 2 data structs to pass data between threads.
@@ -241,22 +241,22 @@ typedef struct nwipe_context_t_
  */
 typedef struct
 {
-    int nwipe_enumerated;  // The number of devices available.
-    int nwipe_selected;  // The number of devices being wiped.
+    int wype_enumerated;  // The number of devices available.
+    int wype_selected;  // The number of devices being wiped.
     time_t maxeta;  // The estimated runtime of the slowest device.
     u64 throughput;  // Total throughput.
     u64 errors;  // The combined number of errors of all processes.
     u64 io_retries;  // The combined number of I/O retries of all processes.
     pthread_t* gui_thread;  // The ID of GUI thread.
-} nwipe_misc_thread_data_t;
+} wype_misc_thread_data_t;
 
 /*
  * The second points to the first structure, as well as the structure of all the devices
  */
 typedef struct
 {
-    nwipe_context_t** c;  // Pointer to the nwipe context structure.
-    nwipe_misc_thread_data_t* nwipe_misc_thread_data;  // Pointer to the misc structure above.
-} nwipe_thread_data_ptr_t;
+    wype_context_t** c;  // Pointer to the wype context structure.
+    wype_misc_thread_data_t* wype_misc_thread_data;  // Pointer to the misc structure above.
+} wype_thread_data_ptr_t;
 
 #endif /* CONTEXT_H_ */

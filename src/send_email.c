@@ -1,5 +1,5 @@
 /*
- *  send_email.c: Send PDF certificate via email after wipe completion (BKR)
+ *  send_email.c: Send PDF certificate via email after wipe completion (wype)
  *
  *  Implements a minimal raw SMTP client (no auth, no TLS) for sending
  *  PDF certificates as email attachments on internal networks.
@@ -25,7 +25,7 @@
 #include <time.h>
 #include <libconfig.h>
 
-#include "nwipe.h"
+#include "wype.h"
 #include "context.h"
 #include "logging.h"
 #include "conf.h"
@@ -100,14 +100,14 @@ static int smtp_check_response( int sockfd, const char* expected_code )
     ssize_t n = recv( sockfd, response, sizeof( response ) - 1, 0 );
     if( n <= 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: No response from SMTP server" );
+        wype_log( WYPE_LOG_ERROR, "Email: No response from SMTP server" );
         return -1;
     }
     response[n] = '\0';
 
     if( strncmp( response, expected_code, strlen( expected_code ) ) != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Unexpected SMTP response: %s", response );
+        wype_log( WYPE_LOG_ERROR, "Email: Unexpected SMTP response: %s", response );
         return -1;
     }
     return 0;
@@ -121,7 +121,7 @@ static int smtp_send( int sockfd, const char* data, size_t len )
     ssize_t sent = send( sockfd, data, len, 0 );
     if( sent < 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Failed to send data: %s", strerror( errno ) );
+        wype_log( WYPE_LOG_ERROR, "Email: Failed to send data: %s", strerror( errno ) );
         return -1;
     }
     return 0;
@@ -144,10 +144,10 @@ static const char* get_basename( const char* path )
     return p ? p + 1 : path;
 }
 
-int nwipe_send_email( nwipe_context_t* c )
+int wype_send_email( wype_context_t* c )
 {
-    extern config_t nwipe_cfg;
-    extern char nwipe_config_file[];
+    extern config_t wype_cfg;
+    extern char wype_config_file[];
     config_setting_t* setting;
 
     const char* email_enable = NULL;
@@ -156,11 +156,11 @@ int nwipe_send_email( nwipe_context_t* c )
     const char* sender = NULL;
     const char* recipient = NULL;
 
-    /* Read email settings from nwipe.conf */
-    setting = config_lookup( &nwipe_cfg, "Email_Settings" );
+    /* Read email settings from wype.conf */
+    setting = config_lookup( &wype_cfg, "Email_Settings" );
     if( setting == NULL )
     {
-        nwipe_log( NWIPE_LOG_WARNING, "Email: Cannot locate [Email_Settings] in %s", nwipe_config_file );
+        wype_log( WYPE_LOG_WARNING, "Email: Cannot locate [Email_Settings] in %s", wype_config_file );
         return -1;
     }
 
@@ -177,21 +177,21 @@ int nwipe_send_email( nwipe_context_t* c )
 
     if( !smtp_server || !sender || !recipient || strlen( recipient ) == 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Missing SMTP configuration (server/sender/recipient)" );
+        wype_log( WYPE_LOG_ERROR, "Email: Missing SMTP configuration (server/sender/recipient)" );
         return -1;
     }
 
     /* Check PDF file exists */
     if( c->PDF_filename[0] == '\0' )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: No PDF filename available for %s", c->device_name );
+        wype_log( WYPE_LOG_ERROR, "Email: No PDF filename available for %s", c->device_name );
         return -1;
     }
 
     FILE* pdf_file = fopen( c->PDF_filename, "rb" );
     if( !pdf_file )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Cannot open PDF file %s: %s", c->PDF_filename, strerror( errno ) );
+        wype_log( WYPE_LOG_ERROR, "Email: Cannot open PDF file %s: %s", c->PDF_filename, strerror( errno ) );
         return -1;
     }
 
@@ -204,7 +204,7 @@ int nwipe_send_email( nwipe_context_t* c )
     if( !pdf_data )
     {
         fclose( pdf_file );
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Failed to allocate memory for PDF (%ld bytes)", pdf_size );
+        wype_log( WYPE_LOG_ERROR, "Email: Failed to allocate memory for PDF (%ld bytes)", pdf_size );
         return -1;
     }
 
@@ -212,7 +212,7 @@ int nwipe_send_email( nwipe_context_t* c )
     {
         free( pdf_data );
         fclose( pdf_file );
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Failed to read PDF file %s", c->PDF_filename );
+        wype_log( WYPE_LOG_ERROR, "Email: Failed to read PDF file %s", c->PDF_filename );
         return -1;
     }
     fclose( pdf_file );
@@ -224,7 +224,7 @@ int nwipe_send_email( nwipe_context_t* c )
 
     if( !b64_data )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Failed to base64 encode PDF" );
+        wype_log( WYPE_LOG_ERROR, "Email: Failed to base64 encode PDF" );
         return -1;
     }
 
@@ -242,7 +242,7 @@ int nwipe_send_email( nwipe_context_t* c )
     int gai_err = getaddrinfo( smtp_server, port_str, &hints, &res );
     if( gai_err != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Cannot resolve SMTP server %s: %s", smtp_server, gai_strerror( gai_err ) );
+        wype_log( WYPE_LOG_ERROR, "Email: Cannot resolve SMTP server %s: %s", smtp_server, gai_strerror( gai_err ) );
         free( b64_data );
         return -1;
     }
@@ -251,7 +251,7 @@ int nwipe_send_email( nwipe_context_t* c )
     int sockfd = socket( res->ai_family, res->ai_socktype, res->ai_protocol );
     if( sockfd < 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Socket creation failed: %s", strerror( errno ) );
+        wype_log( WYPE_LOG_ERROR, "Email: Socket creation failed: %s", strerror( errno ) );
         freeaddrinfo( res );
         free( b64_data );
         return -1;
@@ -266,7 +266,7 @@ int nwipe_send_email( nwipe_context_t* c )
 
     if( connect( sockfd, res->ai_addr, res->ai_addrlen ) < 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR, "Email: Cannot connect to %s:%d: %s", smtp_server, port, strerror( errno ) );
+        wype_log( WYPE_LOG_ERROR, "Email: Cannot connect to %s:%d: %s", smtp_server, port, strerror( errno ) );
         close( sockfd );
         freeaddrinfo( res );
         free( b64_data );
@@ -274,7 +274,7 @@ int nwipe_send_email( nwipe_context_t* c )
     }
     freeaddrinfo( res );
 
-    nwipe_log( NWIPE_LOG_INFO, "Email: Connected to SMTP server %s:%d", smtp_server, port );
+    wype_log( WYPE_LOG_INFO, "Email: Connected to SMTP server %s:%d", smtp_server, port );
 
     int result = -1;
     char cmd[512];
@@ -288,7 +288,7 @@ int nwipe_send_email( nwipe_context_t* c )
             break;
 
         /* EHLO */
-        snprintf( cmd, sizeof( cmd ), "EHLO nwipe\r\n" );
+        snprintf( cmd, sizeof( cmd ), "EHLO wype\r\n" );
         if( smtp_send_str( sockfd, cmd ) != 0 )
             break;
         if( smtp_check_response( sockfd, "250" ) != 0 )
@@ -326,17 +326,17 @@ int nwipe_send_email( nwipe_context_t* c )
                   "From: <%s>\r\n"
                   "To: <%s>\r\n"
                   "Date: %s\r\n"
-                  "Subject: Nwipe Erasure Certificate - %s - %s [%s]\r\n"
+                  "Subject: Wype Erasure Certificate - %s - %s [%s]\r\n"
                   "MIME-Version: 1.0\r\n"
-                  "Content-Type: multipart/mixed; boundary=\"nwipe-cert-boundary\"\r\n"
+                  "Content-Type: multipart/mixed; boundary=\"wype-cert-boundary\"\r\n"
                   "\r\n"
-                  "--nwipe-cert-boundary\r\n"
+                  "--wype-cert-boundary\r\n"
                   "Content-Type: text/plain; charset=utf-8\r\n"
                   "\r\n"
                   "Disk erasure certificate for %s (Serial: %s).\r\n"
                   "Status: %s\r\n"
                   "\r\n"
-                  "--nwipe-cert-boundary\r\n"
+                  "--wype-cert-boundary\r\n"
                   "Content-Type: application/pdf\r\n"
                   "Content-Disposition: attachment; filename=\"%s\"\r\n"
                   "Content-Transfer-Encoding: base64\r\n"
@@ -370,7 +370,7 @@ int nwipe_send_email( nwipe_context_t* c )
             break;
 
         /* End MIME and DATA */
-        if( smtp_send_str( sockfd, "\r\n--nwipe-cert-boundary--\r\n.\r\n" ) != 0 )
+        if( smtp_send_str( sockfd, "\r\n--wype-cert-boundary--\r\n.\r\n" ) != 0 )
             break;
         if( smtp_check_response( sockfd, "250" ) != 0 )
             break;
@@ -379,7 +379,7 @@ int nwipe_send_email( nwipe_context_t* c )
         smtp_send_str( sockfd, "QUIT\r\n" );
 
         result = 0;
-        nwipe_log( NWIPE_LOG_INFO,
+        wype_log( WYPE_LOG_INFO,
                    "Email: Certificate sent successfully to %s for %s (Serial: %s)",
                    recipient,
                    c->device_model ? c->device_model : "Unknown",
@@ -389,7 +389,7 @@ int nwipe_send_email( nwipe_context_t* c )
 
     if( result != 0 )
     {
-        nwipe_log( NWIPE_LOG_ERROR,
+        wype_log( WYPE_LOG_ERROR,
                    "Email: Failed to send certificate for %s (Serial: %s)",
                    c->device_model ? c->device_model : "Unknown",
                    c->device_serial_no );

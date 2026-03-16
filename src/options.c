@@ -1,5 +1,5 @@
 /*
- *  options.c:  Command line processing routines for nwipe.
+ *  options.c:  Command line processing routines for wype.
  *
  *  Copyright Darik Horn <dajhorn-dban@vanadac.com>.
  *
@@ -20,7 +20,7 @@
  *
  */
 
-#include "nwipe.h"
+#include "wype.h"
 #include "context.h"
 #include "method.h"
 #include "prng.h"
@@ -32,30 +32,30 @@
 #include "libconfig.h"
 
 /* The global options struct. */
-nwipe_options_t nwipe_options;
+wype_options_t wype_options;
 
-int nwipe_options_parse( int argc, char** argv )
+int wype_options_parse( int argc, char** argv )
 {
     extern char* optarg;  // The working getopt option argument.
     extern int optind;  // The working getopt index into argv.
     extern int optopt;  // The last unhandled getopt option.
     extern int opterr;  // The last getopt error number.
 
-    extern nwipe_prng_t nwipe_twister;
-    extern nwipe_prng_t nwipe_isaac;
-    extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_add_lagg_fibonacci_prng;
-    extern nwipe_prng_t nwipe_xoroshiro256_prng;
-    extern nwipe_prng_t nwipe_splitmix64_prng;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
-    extern nwipe_prng_t nwipe_chacha20_prng;
+    extern wype_prng_t wype_twister;
+    extern wype_prng_t wype_isaac;
+    extern wype_prng_t wype_isaac64;
+    extern wype_prng_t wype_add_lagg_fibonacci_prng;
+    extern wype_prng_t wype_xoroshiro256_prng;
+    extern wype_prng_t wype_splitmix64_prng;
+    extern wype_prng_t wype_aes_ctr_prng;
+    extern wype_prng_t wype_chacha20_prng;
 
-    extern config_t nwipe_cfg;
+    extern config_t wype_cfg;
     config_setting_t* setting;
     const char* user_defined_tag;
 
     /* The getopt() result holder. */
-    int nwipe_opt;
+    int wype_opt;
 
     /* Excluded drive indexes */
     int idx_drive_chr;
@@ -66,15 +66,15 @@ int nwipe_options_parse( int argc, char** argv )
     int i;
 
     /* The list of acceptable short options. */
-    char nwipe_options_short[] = "Vvhl:P:m:p:qr:e:";
+    char wype_options_short[] = "Vvhl:P:m:p:qr:e:";
 
-    /* Used when reading value fron nwipe.conf */
+    /* Used when reading value fron wype.conf */
     const char* read_value = NULL;
 
     int ret;
 
     /* The list of acceptable long options. */
-    static struct option nwipe_options_long[] = {
+    static struct option wype_options_long[] = {
         /* Set when user wants to allow wiping of devices that are in use. */
         { "force", no_argument, 0, 0 },
 
@@ -157,13 +157,13 @@ int nwipe_options_parse( int argc, char** argv )
         { 0, 0, 0, 0 } };
 
     /* Set default options. */
-    nwipe_options.force = 0;
-    nwipe_options.autonuke = 0;
-    nwipe_options.autopoweroff = 0;
-    nwipe_options.method = &nwipe_random;
-    nwipe_options.prng_auto = 1; /* by default the PRNG is selected through the benchmark selection */
-    nwipe_options.prng_benchmark_only = 0;
-    nwipe_options.prng_bench_seconds = 1.0; /* default for interactive / manual */
+    wype_options.force = 0;
+    wype_options.autonuke = 0;
+    wype_options.autopoweroff = 0;
+    wype_options.method = &wype_random;
+    wype_options.prng_auto = 1; /* by default the PRNG is selected through the benchmark selection */
+    wype_options.prng_benchmark_only = 0;
+    wype_options.prng_bench_seconds = 1.0; /* default for interactive / manual */
 
     /*
      * Determines and sets the default PRNG based on AES-NI support and system architecture.
@@ -173,160 +173,160 @@ int nwipe_options_parse( int argc, char** argv )
 
     if( has_aes_ni() )
     {
-        nwipe_options.prng = &nwipe_aes_ctr_prng;
+        wype_options.prng = &wype_aes_ctr_prng;
     }
     else if( sizeof( unsigned long int ) >= 8 )
     {
-        nwipe_options.prng = &nwipe_xoroshiro256_prng;
-        nwipe_log( NWIPE_LOG_WARNING, "CPU doesn't support AES New Instructions, opting for XORoshiro-256 instead." );
+        wype_options.prng = &wype_xoroshiro256_prng;
+        wype_log( WYPE_LOG_WARNING, "CPU doesn't support AES New Instructions, opting for XORoshiro-256 instead." );
     }
     else
     {
-        nwipe_options.prng = &nwipe_add_lagg_fibonacci_prng;
+        wype_options.prng = &wype_add_lagg_fibonacci_prng;
     }
 
-    nwipe_options.rounds = 1;
-    nwipe_options.noblank = 0;
-    nwipe_options.nousb = 0;
-    nwipe_options.nowait = 0;
-    nwipe_options.nosignals = 0;
-    nwipe_options.nogui = 0;
-    nwipe_options.quiet = 0;
-    nwipe_options.sync = DEFAULT_SYNC_RATE;
-    nwipe_options.verbose = 0;
-    nwipe_options.verify = NWIPE_VERIFY_LAST;
-    nwipe_options.io_mode = NWIPE_IO_MODE_AUTO; /* Default: auto-select I/O mode. */
-    nwipe_options.io_direction = NWIPE_IO_DIRECTION_FORWARD; /* Default: forward I/O direction. */
-    nwipe_options.noretry_io_errors = 0;
-    nwipe_options.noabort_block_errors = 0;
-    nwipe_options.PDF_toggle_host_info = 0; /* Default: host visibility on PDF disabled */
-    nwipe_options.PDFtag = 0;
-    memset( nwipe_options.logfile, '\0', sizeof( nwipe_options.logfile ) );
-    memset( nwipe_options.PDFreportpath, '\0', sizeof( nwipe_options.PDFreportpath ) );
-    strncpy( nwipe_options.PDFreportpath, ".", 2 );
+    wype_options.rounds = 1;
+    wype_options.noblank = 0;
+    wype_options.nousb = 0;
+    wype_options.nowait = 0;
+    wype_options.nosignals = 0;
+    wype_options.nogui = 0;
+    wype_options.quiet = 0;
+    wype_options.sync = DEFAULT_SYNC_RATE;
+    wype_options.verbose = 0;
+    wype_options.verify = WYPE_VERIFY_LAST;
+    wype_options.io_mode = WYPE_IO_MODE_AUTO; /* Default: auto-select I/O mode. */
+    wype_options.io_direction = WYPE_IO_DIRECTION_FORWARD; /* Default: forward I/O direction. */
+    wype_options.noretry_io_errors = 0;
+    wype_options.noabort_block_errors = 0;
+    wype_options.PDF_toggle_host_info = 0; /* Default: host visibility on PDF disabled */
+    wype_options.PDFtag = 0;
+    memset( wype_options.logfile, '\0', sizeof( wype_options.logfile ) );
+    memset( wype_options.PDFreportpath, '\0', sizeof( wype_options.PDFreportpath ) );
+    strncpy( wype_options.PDFreportpath, ".", 2 );
 
     /*
-     * Read PDF Enable/Disable settings from nwipe.conf if available
+     * Read PDF Enable/Disable settings from wype.conf if available
      */
-    if( ( ret = nwipe_conf_read_setting( "PDF_Certificate.PDF_Enable", &read_value ) ) )
+    if( ( ret = wype_conf_read_setting( "PDF_Certificate.PDF_Enable", &read_value ) ) )
     {
         /* error occurred */
-        nwipe_log( NWIPE_LOG_ERROR,
-                   "nwipe_conf_read_setting():Error reading PDF_Certificate.PDF_Enable from nwipe.conf, ret code %i",
+        wype_log( WYPE_LOG_ERROR,
+                   "wype_conf_read_setting():Error reading PDF_Certificate.PDF_Enable from wype.conf, ret code %i",
                    ret );
 
         /* Use default values */
-        nwipe_options.PDF_enable = 1;
+        wype_options.PDF_enable = 1;
     }
     else
     {
         if( !strcmp( read_value, "ENABLED" ) )
         {
-            nwipe_options.PDF_enable = 1;
+            wype_options.PDF_enable = 1;
         }
         else
         {
             if( !strcmp( read_value, "DISABLED" ) )
             {
-                nwipe_options.PDF_enable = 0;
+                wype_options.PDF_enable = 0;
             }
             else
             {
                 // error occurred
-                nwipe_log(
-                    NWIPE_LOG_ERROR,
-                    "PDF_Certificate.PDF_Enable in nwipe.conf returned a value that was neither ENABLED or DISABLED" );
-                nwipe_options.PDF_enable = 1;  // Default to Enabled
+                wype_log(
+                    WYPE_LOG_ERROR,
+                    "PDF_Certificate.PDF_Enable in wype.conf returned a value that was neither ENABLED or DISABLED" );
+                wype_options.PDF_enable = 1;  // Default to Enabled
             }
         }
     }
 
     /*
-     * Read PDF host visibility settings from nwipe.conf if available
+     * Read PDF host visibility settings from wype.conf if available
      */
-    if( ( ret = nwipe_conf_read_setting( "PDF_Certificate.PDF_Host_Visibility", &read_value ) ) )
+    if( ( ret = wype_conf_read_setting( "PDF_Certificate.PDF_Host_Visibility", &read_value ) ) )
     {
         /* error occurred */
-        nwipe_log(
-            NWIPE_LOG_ERROR,
-            "nwipe_conf_read_setting():Error reading PDF_Certificate.PDF_toggle_host_info from nwipe.conf, ret code %i",
+        wype_log(
+            WYPE_LOG_ERROR,
+            "wype_conf_read_setting():Error reading PDF_Certificate.PDF_toggle_host_info from wype.conf, ret code %i",
             ret );
 
-        nwipe_options.PDF_toggle_host_info = 0; /* Disable host visibility on PDF */
+        wype_options.PDF_toggle_host_info = 0; /* Disable host visibility on PDF */
     }
     else
     {
         if( !strcmp( read_value, "ENABLED" ) )
         {
-            nwipe_options.PDF_toggle_host_info = 1;
+            wype_options.PDF_toggle_host_info = 1;
         }
         else
         {
             if( !strcmp( read_value, "DISABLED" ) )
             {
-                nwipe_options.PDF_toggle_host_info = 0;
+                wype_options.PDF_toggle_host_info = 0;
             }
             else
             {
                 // error occurred
-                nwipe_log( NWIPE_LOG_ERROR,
-                           "PDF_Certificate.PDF_toggle_host_info in nwipe.conf returned a value that was neither "
+                wype_log( WYPE_LOG_ERROR,
+                           "PDF_Certificate.PDF_toggle_host_info in wype.conf returned a value that was neither "
                            "ENABLED or DISABLED" );
-                nwipe_options.PDF_toggle_host_info = 0;  // Default to disabled
+                wype_options.PDF_toggle_host_info = 0;  // Default to disabled
             }
         }
     }
 
     /*
-     * Read PDF tag Enable/Disable settings from nwipe.conf if available
+     * Read PDF tag Enable/Disable settings from wype.conf if available
      */
 
-    setting = config_lookup( &nwipe_cfg, "PDF_Certificate" );
+    setting = config_lookup( &wype_cfg, "PDF_Certificate" );
 
     if( config_setting_lookup_string( setting, "User_Defined_Tag", &user_defined_tag ) )
     {
         if( user_defined_tag[0] != 0 )
         {
-            nwipe_options.PDFtag = 1;
+            wype_options.PDFtag = 1;
         }
         else
         {
-            nwipe_options.PDFtag = 0;
+            wype_options.PDFtag = 0;
         }
     }
 
     /*
      * PDF Preview enable/disable
      */
-    if( ( ret = nwipe_conf_read_setting( "PDF_Certificate.PDF_Preview", &read_value ) ) )
+    if( ( ret = wype_conf_read_setting( "PDF_Certificate.PDF_Preview", &read_value ) ) )
     {
         /* error occurred */
-        nwipe_log( NWIPE_LOG_ERROR,
-                   "nwipe_conf_read_setting():Error reading PDF_Certificate.PDF_Preview from nwipe.conf, ret code %i",
+        wype_log( WYPE_LOG_ERROR,
+                   "wype_conf_read_setting():Error reading PDF_Certificate.PDF_Preview from wype.conf, ret code %i",
                    ret );
 
         /* Use default values */
-        nwipe_options.PDF_enable = 1;
+        wype_options.PDF_enable = 1;
     }
     else
     {
         if( !strcmp( read_value, "ENABLED" ) )
         {
-            nwipe_options.PDF_preview_details = 1;
+            wype_options.PDF_preview_details = 1;
         }
         else
         {
             if( !strcmp( read_value, "DISABLED" ) )
             {
-                nwipe_options.PDF_preview_details = 0;
+                wype_options.PDF_preview_details = 0;
             }
             else
             {
                 /* error occurred */
-                nwipe_log(
-                    NWIPE_LOG_ERROR,
-                    "PDF_Certificate.PDF_Preview in nwipe.conf returned a value that was neither ENABLED or DISABLED" );
-                nwipe_options.PDF_preview_details = 1; /* Default to Enabled */
+                wype_log(
+                    WYPE_LOG_ERROR,
+                    "PDF_Certificate.PDF_Preview in wype.conf returned a value that was neither ENABLED or DISABLED" );
+                wype_options.PDF_preview_details = 1; /* Default to Enabled */
             }
         }
     }
@@ -336,69 +336,69 @@ int nwipe_options_parse( int argc, char** argv )
      */
     for( i = 0; i < MAX_NUMBER_EXCLUDED_DRIVES; i++ )
     {
-        nwipe_options.exclude[i][0] = 0;
+        wype_options.exclude[i][0] = 0;
     }
 
     /* Parse command line options. */
     while( 1 )
     {
         /* Get the next command line option with (3)getopt. */
-        nwipe_opt = getopt_long( argc, argv, nwipe_options_short, nwipe_options_long, &i );
+        wype_opt = getopt_long( argc, argv, wype_options_short, wype_options_long, &i );
 
         /* Break when we have processed all of the given options. */
-        if( nwipe_opt < 0 )
+        if( wype_opt < 0 )
         {
             break;
         }
 
-        switch( nwipe_opt )
+        switch( wype_opt )
         {
             case 0: /* Long options without short counterparts. */
-                if( strcmp( nwipe_options_long[i].name, "force" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "force" ) == 0 )
                 {
-                    nwipe_options.force = 1;
+                    wype_options.force = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "autonuke" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "autonuke" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--autonuke" ) == 0 )
                     {
-                        nwipe_options.autonuke = 1;
+                        wype_options.autonuke = 1;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --autonuke?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "autopoweroff" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "autopoweroff" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--autopoweroff" ) == 0 )
                     {
-                        nwipe_options.autopoweroff = 1;
+                        wype_options.autopoweroff = 1;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --autopoweroff?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "help" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "help" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
@@ -411,167 +411,167 @@ int nwipe_options_parse( int argc, char** argv )
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --help?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "noblank" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "noblank" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--noblank" ) == 0 )
                     {
-                        nwipe_options.noblank = 1;
+                        wype_options.noblank = 1;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --noblank?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "nousb" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "nousb" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--nousb" ) == 0 )
                     {
-                        nwipe_options.nousb = 1;
+                        wype_options.nousb = 1;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --nousb?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "nowait" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "nowait" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--nowait" ) == 0 )
                     {
-                        nwipe_options.nowait = 1;
+                        wype_options.nowait = 1;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --nowait?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "nosignals" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "nosignals" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--nosignals" ) == 0 )
                     {
-                        nwipe_options.nosignals = 1;
+                        wype_options.nosignals = 1;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --nosignals?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "reverse" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "reverse" ) == 0 )
                 {
-                    nwipe_options.io_direction = NWIPE_IO_DIRECTION_REVERSE;
+                    wype_options.io_direction = WYPE_IO_DIRECTION_REVERSE;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "no-retry-on-io-errors" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "no-retry-on-io-errors" ) == 0 )
                 {
-                    nwipe_options.noretry_io_errors = 1;
+                    wype_options.noretry_io_errors = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "no-abort-on-block-errors" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "no-abort-on-block-errors" ) == 0 )
                 {
-                    nwipe_options.noabort_block_errors = 1;
+                    wype_options.noabort_block_errors = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "nogui" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "nogui" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--nogui" ) == 0 )
                     {
-                        nwipe_options.nogui = 1;
-                        nwipe_options.nowait = 1;
+                        wype_options.nogui = 1;
+                        wype_options.nowait = 1;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --nogui?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "quiet" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "quiet" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--quiet" ) == 0 )
                     {
-                        nwipe_options.quiet = 1;
+                        wype_options.quiet = 1;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --quiet?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "verbose" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "verbose" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--verbose" ) == 0 )
                     {
-                        nwipe_options.verbose = 1;
+                        wype_options.verbose = 1;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --verbose?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "sync" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "sync" ) == 0 )
                 {
-                    if( sscanf( optarg, " %i", &nwipe_options.sync ) != 1 || nwipe_options.sync < 0 )
+                    if( sscanf( optarg, " %i", &wype_options.sync ) != 1 || wype_options.sync < 0 )
                     {
                         fprintf( stderr, "Error: The sync argument must be a positive integer or zero.\n" );
                         exit( EINVAL );
@@ -579,23 +579,23 @@ int nwipe_options_parse( int argc, char** argv )
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "verify" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "verify" ) == 0 )
                 {
                     if( strcmp( optarg, "0" ) == 0 || strcmp( optarg, "off" ) == 0 )
                     {
-                        nwipe_options.verify = NWIPE_VERIFY_NONE;
+                        wype_options.verify = WYPE_VERIFY_NONE;
                         break;
                     }
 
                     if( strcmp( optarg, "1" ) == 0 || strcmp( optarg, "last" ) == 0 )
                     {
-                        nwipe_options.verify = NWIPE_VERIFY_LAST;
+                        wype_options.verify = WYPE_VERIFY_LAST;
                         break;
                     }
 
                     if( strcmp( optarg, "2" ) == 0 || strcmp( optarg, "all" ) == 0 )
                     {
-                        nwipe_options.verify = NWIPE_VERIFY_ALL;
+                        wype_options.verify = WYPE_VERIFY_ALL;
                         break;
                     }
 
@@ -606,62 +606,62 @@ int nwipe_options_parse( int argc, char** argv )
 
                 /* I/O mode selection options. */
 
-                if( strcmp( nwipe_options_long[i].name, "directio" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "directio" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--directio" ) == 0 )
                     {
-                        nwipe_options.io_mode = NWIPE_IO_MODE_DIRECT;
+                        wype_options.io_mode = WYPE_IO_MODE_DIRECT;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --directio?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "cachedio" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "cachedio" ) == 0 )
                 {
                     /* check for the full option name, as getopt_long() allows abreviations and can lead to unintended
                      * consequences when the user makes a typo */
                     if( strcmp( argv[optind - 1], "--cachedio" ) == 0 )
                     {
-                        nwipe_options.io_mode = NWIPE_IO_MODE_CACHED;
+                        wype_options.io_mode = WYPE_IO_MODE_CACHED;
                         break;
                     }
                     else
                     {
                         fprintf( stderr,
                                  "Error: Strict command line options required, did you mean --cachedio?, you typed "
-                                 "%s.\nType `sudo nwipe --help` for options \n",
+                                 "%s.\nType `sudo wype --help` for options \n",
                                  argv[optind - 1] );
                         exit( EINVAL );
                     }
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "pdftag" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "pdftag" ) == 0 )
                 {
-                    nwipe_options.PDFtag = 1;
+                    wype_options.PDFtag = 1;
                     break;
                 }
 
-                if( strcmp( nwipe_options_long[i].name, "prng-benchmark" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "prng-benchmark" ) == 0 )
                 {
-                    nwipe_options.prng_benchmark_only = 1;
+                    wype_options.prng_benchmark_only = 1;
                     break;
                 }
-                if( strcmp( nwipe_options_long[i].name, "prng-bench-seconds" ) == 0 )
+                if( strcmp( wype_options_long[i].name, "prng-bench-seconds" ) == 0 )
                 {
-                    nwipe_options.prng_bench_seconds = atof( optarg );
-                    if( nwipe_options.prng_bench_seconds < 0.05 )
-                        nwipe_options.prng_bench_seconds = 0.05;
-                    if( nwipe_options.prng_bench_seconds > 10.0 )
-                        nwipe_options.prng_bench_seconds = 10.0;
+                    wype_options.prng_bench_seconds = atof( optarg );
+                    if( wype_options.prng_bench_seconds < 0.05 )
+                        wype_options.prng_bench_seconds = 0.05;
+                    if( wype_options.prng_bench_seconds > 10.0 )
+                        wype_options.prng_bench_seconds = 10.0;
                     break;
                 }
 
@@ -672,103 +672,103 @@ int nwipe_options_parse( int argc, char** argv )
 
                 if( strcmp( optarg, "dod522022m" ) == 0 || strcmp( optarg, "dod" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_dod522022m;
+                    wype_options.method = &wype_dod522022m;
                     break;
                 }
 
                 if( strcmp( optarg, "dodshort" ) == 0 || strcmp( optarg, "dod3pass" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_dodshort;
+                    wype_options.method = &wype_dodshort;
                     break;
                 }
 
                 if( strcmp( optarg, "gutmann" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_gutmann;
+                    wype_options.method = &wype_gutmann;
                     break;
                 }
 
                 if( strcmp( optarg, "ops2" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_ops2;
+                    wype_options.method = &wype_ops2;
                     break;
                 }
 
                 if( strcmp( optarg, "random" ) == 0 || strcmp( optarg, "prng" ) == 0
                     || strcmp( optarg, "stream" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_random;
+                    wype_options.method = &wype_random;
                     break;
                 }
 
                 if( strcmp( optarg, "zero" ) == 0 || strcmp( optarg, "quick" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_zero;
+                    wype_options.method = &wype_zero;
                     break;
                 }
 
                 if( strcmp( optarg, "one" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_one;
+                    wype_options.method = &wype_one;
                     break;
                 }
 
                 if( strcmp( optarg, "verify_zero" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_verify_zero;
+                    wype_options.method = &wype_verify_zero;
                     break;
                 }
 
                 if( strcmp( optarg, "verify_one" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_verify_one;
+                    wype_options.method = &wype_verify_one;
                     break;
                 }
 
                 if( strcmp( optarg, "is5enh" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_is5enh;
+                    wype_options.method = &wype_is5enh;
                     break;
                 }
                 if( strcmp( optarg, "bruce7" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_bruce7;
+                    wype_options.method = &wype_bruce7;
                     break;
                 }
                 if( strcmp( optarg, "bmb" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_bmb;
+                    wype_options.method = &wype_bmb;
                     break;
                 }
                 if( strcmp( optarg, "secure_erase" ) == 0 || strcmp( optarg, "secure-erase" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_secure_erase;
+                    wype_options.method = &wype_secure_erase;
                     break;
                 }
                 if( strcmp( optarg, "secure_erase_prng" ) == 0 || strcmp( optarg, "secure-erase-prng" ) == 0
                     || strcmp( optarg, "secure_erase_prng_verify" ) == 0
                     || strcmp( optarg, "secure-erase-prng-verify" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_secure_erase_prng_verify;
+                    wype_options.method = &wype_secure_erase_prng_verify;
                     break;
                 }
                 if( strcmp( optarg, "sanitize_crypto" ) == 0 || strcmp( optarg, "sanitize-crypto" ) == 0
                     || strcmp( optarg, "sanitize_crypto_erase" ) == 0
                     || strcmp( optarg, "sanitize-crypto-erase" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_sanitize_crypto_erase;
+                    wype_options.method = &wype_sanitize_crypto_erase;
                     break;
                 }
                 if( strcmp( optarg, "sanitize_block" ) == 0 || strcmp( optarg, "sanitize-block" ) == 0
                     || strcmp( optarg, "sanitize_block_erase" ) == 0
                     || strcmp( optarg, "sanitize-block-erase" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_sanitize_block_erase;
+                    wype_options.method = &wype_sanitize_block_erase;
                     break;
                 }
                 if( strcmp( optarg, "sanitize_overwrite" ) == 0 || strcmp( optarg, "sanitize-overwrite" ) == 0 )
                 {
-                    nwipe_options.method = &nwipe_sanitize_overwrite;
+                    wype_options.method = &wype_sanitize_overwrite;
                     break;
                 }
 
@@ -778,28 +778,28 @@ int nwipe_options_parse( int argc, char** argv )
 
             case 'l': /* Log file option. */
 
-                nwipe_options.logfile[strlen( optarg )] = '\0';
-                strncpy( nwipe_options.logfile, optarg, sizeof( nwipe_options.logfile ) );
+                wype_options.logfile[strlen( optarg )] = '\0';
+                strncpy( wype_options.logfile, optarg, sizeof( wype_options.logfile ) );
                 break;
 
             case 'P': /* PDFreport path option. */
 
-                nwipe_options.PDFreportpath[strlen( optarg )] = '\0';
-                strncpy( nwipe_options.PDFreportpath, optarg, sizeof( nwipe_options.PDFreportpath ) );
+                wype_options.PDFreportpath[strlen( optarg )] = '\0';
+                strncpy( wype_options.PDFreportpath, optarg, sizeof( wype_options.PDFreportpath ) );
 
-                /* Command line options will override what's in nwipe.conf */
-                if( strcmp( nwipe_options.PDFreportpath, "noPDF" ) == 0 )
+                /* Command line options will override what's in wype.conf */
+                if( strcmp( wype_options.PDFreportpath, "noPDF" ) == 0 )
                 {
-                    nwipe_options.PDF_enable = 0;
-                    nwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "DISABLED" );
+                    wype_options.PDF_enable = 0;
+                    wype_conf_update_setting( "PDF_Certificate.PDF_Enable", "DISABLED" );
                 }
                 else
                 {
-                    if( strcmp( nwipe_options.PDFreportpath, "." ) )
+                    if( strcmp( wype_options.PDFreportpath, "." ) )
                     {
                         /* and if the user has specified a PDF path then enable PDF */
-                        nwipe_options.PDF_enable = 1;
-                        nwipe_conf_update_setting( "PDF_Certificate.PDF_Enable", "ENABLED" );
+                        wype_options.PDF_enable = 1;
+                        wype_conf_update_setting( "PDF_Certificate.PDF_Enable", "ENABLED" );
                     }
                 }
 
@@ -824,7 +824,7 @@ int nwipe_options_parse( int argc, char** argv )
                     if( optarg[idx_optarg] == ',' )
                     {
                         /* terminate string and move onto next drive */
-                        nwipe_options.exclude[idx_drive++][idx_drive_chr] = 0;
+                        wype_options.exclude[idx_drive++][idx_drive_chr] = 0;
                         idx_drive_chr = 0;
                         idx_optarg++;
                     }
@@ -832,12 +832,12 @@ int nwipe_options_parse( int argc, char** argv )
                     {
                         if( idx_drive_chr < MAX_DRIVE_PATH_LENGTH )
                         {
-                            nwipe_options.exclude[idx_drive][idx_drive_chr++] = optarg[idx_optarg++];
+                            wype_options.exclude[idx_drive][idx_drive_chr++] = optarg[idx_optarg++];
                         }
                         else
                         {
                             /* This section deals with file names that exceed MAX_DRIVE_PATH_LENGTH */
-                            nwipe_options.exclude[idx_drive][idx_drive_chr] = 0;
+                            wype_options.exclude[idx_drive][idx_drive_chr] = 0;
                             while( optarg[idx_optarg] != 0 && optarg[idx_optarg] != ',' )
                             {
                                 idx_optarg++;
@@ -865,7 +865,7 @@ int nwipe_options_parse( int argc, char** argv )
                 /* Default behaviour is auto now, but allow explicit opt-out */
                 if( strcmp( optarg, "auto" ) == 0 )
                 {
-                    nwipe_options.prng_auto = 1;
+                    wype_options.prng_auto = 1;
                     /* keep current default as fallback until autoselect runs */
                     break;
                 }
@@ -873,47 +873,47 @@ int nwipe_options_parse( int argc, char** argv )
                 /* NEW: disable auto and keep compiled-in default selection */
                 if( strcmp( optarg, "default" ) == 0 || strcmp( optarg, "manual" ) == 0 )
                 {
-                    nwipe_options.prng_auto = 0;
-                    /* keep nwipe_options.prng as chosen by CPU heuristics above */
+                    wype_options.prng_auto = 0;
+                    /* keep wype_options.prng as chosen by CPU heuristics above */
                     break;
                 }
 
                 /* Any explicit PRNG selection implies auto off */
-                nwipe_options.prng_auto = 0;
+                wype_options.prng_auto = 0;
 
                 if( strcmp( optarg, "mersenne" ) == 0 || strcmp( optarg, "twister" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_twister;
+                    wype_options.prng = &wype_twister;
                     break;
                 }
 
                 if( strcmp( optarg, "isaac" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_isaac;
+                    wype_options.prng = &wype_isaac;
                     break;
                 }
 
                 if( strcmp( optarg, "isaac64" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_isaac64;
+                    wype_options.prng = &wype_isaac64;
                     break;
                 }
 
                 if( strcmp( optarg, "add_lagg_fibonacci_prng" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_add_lagg_fibonacci_prng;
+                    wype_options.prng = &wype_add_lagg_fibonacci_prng;
                     break;
                 }
 
                 if( strcmp( optarg, "xoroshiro256_prng" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_xoroshiro256_prng;
+                    wype_options.prng = &wype_xoroshiro256_prng;
                     break;
                 }
 
                 if( strcmp( optarg, "splitmix64" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_splitmix64_prng;
+                    wype_options.prng = &wype_splitmix64_prng;
                     break;
                 }
 
@@ -921,7 +921,7 @@ int nwipe_options_parse( int argc, char** argv )
                 {
                     if( has_aes_ni() )
                     {
-                        nwipe_options.prng = &nwipe_aes_ctr_prng;
+                        wype_options.prng = &wype_aes_ctr_prng;
                     }
                     else
                     {
@@ -935,7 +935,7 @@ int nwipe_options_parse( int argc, char** argv )
 
                 if( strcmp( optarg, "chacha20" ) == 0 )
                 {
-                    nwipe_options.prng = &nwipe_chacha20_prng;
+                    wype_options.prng = &wype_chacha20_prng;
                     break;
                 }
 
@@ -944,12 +944,12 @@ int nwipe_options_parse( int argc, char** argv )
 
             case 'q': /* Anonymize serial numbers */
 
-                nwipe_options.quiet = 1;
+                wype_options.quiet = 1;
                 break;
 
             case 'r': /* Rounds option. */
 
-                if( sscanf( optarg, " %i", &nwipe_options.rounds ) != 1 || nwipe_options.rounds < 1 )
+                if( sscanf( optarg, " %i", &wype_options.rounds ) != 1 || wype_options.rounds < 1 )
                 {
                     fprintf( stderr, "Error: The rounds argument must be a positive integer.\n" );
                     exit( EINVAL );
@@ -959,7 +959,7 @@ int nwipe_options_parse( int argc, char** argv )
 
             case 'v': /* verbose */
 
-                nwipe_options.verbose = 1;
+                wype_options.verbose = 1;
                 break;
 
             case 'V': /* Version option. */
@@ -977,100 +977,100 @@ int nwipe_options_parse( int argc, char** argv )
     } /* command line options */
 
     /* Disable blanking for ops2 and verify methods */
-    if( nwipe_options.method == &nwipe_ops2 || nwipe_options.method == &nwipe_verify_zero
-        || nwipe_options.method == &nwipe_verify_one )
+    if( wype_options.method == &wype_ops2 || wype_options.method == &wype_verify_zero
+        || wype_options.method == &wype_verify_one )
     {
-        nwipe_options.noblank = 1;
+        wype_options.noblank = 1;
     }
 
     /* Return the number of options that were processed. */
     return optind;
 }
 
-void nwipe_options_log( void )
+void wype_options_log( void )
 {
-    extern nwipe_prng_t nwipe_twister;
-    extern nwipe_prng_t nwipe_isaac;
-    extern nwipe_prng_t nwipe_isaac64;
-    extern nwipe_prng_t nwipe_add_lagg_fibonacci_prng;
-    extern nwipe_prng_t nwipe_xoroshiro256_prng;
-    extern nwipe_prng_t nwipe_splitmix64_prng;
-    extern nwipe_prng_t nwipe_aes_ctr_prng;
-    extern nwipe_prng_t nwipe_chacha20_prng;
+    extern wype_prng_t wype_twister;
+    extern wype_prng_t wype_isaac;
+    extern wype_prng_t wype_isaac64;
+    extern wype_prng_t wype_add_lagg_fibonacci_prng;
+    extern wype_prng_t wype_xoroshiro256_prng;
+    extern wype_prng_t wype_splitmix64_prng;
+    extern wype_prng_t wype_aes_ctr_prng;
+    extern wype_prng_t wype_chacha20_prng;
 
     /**
      *  Prints a manifest of options to the log.
      */
-    nwipe_log( NWIPE_LOG_NOTICE, "Program options are set as follows..." );
+    wype_log( WYPE_LOG_NOTICE, "Program options are set as follows..." );
 
-    nwipe_log( NWIPE_LOG_NOTICE, "  force        = %i (%s)", nwipe_options.force, nwipe_options.force ? "on" : "off" );
+    wype_log( WYPE_LOG_NOTICE, "  force        = %i (%s)", wype_options.force, wype_options.force ? "on" : "off" );
 
-    nwipe_log(
-        NWIPE_LOG_NOTICE, "  autonuke     = %i (%s)", nwipe_options.autonuke, nwipe_options.autonuke ? "on" : "off" );
+    wype_log(
+        WYPE_LOG_NOTICE, "  autonuke     = %i (%s)", wype_options.autonuke, wype_options.autonuke ? "on" : "off" );
 
-    nwipe_log( NWIPE_LOG_NOTICE,
+    wype_log( WYPE_LOG_NOTICE,
                "  autopoweroff = %i (%s)",
-               nwipe_options.autopoweroff,
-               nwipe_options.autopoweroff ? "on" : "off" );
+               wype_options.autopoweroff,
+               wype_options.autopoweroff ? "on" : "off" );
 
-    if( nwipe_options.noblank )
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not perform a final blank pass" );
-    if( nwipe_options.nowait )
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not wait for a key before exiting" );
-    if( nwipe_options.nosignals )
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not allow signals to interrupt a wipe" );
-    if( nwipe_options.nogui )
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not show GUI interface" );
-    if( nwipe_options.noretry_io_errors )
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not retry I/O errors" );
-    if( nwipe_options.noabort_block_errors )
-        nwipe_log( NWIPE_LOG_NOTICE, "  do not abort on block errors" );
+    if( wype_options.noblank )
+        wype_log( WYPE_LOG_NOTICE, "  do not perform a final blank pass" );
+    if( wype_options.nowait )
+        wype_log( WYPE_LOG_NOTICE, "  do not wait for a key before exiting" );
+    if( wype_options.nosignals )
+        wype_log( WYPE_LOG_NOTICE, "  do not allow signals to interrupt a wipe" );
+    if( wype_options.nogui )
+        wype_log( WYPE_LOG_NOTICE, "  do not show GUI interface" );
+    if( wype_options.noretry_io_errors )
+        wype_log( WYPE_LOG_NOTICE, "  do not retry I/O errors" );
+    if( wype_options.noabort_block_errors )
+        wype_log( WYPE_LOG_NOTICE, "  do not abort on block errors" );
 
-    nwipe_log( NWIPE_LOG_NOTICE, "  banner       = %s", banner );
+    wype_log( WYPE_LOG_NOTICE, "  banner       = %s", banner );
 
-    if( nwipe_options.prng == &nwipe_twister )
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng         = Mersenne Twister" );
-    else if( nwipe_options.prng == &nwipe_add_lagg_fibonacci_prng )
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng         = Lagged Fibonacci generator" );
-    else if( nwipe_options.prng == &nwipe_xoroshiro256_prng )
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng         = XORoshiro-256" );
-    else if( nwipe_options.prng == &nwipe_splitmix64_prng )
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng         = SplitMix64" );
-    else if( nwipe_options.prng == &nwipe_aes_ctr_prng )
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng         = AES-CTR (CSPRNG)" );
-    else if( nwipe_options.prng == &nwipe_isaac )
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng         = Isaac" );
-    else if( nwipe_options.prng == &nwipe_isaac64 )
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng         = Isaac64" );
-    else if( nwipe_options.prng == &nwipe_chacha20_prng )
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng         = ChaCha20 (CSPRNG)" );
+    if( wype_options.prng == &wype_twister )
+        wype_log( WYPE_LOG_NOTICE, "  prng         = Mersenne Twister" );
+    else if( wype_options.prng == &wype_add_lagg_fibonacci_prng )
+        wype_log( WYPE_LOG_NOTICE, "  prng         = Lagged Fibonacci generator" );
+    else if( wype_options.prng == &wype_xoroshiro256_prng )
+        wype_log( WYPE_LOG_NOTICE, "  prng         = XORoshiro-256" );
+    else if( wype_options.prng == &wype_splitmix64_prng )
+        wype_log( WYPE_LOG_NOTICE, "  prng         = SplitMix64" );
+    else if( wype_options.prng == &wype_aes_ctr_prng )
+        wype_log( WYPE_LOG_NOTICE, "  prng         = AES-CTR (CSPRNG)" );
+    else if( wype_options.prng == &wype_isaac )
+        wype_log( WYPE_LOG_NOTICE, "  prng         = Isaac" );
+    else if( wype_options.prng == &wype_isaac64 )
+        wype_log( WYPE_LOG_NOTICE, "  prng         = Isaac64" );
+    else if( wype_options.prng == &wype_chacha20_prng )
+        wype_log( WYPE_LOG_NOTICE, "  prng         = ChaCha20 (CSPRNG)" );
     else
-        nwipe_log( NWIPE_LOG_NOTICE, "  prng         = Unknown" );
+        wype_log( WYPE_LOG_NOTICE, "  prng         = Unknown" );
 
-    nwipe_log( NWIPE_LOG_NOTICE, "  method       = %s", nwipe_method_label( nwipe_options.method ) );
+    wype_log( WYPE_LOG_NOTICE, "  method       = %s", wype_method_label( wype_options.method ) );
 
-    nwipe_log( NWIPE_LOG_NOTICE,
+    wype_log( WYPE_LOG_NOTICE,
                "  direction    = %s",
-               nwipe_options.io_direction == NWIPE_IO_DIRECTION_FORWARD ? "start -> end (forward)"
+               wype_options.io_direction == WYPE_IO_DIRECTION_FORWARD ? "start -> end (forward)"
                                                                         : "end -> start (reverse)" );
 
-    nwipe_log( NWIPE_LOG_NOTICE, "  quiet        = %i", nwipe_options.quiet );
-    nwipe_log( NWIPE_LOG_NOTICE, "  rounds       = %i", nwipe_options.rounds );
-    nwipe_log( NWIPE_LOG_NOTICE, "  sync         = %i", nwipe_options.sync );
+    wype_log( WYPE_LOG_NOTICE, "  quiet        = %i", wype_options.quiet );
+    wype_log( WYPE_LOG_NOTICE, "  rounds       = %i", wype_options.rounds );
+    wype_log( WYPE_LOG_NOTICE, "  sync         = %i", wype_options.sync );
 
-    switch( nwipe_options.verify )
+    switch( wype_options.verify )
     {
-        case NWIPE_VERIFY_NONE:
-            nwipe_log( NWIPE_LOG_NOTICE, "  verify       = %i (off)", nwipe_options.verify );
+        case WYPE_VERIFY_NONE:
+            wype_log( WYPE_LOG_NOTICE, "  verify       = %i (off)", wype_options.verify );
             break;
-        case NWIPE_VERIFY_LAST:
-            nwipe_log( NWIPE_LOG_NOTICE, "  verify       = %i (last pass)", nwipe_options.verify );
+        case WYPE_VERIFY_LAST:
+            wype_log( WYPE_LOG_NOTICE, "  verify       = %i (last pass)", wype_options.verify );
             break;
-        case NWIPE_VERIFY_ALL:
-            nwipe_log( NWIPE_LOG_NOTICE, "  verify       = %i (all passes)", nwipe_options.verify );
+        case WYPE_VERIFY_ALL:
+            wype_log( WYPE_LOG_NOTICE, "  verify       = %i (all passes)", wype_options.verify );
             break;
         default:
-            nwipe_log( NWIPE_LOG_NOTICE, "  verify       = %i", nwipe_options.verify );
+            wype_log( WYPE_LOG_NOTICE, "  verify       = %i", wype_options.verify );
             break;
     }
 }

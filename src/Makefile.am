@@ -7,17 +7,17 @@ TESTS = test_round_size
 
 # this lists the binaries to produce, the (non-PHONY, binary) targets in
 # the previous manual Makefile
-bin_PROGRAMS = nwipe
+bin_PROGRAMS = wype
 
 # Core sources
-NWIPE_CORE = \
+WYPE_CORE = \
     context.h \
     logging.c logging.h \
     options.c options.h \
     prng.c prng.h \
     version.c version.h \
     temperature.c temperature.h \
-    nwipe.c nwipe.h \
+    wype.c wype.h \
     gui.c gui.h \
     method.c method.h \
     pass.c pass.h \
@@ -35,7 +35,7 @@ NWIPE_CORE = \
     send_email.c send_email.h
 
 # PRNG implementations
-NWIPE_PRNG = \
+WYPE_PRNG = \
     isaac_rand/isaac_standard.h \
     isaac_rand/isaac_rand.c isaac_rand/isaac_rand.h \
     isaac_rand/isaac64.c isaac_rand/isaac64.h \
@@ -48,7 +48,7 @@ NWIPE_PRNG = \
     chacha20/chacha20_test.c chacha20/chacha20_test_vectors.c chacha20/chacha20_test.h
 
 # PDF generation and reporting
-NWIPE_PDF = \
+WYPE_PDF = \
     PDFGen/pdfgen.c PDFGen/pdfgen.h \
     create_pdf.c create_pdf.h \
     create_single_disc_pdf.c \
@@ -56,17 +56,17 @@ NWIPE_PDF = \
     embedded_images/shred_db.jpg.c embedded_images/shred_db.jpg.h \
     embedded_images/tick_erased.jpg.c embedded_images/tick_erased.jpg.h \
     embedded_images/redcross.c embedded_images/redcross.h \
-    embedded_images/nwipe_exclamation.jpg.c embedded_images/nwipe_exclamation.jpg.h \
+    embedded_images/wype_exclamation.jpg.c embedded_images/wype_exclamation.jpg.h \
     embedded_images/logo.jpg.c embedded_images/logo.jpg.h
 
 # HDD temperature (SCSI)
-NWIPE_HDDTEMP = \
+WYPE_HDDTEMP = \
     hddtemp_scsi/hddtemp.h hddtemp_scsi/scsi.h hddtemp_scsi/scsicmds.h \
     hddtemp_scsi/get_scsi_temp.c hddtemp_scsi/scsi.c hddtemp_scsi/scsicmds.c
 
 # Combine all sources
-nwipe_SOURCES = $(NWIPE_CORE) $(NWIPE_PRNG) $(NWIPE_PDF) $(NWIPE_HDDTEMP)
-nwipe_LDADD = $(PARTED_LIBS) $(LIBCONFIG)
+wype_SOURCES = $(WYPE_CORE) $(WYPE_PRNG) $(WYPE_PDF) $(WYPE_HDDTEMP)
+wype_LDADD = $(PARTED_LIBS) $(LIBCONFIG)
 
 test_round_size_SOURCES = ../tests/unit/test_round_size.c round_size.c round_size.h
 test_round_size_CPPFLAGS = -I$(top_srcdir)/src -I$(top_builddir)

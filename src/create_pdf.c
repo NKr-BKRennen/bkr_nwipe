@@ -27,7 +27,7 @@
 #include "stdio.h"
 #include "stdlib.h"
 #include "string.h"
-#include "nwipe.h"
+#include "wype.h"
 #include "context.h"
 #include "create_pdf.h"
 #include "PDFGen/pdfgen.h"
@@ -36,7 +36,7 @@
 #include "embedded_images/shred_db.jpg.h"
 #include "embedded_images/tick_erased.jpg.h"
 #include "embedded_images/redcross.h"
-#include "embedded_images/nwipe_exclamation.jpg.h"
+#include "embedded_images/wype_exclamation.jpg.h"
 #include "embedded_images/logo.jpg.h"
 #include "logging.h"
 #include "options.h"
@@ -61,7 +61,7 @@ float height;
 float page_width;
 int status_icon;
 
-int nwipe_get_smart_data( nwipe_context_t* c )
+int wype_get_smart_data( wype_context_t* c )
 {
     FILE* fp;
 
@@ -95,7 +95,7 @@ int nwipe_get_smart_data( nwipe_context_t* c )
             {
                 if( system( "which /usr/sbin/smartctl > /dev/null 2>&1" ) )
                 {
-                    nwipe_log( NWIPE_LOG_WARNING, "Command not found. Install smartmontools !" );
+                    wype_log( WYPE_LOG_WARNING, "Command not found. Install smartmontools !" );
                 }
                 else
                 {
@@ -123,7 +123,7 @@ int nwipe_get_smart_data( nwipe_context_t* c )
 
         if( fp == NULL )
         {
-            nwipe_log( NWIPE_LOG_WARNING, "nwipe_get_smart_data(): Failed to create stream to %s", smartctl_command );
+            wype_log( WYPE_LOG_WARNING, "wype_get_smart_data(): Failed to create stream to %s", smartctl_command );
 
             set_return_value = 3;
         }
@@ -161,7 +161,7 @@ int nwipe_get_smart_data( nwipe_context_t* c )
                     idx++;
                 }
 
-                if( nwipe_options.quiet == 1 )
+                if( wype_options.quiet == 1 )
                 {
                     for( idx2 = 0; idx2 < 3; idx2++ )
                     {
@@ -210,7 +210,7 @@ int nwipe_get_smart_data( nwipe_context_t* c )
     return set_return_value;
 }
 
-void create_header_and_footer( nwipe_context_t* c, char* page_title )
+void create_header_and_footer( wype_context_t* c, char* page_title )
 {
     /**************************************************************************
      * Create header and footer on most recently added page, with the exception
@@ -233,7 +233,7 @@ void create_header_and_footer( nwipe_context_t* c, char* page_title )
         case STATUS_ICON_YELLOW_EXCLAMATION:
 
             /* Display the yellow exclamation icon in the header */
-            pdf_add_image_data( pdf, NULL, 450, 665, 100, 100, bin2c_nwipe_exclamation_jpg, 65791 );
+            pdf_add_image_data( pdf, NULL, 450, 665, 100, 100, bin2c_wype_exclamation_jpg, 65791 );
             break;
 
         case STATUS_ICON_RED_CROSS:
@@ -248,16 +248,16 @@ void create_header_and_footer( nwipe_context_t* c, char* page_title )
     }
 }
 
-void pdf_header_footer_text( nwipe_context_t* c, char* page_title )
+void pdf_header_footer_text( wype_context_t* c, char* page_title )
 {
     extern char dmidecode_system_serial_number[DMIDECODE_RESULT_LENGTH];
     extern char dmidecode_system_uuid[DMIDECODE_RESULT_LENGTH];
 
     const char* user_defined_tag;
 
-    /* variables used by libconfig for extracting data from nwipe.conf */
+    /* variables used by libconfig for extracting data from wype.conf */
     config_setting_t* setting;
-    extern config_t nwipe_cfg;
+    extern config_t wype_cfg;
 
     pdf_add_text_wrap( pdf, NULL, pdf_footer, 12, 0, 30, 0, PDF_BLACK, page_width, PDF_ALIGN_CENTER, &height );
     pdf_add_line( pdf, NULL, 50, 50, 550, 50, 3, PDF_BLACK );  // Footer full width Line
@@ -266,7 +266,7 @@ void pdf_header_footer_text( nwipe_context_t* c, char* page_title )
     pdf_add_image_data( pdf, NULL, 45, 665, 100, 100, bin2c_shred_db_jpg, 27063 );
     pdf_set_font( pdf, "Helvetica-Bold" );
 
-    if( nwipe_options.PDFtag || nwipe_options.PDF_toggle_host_info )
+    if( wype_options.PDFtag || wype_options.PDF_toggle_host_info )
     {
         snprintf( model_header, sizeof( model_header ), " %s: %s ", "Disk Model", c->device_model );
         pdf_add_text_wrap( pdf, NULL, model_header, 11, 0, 718, 0, PDF_BLACK, page_width, PDF_ALIGN_CENTER, &height );
@@ -274,7 +274,7 @@ void pdf_header_footer_text( nwipe_context_t* c, char* page_title )
         pdf_add_text_wrap( pdf, NULL, serial_header, 11, 0, 703, 0, PDF_BLACK, page_width, PDF_ALIGN_CENTER, &height );
 
         /* Display host UUID & S/N is host visibility is enabled in PDF */
-        if( nwipe_options.PDF_toggle_host_info )
+        if( wype_options.PDF_toggle_host_info )
         {
             snprintf(
                 hostid_header, sizeof( hostid_header ), " %s: %s ", "System S/N", dmidecode_system_serial_number );
@@ -285,8 +285,8 @@ void pdf_header_footer_text( nwipe_context_t* c, char* page_title )
                 pdf, NULL, hostid_header, 11, 0, 673, 0, PDF_BLACK, page_width, PDF_ALIGN_CENTER, &height );
         }
 
-        /* libconfig: Obtain PDF_Certificate.User_Defined_Tag from nwipe.conf */
-        setting = config_lookup( &nwipe_cfg, "PDF_Certificate" );
+        /* libconfig: Obtain PDF_Certificate.User_Defined_Tag from wype.conf */
+        setting = config_lookup( &wype_cfg, "PDF_Certificate" );
 
         if( config_setting_lookup_string( setting, "User_Defined_Tag", &user_defined_tag ) )
         {
@@ -316,9 +316,9 @@ void pdf_header_footer_text( nwipe_context_t* c, char* page_title )
         pdf, NULL, "Disk Erasure Report", 24, 0, 765, 0, PDF_BLACK, page_width, PDF_ALIGN_CENTER, &height );
     snprintf( barcode, sizeof( barcode ), "%s:%s", c->device_model, c->device_serial_no );
     pdf_add_text_wrap( pdf, NULL, page_title, 14, 0, 745, 0, PDF_BLACK, page_width, PDF_ALIGN_CENTER, &height );
-    /* pdf_add_barcode( pdf, NULL, PDF_BARCODE_128A, 100, 790, 400, 25, barcode, PDF_BLACK ); */ /* BKR: barcode disabled */
+    /* pdf_add_barcode( pdf, NULL, PDF_BARCODE_128A, 100, 790, 400, 25, barcode, PDF_BLACK ); */ /* wype: barcode disabled */
 
-    /* BKR Logo top-right corner */
+    /* wype Logo top-right corner */
     {
         double page_w = 595.0;   /* A4 page width in pt */
         double logo_w = 234.0;
