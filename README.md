@@ -112,8 +112,7 @@ Nach dem Neustart startet nwipe automatisch auf dem ersten Terminal.
 
 ```bash
 cd /root/bkr_nwipe
-git pull
-./build.sh
+./update.sh
 ```
 
 ---
