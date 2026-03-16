@@ -219,6 +219,12 @@ Email_Settings: {
 
 ---
 
+## Bootbares ISO
+
+Fuer ein bootbares USB/ISO-Image das direkt in BKR_NWIPE startet: [BKR ShredOS](https://github.com/NKr-BKRennen/bkr_shredos)
+
+---
+
 ## Bugs
 
 * BKR_NWIPE: [https://github.com/NKr-BKRennen/bkr_nwipe](https://github.com/NKr-BKRennen/bkr_nwipe)
