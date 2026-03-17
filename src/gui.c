@@ -2035,7 +2035,11 @@ void wype_gui_select( int* p_count, wype_context_t*** p_c )
                     {
                         for( i = 0; i < count; i++ )
                         {
-                            c[i]->select = WYPE_SELECT_TRUE;
+                            if( c[i]->select != WYPE_SELECT_DISABLED_BUSY
+                                && c[i]->select != WYPE_SELECT_DISABLED )
+                            {
+                                c[i]->select = WYPE_SELECT_TRUE;
+                            }
                         }
                         select_all_toggle_status = 1;
                     }
@@ -2045,7 +2049,11 @@ void wype_gui_select( int* p_count, wype_context_t*** p_c )
                         {
                             for( i = 0; i < count; i++ )
                             {
-                                c[i]->select = WYPE_SELECT_FALSE;
+                                if( c[i]->select != WYPE_SELECT_DISABLED_BUSY
+                                    && c[i]->select != WYPE_SELECT_DISABLED )
+                                {
+                                    c[i]->select = WYPE_SELECT_FALSE;
+                                }
                             }
                             select_all_toggle_status = 0;
                         }
