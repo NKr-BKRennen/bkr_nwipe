@@ -524,8 +524,11 @@ int create_single_disc_pdf( wype_context_t* ptr )
     pdf_add_text( pdf, NULL, "*Bytes Erased:", 12, 60, 230, PDF_GRAY );
     pdf_set_font( pdf, "Helvetica-Bold" );
 
-    /* Bytes erased is not applicable when user only requested a verify */
-    if( wype_options.method == &wype_verify_one || wype_options.method == &wype_verify_zero )
+    /* Bytes erased is not applicable for verify-only or hardware-based erase methods */
+    if( wype_options.method == &wype_verify_one || wype_options.method == &wype_verify_zero
+        || wype_options.method == &wype_secure_erase || wype_options.method == &wype_secure_erase_prng_verify
+        || wype_options.method == &wype_sanitize_crypto_erase || wype_options.method == &wype_sanitize_crypto_erase_verify
+        || wype_options.method == &wype_sanitize_block_erase || wype_options.method == &wype_sanitize_overwrite )
     {
         snprintf( bytes_erased, sizeof( bytes_erased ), "Not applicable to method" );
         pdf_add_text( pdf, NULL, bytes_erased, text_size_data, 145, 230, PDF_BLACK );
@@ -746,14 +749,19 @@ int create_single_disc_pdf( wype_context_t* ptr )
         }
     }
 
-    /* info descripting what bytes erased actually means */
-    pdf_add_text( pdf,
-                  NULL,
-                  "* bytes erased: The amount of drive that's been erased at least once",
-                  text_size_data,
-                  60,
-                  137,
-                  PDF_BLACK );
+    /* info describing what bytes erased actually means (not applicable for hardware-based methods) */
+    if( wype_options.method != &wype_secure_erase && wype_options.method != &wype_secure_erase_prng_verify
+        && wype_options.method != &wype_sanitize_crypto_erase && wype_options.method != &wype_sanitize_crypto_erase_verify
+        && wype_options.method != &wype_sanitize_block_erase && wype_options.method != &wype_sanitize_overwrite )
+    {
+        pdf_add_text( pdf,
+                      NULL,
+                      "* bytes erased: The amount of drive that's been erased at least once",
+                      text_size_data,
+                      60,
+                      137,
+                      PDF_BLACK );
+    }
 
     /* meaning of abreviation DDNSHPA */
     if( c->HPA_status == HPA_NOT_SUPPORTED_BY_DRIVE )
@@ -771,7 +779,7 @@ int create_single_disc_pdf( wype_context_t* ptr )
         double cb_size = 8.0;
         double cb_y;
 
-        pdf_add_line( pdf, NULL, 50, disp_line_y, 550, disp_line_y, 1, PDF_GRAY );
+        pdf_add_line( pdf, NULL, 50, disp_line_y, 550, disp_line_y, 3, PDF_BLACK );
         pdf_add_text( pdf, NULL, "Disposition of Device", 12, 50, disp_line_y - 20, PDF_BLUE );
 
         cb_y = disp_line_y - 35;
@@ -797,11 +805,11 @@ int create_single_disc_pdf( wype_context_t* ptr )
         double tech_line_y = 55.0;
         double tech_block_y = tech_line_y - 25;
 
-        pdf_add_line( pdf, NULL, 50, tech_line_y + 5, 550, tech_line_y + 5, 1, PDF_GRAY );
+        pdf_add_line( pdf, NULL, 50, tech_line_y + 5, 550, tech_line_y + 5, 3, PDF_BLACK );
         pdf_add_text( pdf, NULL, "Technician/Operator ID", 12, 50, tech_block_y + 10, PDF_BLUE );
         pdf_add_text( pdf, NULL, "Name/ID:", 12, 60, tech_block_y - 5, PDF_GRAY );
-        pdf_add_text( pdf, NULL, "Signature:", 12, 300, tech_block_y + 10, PDF_BLUE );
-        pdf_add_line( pdf, NULL, 360, tech_block_y - 1, 550, tech_block_y - 1, 1, PDF_GRAY );
+        pdf_add_text( pdf, NULL, "Signature:", 12, 300, tech_block_y - 5, PDF_GRAY );
+        pdf_add_line( pdf, NULL, 360, tech_block_y - 5, 550, tech_block_y - 5, 1, PDF_BLACK );
 
         pdf_set_font( pdf, "Helvetica-Bold" );
         /* Obtain organisational details from wype.conf - See conf.c */

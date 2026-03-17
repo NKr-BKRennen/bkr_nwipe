@@ -259,7 +259,11 @@ void pdf_header_footer_text( wype_context_t* c, char* page_title )
     config_setting_t* setting;
     extern config_t wype_cfg;
 
-    pdf_add_text_wrap( pdf, NULL, pdf_footer, 12, 0, 30, 0, PDF_BLACK, page_width, PDF_ALIGN_CENTER, &height );
+    /* Show the "Disc Erasure by WYPE version ..." footer only on pages after page 1 */
+    if( strstr( page_title, "Page 1" ) == NULL )
+    {
+        pdf_add_text_wrap( pdf, NULL, pdf_footer, 12, 0, 30, 0, PDF_BLACK, page_width, PDF_ALIGN_CENTER, &height );
+    }
     pdf_add_line( pdf, NULL, 50, 50, 550, 50, 3, PDF_BLACK );  // Footer full width Line
     pdf_add_line( pdf, NULL, 50, 650, 550, 650, 3, PDF_BLACK );  // Header full width Line
     pdf_add_line( pdf, NULL, 175, 734, 425, 734, 3, PDF_BLACK );  // Header Page number, disk model divider line
@@ -331,5 +335,5 @@ void pdf_header_footer_text( wype_context_t* c, char* page_title )
 
     /* Version text bottom-right */
     pdf_set_font( pdf, "Helvetica" );
-    pdf_add_text( pdf, NULL, "Version 1.1", 8, page_width - 60, 8, PDF_GRAY );
+    pdf_add_text( pdf, NULL, "Version 1.2", 8, page_width - 60, 8, PDF_GRAY );
 }

@@ -282,15 +282,19 @@ int wype_send_summary_notification( wype_context_t** c, int count )
     if( read_email_settings( &smtp_server, &smtp_port_str, &sender, &recipient ) != 0 )
         return -1;
 
-    /* Count success/fail */
+    /* Count success/fail by checking the actual result fields, because
+     * wipe_status_txt may not be populated yet at this point. */
     int success = 0;
     int failed = 0;
     int aborted = 0;
+    extern int user_abort;
     for( int i = 0; i < count; i++ )
     {
-        if( strcmp( c[i]->wipe_status_txt, "ERASED" ) == 0 )
+        if( c[i]->pass_errors != 0 || c[i]->verify_errors != 0 || c[i]->fsyncdata_errors != 0 )
+            failed++;
+        else if( c[i]->wipe_status == 0 )
             success++;
-        else if( strcmp( c[i]->wipe_status_txt, "ABORTED" ) == 0 )
+        else if( c[i]->wipe_status == 1 && user_abort == 1 )
             aborted++;
         else
             failed++;
