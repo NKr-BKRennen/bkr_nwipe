@@ -174,13 +174,14 @@ sudo apt install -y \
 cd /root
 git clone https://github.com/NKr-BKRennen/wype.git
 cd wype
-chmod +x build.sh
+chmod +x build.sh autogen.sh
 ./build.sh
 ```
 
 Alternativ manuell:
 
 ```bash
+chmod +x autogen.sh
 ./autogen.sh
 ./configure
 make -j$(nproc)
@@ -257,7 +258,7 @@ sudo apt update && sudo apt install -y \
   dmidecode coreutils smartmontools hdparm && \
 cd /root && \
 git clone https://github.com/NKr-BKRennen/wype.git && \
-cd wype && chmod +x build.sh && ./build.sh && \
+cd wype && chmod +x build.sh autogen.sh && ./build.sh && \
 echo "Installation abgeschlossen. Starten mit: sudo wype"
 ```
 
