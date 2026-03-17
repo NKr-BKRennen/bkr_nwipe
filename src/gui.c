@@ -5673,7 +5673,7 @@ void wype_gui_help( void )
         werase( main_window );
         wype_gui_create_all_windows_on_terminal_resize( 0, " Press ESC or Enter to return " );
         box( main_window, 0, 0 );
-        wype_gui_title( main_window, " Help " );
+        wype_gui_title( main_window, " Hilfe " );
 
         int yy = 2;
         int tab1 = 3;
@@ -5685,7 +5685,7 @@ void wype_gui_help( void )
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "Up/Down, j/k" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Festplatte auswaehlen" );
+        mvwprintw( main_window, yy++, tab2, "Festplatte fokussieren" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "Space" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
@@ -5702,7 +5702,7 @@ void wype_gui_help( void )
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "S (Shift+S)" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Wipe starten" );
+        mvwprintw( main_window, yy++, tab2, "Wipe starten (prueft Metadaten)" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "e" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
@@ -5717,50 +5717,51 @@ void wype_gui_help( void )
         mvwprintw( main_window, yy++, tab1, "Einstellungen" );
         wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
         wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, tab1, "m" );
-        wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Loesch-Methode waehlen" );
-        wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, tab1, "p" );
-        wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "PRNG waehlen" );
-        wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, tab1, "v" );
-        wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Verifikation einstellen" );
-        wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, tab1, "r" );
-        wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Anzahl Durchlaeufe" );
-        wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, tab1, "b" );
-        wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Blanking ein/aus" );
-        wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, tab1, "d" );
-        wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Schreibrichtung" );
-        wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "c" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Konfiguration (Organisation, Kunde, PDF)" );
+        mvwprintw( main_window, yy++, tab2, "Einstellungsmenue (Methode, PRNG, PDF, ...)" );
+        wattron( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy, tab1, "m/p/v/r/b/d" );
+        wattroff( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy++, tab2, "Schnellzugriff: Methode/PRNG/Verify/..." );
         yy++;
 
         wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
         mvwprintw( main_window, yy++, tab1, "Info" );
         wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
         wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, tab1, "l" );
-        wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Changelog anzeigen" );
-        wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "h" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy++, tab2, "Diese Hilfe anzeigen" );
         wattron( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy, tab1, "l" );
+        wattroff( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy++, tab2, "Changelog anzeigen" );
+        wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "Ctrl+C" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy++, tab2, "Beenden" );
+        yy++;
+
+        wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
+        mvwprintw( main_window, yy++, tab1, "Workflow" );
+        wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
+        wattron( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy++, tab1, "1." );
+        wattroff( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy - 1, 6, "c druecken > Methode/PRNG/Organisation einstellen" );
+        wattron( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy++, tab1, "2." );
+        wattroff( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy - 1, 6, "Space > Festplatten auswaehlen" );
+        wattron( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy++, tab1, "3." );
+        wattroff( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy - 1, 6, "e > Hostname/Inventarnummer pro Festplatte eingeben" );
+        wattron( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy++, tab1, "4." );
+        wattroff( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy - 1, 6, "S > Wipe starten, Enter > PDFs + E-Mail" );
 
         wrefresh( main_window );
 
@@ -5789,8 +5790,9 @@ void wype_gui_changelog( void )
         "v1.2.0",
         "",
         "  Add:",
+        "  - Einheitliches Einstellungsmenue (c-Taste) mit Pfeilnavigation",
         "  - Disk-Metadaten-Editor (e-Taste): Hostname + Inventarnummer in einem Dialog",
-        "  - Hilfe-Seite (h-Taste) mit allen Tastenbelegungen",
+        "  - Hilfe-Seite (h-Taste) mit allen Tastenbelegungen und Workflow",
         "  - Changelog-Ansicht (l-Taste)",
         "  - E-Mail-Status-Anzeige im Options-Fenster",
         "  - Warnung beim Start wenn Hostname/Inventarnummer fehlt",
@@ -5799,8 +5801,9 @@ void wype_gui_changelog( void )
         "  - Lokale PDFs werden nach erfolgreichem E-Mail-Versand geloescht",
         "",
         "  Change:",
+        "  - Alle Einstellungen ueber ein zentrales Menue erreichbar (c-Taste)",
         "  - Footer ueberarbeitet und uebersichtlicher",
-        "  - Tastenbelegung: e=Edit Disk, h=Hilfe, l=Changelog",
+        "  - Tastenbelegung: e=Edit Disk, c=Einstellungen, h=Hilfe, l=Changelog",
         "  - Inventarnummer wird in der GUI ausgeschrieben",
         "",
         "v1.1.0 (2026-03-17)",

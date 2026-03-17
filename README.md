@@ -363,8 +363,9 @@ Wype verwendet [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 ### v1.2.0 (2026-03-17)
 
 **Add:**
+- Einheitliches Einstellungsmenü (`c`-Taste) mit Pfeilnavigation (Methode, PRNG, Verifikation, Durchläufe, Blanking, Schreibrichtung, Organisation & PDF, E-Mail)
 - Disk-Metadaten-Editor (`e`-Taste): Hostname + Inventarnummer in einem Dialog mit Tab-Wechsel
-- Hilfe-Seite (`h`-Taste) mit allen Tastenbelegungen und Erklärungen
+- Hilfe-Seite (`h`-Taste) mit allen Tastenbelegungen, Erklärungen und Workflow
 - Changelog-Ansicht (`l`-Taste) direkt in der GUI
 - E-Mail-Status-Anzeige im Options-Fenster (Aktiv/Deaktiviert)
 - Warnung beim Wipe-Start wenn Hostname/Inventarnummer fehlt (pro Festplatte bestätigen)
@@ -374,8 +375,9 @@ Wype verwendet [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 - Post-Wipe E-Mail-Status-Feedback im Log
 
 **Change:**
+- Alle Einstellungen über ein zentrales Menü erreichbar (`c`-Taste)
 - Footer überarbeitet: übersichtlichere Tastenbelegung
-- Tastenbelegung: `e`=Edit Disk, `h`=Hilfe, `l`=Changelog (statt H/I für einzelne Felder)
+- Tastenbelegung: `e`=Edit Disk, `c`=Einstellungen, `h`=Hilfe, `l`=Changelog (statt H/I für einzelne Felder)
 - "Inventarnummer" wird in der GUI ausgeschrieben (statt "Inventarnr")
 
 ### v1.1.0 (2026-03-17)
