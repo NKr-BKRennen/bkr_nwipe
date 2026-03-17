@@ -44,17 +44,34 @@
 #define PDF_YELLOW PDF_RGB( 0xFF, 0xFF, 0x5A )
 
 /**
- * Create the disk erase report in PDF format
+ * Create the disk erase report in PDF format (standalone, creates+saves its own PDF)
  * @param pointer to a drive context
  * @return returns 0 on success < 1 on error
  */
 int create_single_disc_pdf( wype_context_t* ptr );
+
+/**
+ * Render one disk's certificate pages into the current global pdf document.
+ * The caller must have already called pdf_create() and set the global pdf pointer.
+ * Does NOT call pdf_save/pdf_destroy.
+ * @param pointer to a drive context
+ * @return returns 0 on success < 1 on error
+ */
+int create_disc_pdf_pages( wype_context_t* ptr );
 
 int wype_get_smart_data( wype_context_t* );
 
 void create_header_and_footer( wype_context_t*, char* );
 
 void pdf_header_footer_text( wype_context_t*, char* );
+
+/**
+ * Create grouped PDF certificates: disks sharing the same hostname+inventory
+ * number are combined into one multi-page PDF. Called from the logging summary.
+ * @param c array of context pointers
+ * @param count number of selected disks
+ */
+void create_grouped_pdfs( wype_context_t** c, int count );
 
 /**
  * Create the disk erase report for system/multiple disk

@@ -394,11 +394,22 @@ int wype_send_all_certificates( wype_context_t** c, int count )
     if( read_email_settings( &smtp_server, &smtp_port_str, &sender, &recipient ) != 0 )
         return -1;
 
-    /* Count how many PDFs we have */
+    /* Count how many unique PDFs we have */
     int pdf_count = 0;
     for( int i = 0; i < count; i++ )
     {
-        if( c[i]->PDF_filename[0] != '\0' )
+        if( c[i]->PDF_filename[0] == '\0' )
+            continue;
+        int dup = 0;
+        for( int k = 0; k < i; k++ )
+        {
+            if( strcmp( c[k]->PDF_filename, c[i]->PDF_filename ) == 0 )
+            {
+                dup = 1;
+                break;
+            }
+        }
+        if( !dup )
             pdf_count++;
     }
 
@@ -487,11 +498,24 @@ int wype_send_all_certificates( wype_context_t** c, int count )
         if( smtp_send_str( sockfd, header ) != 0 )
             break;
 
-        /* Attach each PDF */
+        /* Attach each unique PDF (skip duplicates from grouped certificates) */
         int attach_ok = 1;
         for( int i = 0; i < count; i++ )
         {
             if( c[i]->PDF_filename[0] == '\0' )
+                continue;
+
+            /* Skip if this PDF was already attached by an earlier disk */
+            int already_attached = 0;
+            for( int k = 0; k < i; k++ )
+            {
+                if( strcmp( c[k]->PDF_filename, c[i]->PDF_filename ) == 0 )
+                {
+                    already_attached = 1;
+                    break;
+                }
+            }
+            if( already_attached )
                 continue;
 
             FILE* pdf_file = fopen( c[i]->PDF_filename, "rb" );
@@ -605,10 +629,23 @@ int wype_send_all_certificates( wype_context_t** c, int count )
 
     close( sockfd );
 
-    /* Delete local PDFs on success, keep on failure */
+    /* Delete local PDFs on success, keep on failure (skip duplicates from grouped certs) */
     for( int i = 0; i < count; i++ )
     {
         if( c[i]->PDF_filename[0] == '\0' )
+            continue;
+
+        /* Skip if already handled by an earlier disk entry */
+        int already_handled = 0;
+        for( int k = 0; k < i; k++ )
+        {
+            if( strcmp( c[k]->PDF_filename, c[i]->PDF_filename ) == 0 )
+            {
+                already_handled = 1;
+                break;
+            }
+        }
+        if( already_handled )
             continue;
 
         if( result == 0 )

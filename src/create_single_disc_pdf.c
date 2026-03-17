@@ -60,7 +60,7 @@ extern float height;
 extern float page_width;
 extern int status_icon;
 
-int create_single_disc_pdf( wype_context_t* ptr )
+int create_disc_pdf_pages( wype_context_t* ptr )
 {
     extern wype_prng_t wype_twister;
     extern wype_prng_t wype_isaac;
@@ -75,13 +75,9 @@ int create_single_disc_pdf( wype_context_t* ptr )
     extern config_t wype_cfg;
     extern char wype_config_file[];
 
-    //    char pdf_footer[MAX_PDF_FOOTER_TEXT_LENGTH];
     wype_context_t* c;
     c = ptr;
-    //    char model_header[50] = ""; /* Model text in the header */
-    //    char serial_header[30] = ""; /* Serial number text in the header */
     char device_size[100] = ""; /* Device size in the form xMB (xxxx bytes) */
-    //    char barcode[100] = ""; /* Contents of the barcode, i.e model:serial */
     char verify[20] = ""; /* Verify option text */
     char blank[10] = ""; /* blanking pass, none, zeros, ones */
     char rounds[50] = ""; /* rounds ASCII numeric */
@@ -95,18 +91,6 @@ int create_single_disc_pdf( wype_context_t* ptr )
     char throughput_txt[50] = "";
     char bytes_percent_str[7] = "";
 
-    //    int status_icon;
-
-    //    float height;
-    //    float page_width;
-
-    struct pdf_info info = { .creator = "https://github.com/PartialVolume/shredos.x86_64",
-                             .producer = "https://github.com/martijnvanbrummelen/wype",
-                             .title = "PDF Disk Erasure Certificate",
-                             .author = "Wype",
-                             .subject = "Disk Erase Certificate",
-                             .date = "Today" };
-
     /* A pointer to the system time struct. */
     struct tm* p;
 
@@ -115,18 +99,8 @@ int create_single_disc_pdf( wype_context_t* ptr )
     const char *business_name, *business_address, *contact_name, *contact_phone, *op_tech_name, *customer_name,
         *customer_address, *customer_contact_name, *customer_contact_phone;
 
-    /* ------------------ */
-    /* Initialise Various */
-
     /* Used to display correct icon on page 2 */
     status_icon = 0;  // zero don't display icon, see header STATUS_ICON_..
-
-    // wype_log( WYPE_LOG_NOTICE, "Create the PDF disk erasure certificate" );
-    // struct pdf_doc* pdf = pdf_create( PDF_A4_WIDTH, PDF_A4_HEIGHT, &info );
-    pdf = pdf_create( PDF_A4_WIDTH, PDF_A4_HEIGHT, &info );
-
-    /* Create footer text string and append the version */
-    snprintf( pdf_footer, sizeof( pdf_footer ), "Disc Erasure by WYPE version %s", version_string );
 
     pdf_set_font( pdf, "Helvetica" );
     struct pdf_object* page_1 = pdf_append_page( pdf );
@@ -826,25 +800,227 @@ int create_single_disc_pdf( wype_context_t* ptr )
      */
     wype_get_smart_data( c );
 
-    /*****************************
-     * Create the reports filename
-     *
-     * Sanitize the strings that we are going to use to create the report filename
-     * by converting any non alphanumeric characters to an underscore or hyphen
-     */
-    replace_non_alphanumeric( end_time_text, '-' );
-    replace_non_alphanumeric( c->device_model, '_' );
-    replace_non_alphanumeric( c->device_serial_no, '_' );
-    snprintf( c->PDF_filename,
-              sizeof( c->PDF_filename ),
-              "%s/wype_report_%s_Model_%s_Serial_%s_device_%s.pdf",
-              wype_options.PDFreportpath,
-              end_time_text,
-              c->device_model,
-              c->device_serial_no,
-              c->device_name_terse );
+    return 0;
+}
+
+int create_single_disc_pdf( wype_context_t* ptr )
+{
+    wype_context_t* c = ptr;
+    char date_str[16] = "";
+    char hostname_safe[256] = "";
+    char invnr_safe[256] = "";
+    struct tm* p;
+
+    struct pdf_info info = { .creator = "https://github.com/PartialVolume/shredos.x86_64",
+                             .producer = "https://github.com/martijnvanbrummelen/wype",
+                             .title = "PDF Disk Erasure Certificate",
+                             .author = "Wype",
+                             .subject = "Disk Erase Certificate",
+                             .date = "Today" };
+
+    pdf = pdf_create( PDF_A4_WIDTH, PDF_A4_HEIGHT, &info );
+
+    /* Create footer text string and append the version */
+    snprintf( pdf_footer, sizeof( pdf_footer ), "Disc Erasure by WYPE version %s", version_string );
+
+    create_disc_pdf_pages( c );
+
+    /* Generate filename: YYYYMMDD_<Hostname>_InvNr<Nr>_bkr-loeschzertifikat.pdf */
+    p = localtime( &c->end_time );
+    snprintf( date_str, sizeof( date_str ), "%04i%02i%02i", 1900 + p->tm_year, 1 + p->tm_mon, p->tm_mday );
+
+    if( c->device_hostname[0] != '\0' && c->inventory_number[0] != '\0' )
+    {
+        strncpy( hostname_safe, c->device_hostname, sizeof( hostname_safe ) - 1 );
+        hostname_safe[sizeof( hostname_safe ) - 1] = '\0';
+        replace_non_alphanumeric( hostname_safe, '_' );
+
+        strncpy( invnr_safe, c->inventory_number, sizeof( invnr_safe ) - 1 );
+        invnr_safe[sizeof( invnr_safe ) - 1] = '\0';
+        replace_non_alphanumeric( invnr_safe, '_' );
+
+        snprintf( c->PDF_filename,
+                  sizeof( c->PDF_filename ),
+                  "%s/%s_%s_InvNr%s_bkr-loeschzertifikat.pdf",
+                  wype_options.PDFreportpath,
+                  date_str,
+                  hostname_safe,
+                  invnr_safe );
+    }
+    else
+    {
+        /* Fallback: use model and serial when hostname/inventory not set */
+        char model_safe[256] = "";
+        char serial_safe[256] = "";
+        strncpy( model_safe, c->device_model, sizeof( model_safe ) - 1 );
+        model_safe[sizeof( model_safe ) - 1] = '\0';
+        replace_non_alphanumeric( model_safe, '_' );
+        strncpy( serial_safe, c->device_serial_no, sizeof( serial_safe ) - 1 );
+        serial_safe[sizeof( serial_safe ) - 1] = '\0';
+        replace_non_alphanumeric( serial_safe, '_' );
+
+        snprintf( c->PDF_filename,
+                  sizeof( c->PDF_filename ),
+                  "%s/%s_%s_%s_bkr-loeschzertifikat.pdf",
+                  wype_options.PDFreportpath,
+                  date_str,
+                  model_safe,
+                  serial_safe );
+    }
 
     pdf_save( pdf, c->PDF_filename );
     pdf_destroy( pdf );
     return 0;
+}
+
+void create_grouped_pdfs( wype_context_t** c, int count )
+{
+    int* processed;
+    char date_str[16] = "";
+    char hostname_safe[256] = "";
+    char invnr_safe[256] = "";
+    char filename[FILENAME_MAX] = "";
+    struct tm* p;
+    int i, j;
+
+    struct pdf_info info = { .creator = "https://github.com/PartialVolume/shredos.x86_64",
+                             .producer = "https://github.com/martijnvanbrummelen/wype",
+                             .title = "PDF Disk Erasure Certificate",
+                             .author = "Wype",
+                             .subject = "Disk Erase Certificate",
+                             .date = "Today" };
+
+    processed = calloc( count, sizeof( int ) );
+    if( processed == NULL )
+    {
+        wype_log( WYPE_LOG_ERROR, "create_grouped_pdfs: memory allocation failed" );
+        return;
+    }
+
+    for( i = 0; i < count; i++ )
+    {
+        if( processed[i] )
+            continue;
+
+        fprintf( stderr, "." );
+
+        /* Check if this disk can be grouped (both hostname and inventory set) */
+        int can_group = ( c[i]->device_hostname[0] != '\0' && c[i]->inventory_number[0] != '\0' );
+
+        /* Find all disks in the same group */
+        int group_count = 1;
+        processed[i] = 1;
+
+        if( can_group )
+        {
+            for( j = i + 1; j < count; j++ )
+            {
+                if( processed[j] )
+                    continue;
+                if( c[j]->device_hostname[0] != '\0' && c[j]->inventory_number[0] != '\0'
+                    && strcmp( c[i]->device_hostname, c[j]->device_hostname ) == 0
+                    && strcmp( c[i]->inventory_number, c[j]->inventory_number ) == 0 )
+                {
+                    group_count++;
+                }
+            }
+        }
+
+        /* Create the PDF document */
+        pdf = pdf_create( PDF_A4_WIDTH, PDF_A4_HEIGHT, &info );
+        snprintf( pdf_footer, sizeof( pdf_footer ), "Disc Erasure by WYPE version %s", version_string );
+
+        /* Render pages for the first disk */
+        create_disc_pdf_pages( c[i] );
+
+        /* Render pages for other disks in the same group */
+        if( can_group && group_count > 1 )
+        {
+            for( j = i + 1; j < count; j++ )
+            {
+                if( processed[j] )
+                    continue;
+                if( c[j]->device_hostname[0] != '\0' && c[j]->inventory_number[0] != '\0'
+                    && strcmp( c[i]->device_hostname, c[j]->device_hostname ) == 0
+                    && strcmp( c[i]->inventory_number, c[j]->inventory_number ) == 0 )
+                {
+                    processed[j] = 1;
+                    create_disc_pdf_pages( c[j] );
+                    fprintf( stderr, "." );
+                }
+            }
+        }
+
+        /* Generate filename */
+        p = localtime( &c[i]->end_time );
+        snprintf( date_str, sizeof( date_str ), "%04i%02i%02i", 1900 + p->tm_year, 1 + p->tm_mon, p->tm_mday );
+
+        if( can_group )
+        {
+            strncpy( hostname_safe, c[i]->device_hostname, sizeof( hostname_safe ) - 1 );
+            hostname_safe[sizeof( hostname_safe ) - 1] = '\0';
+            replace_non_alphanumeric( hostname_safe, '_' );
+
+            strncpy( invnr_safe, c[i]->inventory_number, sizeof( invnr_safe ) - 1 );
+            invnr_safe[sizeof( invnr_safe ) - 1] = '\0';
+            replace_non_alphanumeric( invnr_safe, '_' );
+
+            snprintf( filename,
+                      sizeof( filename ),
+                      "%s/%s_%s_InvNr%s_bkr-loeschzertifikat.pdf",
+                      wype_options.PDFreportpath,
+                      date_str,
+                      hostname_safe,
+                      invnr_safe );
+        }
+        else
+        {
+            /* Fallback: use model and serial */
+            char model_safe[256] = "";
+            char serial_safe[256] = "";
+            strncpy( model_safe, c[i]->device_model, sizeof( model_safe ) - 1 );
+            model_safe[sizeof( model_safe ) - 1] = '\0';
+            replace_non_alphanumeric( model_safe, '_' );
+            strncpy( serial_safe, c[i]->device_serial_no, sizeof( serial_safe ) - 1 );
+            serial_safe[sizeof( serial_safe ) - 1] = '\0';
+            replace_non_alphanumeric( serial_safe, '_' );
+
+            snprintf( filename,
+                      sizeof( filename ),
+                      "%s/%s_%s_%s_bkr-loeschzertifikat.pdf",
+                      wype_options.PDFreportpath,
+                      date_str,
+                      model_safe,
+                      serial_safe );
+        }
+
+        /* Save and set filename on all disks in this group */
+        pdf_save( pdf, filename );
+        pdf_destroy( pdf );
+
+        /* Set PDF_filename on all disks in this group (for email sending) */
+        strncpy( c[i]->PDF_filename, filename, sizeof( c[i]->PDF_filename ) - 1 );
+        c[i]->PDF_filename[sizeof( c[i]->PDF_filename ) - 1] = '\0';
+
+        if( can_group && group_count > 1 )
+        {
+            for( j = i + 1; j < count; j++ )
+            {
+                if( c[j]->device_hostname[0] != '\0' && c[j]->inventory_number[0] != '\0'
+                    && strcmp( c[i]->device_hostname, c[j]->device_hostname ) == 0
+                    && strcmp( c[i]->inventory_number, c[j]->inventory_number ) == 0 )
+                {
+                    strncpy( c[j]->PDF_filename, filename, sizeof( c[j]->PDF_filename ) - 1 );
+                    c[j]->PDF_filename[sizeof( c[j]->PDF_filename ) - 1] = '\0';
+                }
+            }
+
+            wype_log( WYPE_LOG_INFO,
+                      "Grouped %d disk certificates into: %s",
+                      group_count,
+                      filename );
+        }
+    }
+
+    free( processed );
 }

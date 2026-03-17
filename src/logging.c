@@ -995,14 +995,12 @@ void wype_log_summary( wype_thread_data_ptr_t* ptrx, wype_context_t** ptr, int w
                    model,
                    serial_no );
 
-        /* Create the PDF report/certificate */
-        if( wype_options.PDF_enable == 1 )
-        // if( strcmp( wype_options.PDFreportpath, "noPDF" ) != 0 )
-        {
-            /* to have some progress indication. can help if there are many/slow disks */
-            fprintf( stderr, "." );
-            create_single_disc_pdf( c[i] );
-        }
+    }
+
+    /* Create PDF certificates, grouping disks with matching hostname+inventory into one PDF */
+    if( wype_options.PDF_enable == 1 )
+    {
+        create_grouped_pdfs( c, wype_selected );
     }
 
     /* Send all PDF certificates in one email after all PDFs have been created (wype) */
