@@ -63,6 +63,7 @@
 #include "hpa_dco.h"
 #include "customers.h"
 #include "conf.h"
+#include "send_email.h"
 #include "unistd.h"
 #include "cpu_features.h"
 
@@ -7942,6 +7943,9 @@ void* wype_gui_status( void* ptr )
     /* Set to 1 initially to start loop.    */
     int wype_active = 1;
 
+    /* Flag to send summary notification email only once when wipe finishes (wype) */
+    int summary_email_sent = 0;
+
     /* Used in the gui status loop to trap a failure of the halfdelay(), getch() mechanism to block for the designated
      * period */
     int expected_iterations;
@@ -8219,6 +8223,13 @@ void* wype_gui_status( void* ptr )
             if( terminate_signal != 1 )
             {
                 wype_active = compute_stats( ptr );  // Returns number of active wipe threads
+            }
+
+            /* Send summary notification email once when all wipes finish (wype) */
+            if( wype_active == 0 && summary_email_sent == 0 )
+            {
+                summary_email_sent = 1;
+                wype_send_summary_notification( c, count );
             }
 
             /* Only print the stats if the user hasn't blanked the screen */

@@ -1002,10 +1002,13 @@ void wype_log_summary( wype_thread_data_ptr_t* ptrx, wype_context_t** ptr, int w
             /* to have some progress indication. can help if there are many/slow disks */
             fprintf( stderr, "." );
             create_single_disc_pdf( c[i] );
-
-            /* Send email with PDF certificate if enabled (wype) */
-            wype_send_email( c[i] );
         }
+    }
+
+    /* Send all PDF certificates in one email after all PDFs have been created (wype) */
+    if( wype_options.PDF_enable == 1 )
+    {
+        wype_send_all_certificates( c, wype_selected );
     }
 
     /* Create a PDF that contains, system information and wipe status for all drives */

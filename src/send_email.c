@@ -144,20 +144,21 @@ static const char* get_basename( const char* path )
     return p ? p + 1 : path;
 }
 
-int wype_send_email( wype_context_t* c )
+/**
+ * Read SMTP settings from wype.conf.
+ * Returns 0 on success, -1 if email is disabled or misconfigured.
+ */
+static int read_email_settings( const char** smtp_server,
+                                const char** smtp_port_str,
+                                const char** sender,
+                                const char** recipient )
 {
     extern config_t wype_cfg;
     extern char wype_config_file[];
-    config_setting_t* setting;
 
     const char* email_enable = NULL;
-    const char* smtp_server = NULL;
-    const char* smtp_port_str = NULL;
-    const char* sender = NULL;
-    const char* recipient = NULL;
 
-    /* Read email settings from wype.conf */
-    setting = config_lookup( &wype_cfg, "Email_Settings" );
+    config_setting_t* setting = config_lookup( &wype_cfg, "Email_Settings" );
     if( setting == NULL )
     {
         wype_log( WYPE_LOG_WARNING, "Email: Cannot locate [Email_Settings] in %s", wype_config_file );
@@ -167,68 +168,28 @@ int wype_send_email( wype_context_t* c )
     config_setting_lookup_string( setting, "Email_Enable", &email_enable );
     if( email_enable == NULL || strcasecmp( email_enable, "ENABLED" ) != 0 )
     {
-        return -1;  /* Email disabled, silently skip */
+        return -1; /* Email disabled, silently skip */
     }
 
-    config_setting_lookup_string( setting, "SMTP_Server", &smtp_server );
-    config_setting_lookup_string( setting, "SMTP_Port", &smtp_port_str );
-    config_setting_lookup_string( setting, "Sender_Address", &sender );
-    config_setting_lookup_string( setting, "Recipient_Address", &recipient );
+    config_setting_lookup_string( setting, "SMTP_Server", smtp_server );
+    config_setting_lookup_string( setting, "SMTP_Port", smtp_port_str );
+    config_setting_lookup_string( setting, "Sender_Address", sender );
+    config_setting_lookup_string( setting, "Recipient_Address", recipient );
 
-    if( !smtp_server || !sender || !recipient || strlen( recipient ) == 0 )
+    if( !*smtp_server || !*sender || !*recipient || strlen( *recipient ) == 0 )
     {
         wype_log( WYPE_LOG_ERROR, "Email: Missing SMTP configuration (server/sender/recipient)" );
         return -1;
     }
 
-    /* Check PDF file exists */
-    if( c->PDF_filename[0] == '\0' )
-    {
-        wype_log( WYPE_LOG_ERROR, "Email: No PDF filename available for %s", c->device_name );
-        return -1;
-    }
+    return 0;
+}
 
-    FILE* pdf_file = fopen( c->PDF_filename, "rb" );
-    if( !pdf_file )
-    {
-        wype_log( WYPE_LOG_ERROR, "Email: Cannot open PDF file %s: %s", c->PDF_filename, strerror( errno ) );
-        return -1;
-    }
-
-    /* Read the entire PDF file */
-    fseek( pdf_file, 0, SEEK_END );
-    long pdf_size = ftell( pdf_file );
-    fseek( pdf_file, 0, SEEK_SET );
-
-    unsigned char* pdf_data = malloc( pdf_size );
-    if( !pdf_data )
-    {
-        fclose( pdf_file );
-        wype_log( WYPE_LOG_ERROR, "Email: Failed to allocate memory for PDF (%ld bytes)", pdf_size );
-        return -1;
-    }
-
-    if( fread( pdf_data, 1, pdf_size, pdf_file ) != (size_t) pdf_size )
-    {
-        free( pdf_data );
-        fclose( pdf_file );
-        wype_log( WYPE_LOG_ERROR, "Email: Failed to read PDF file %s", c->PDF_filename );
-        return -1;
-    }
-    fclose( pdf_file );
-
-    /* Base64 encode the PDF */
-    size_t b64_len;
-    char* b64_data = base64_encode( pdf_data, pdf_size, &b64_len );
-    free( pdf_data );
-
-    if( !b64_data )
-    {
-        wype_log( WYPE_LOG_ERROR, "Email: Failed to base64 encode PDF" );
-        return -1;
-    }
-
-    /* Resolve SMTP server */
+/**
+ * Connect to SMTP server. Returns socket fd or -1 on failure.
+ */
+static int smtp_connect( const char* smtp_server, const char* smtp_port_str )
+{
     int port = smtp_port_str ? atoi( smtp_port_str ) : 25;
 
     struct addrinfo hints, *res;
@@ -243,17 +204,14 @@ int wype_send_email( wype_context_t* c )
     if( gai_err != 0 )
     {
         wype_log( WYPE_LOG_ERROR, "Email: Cannot resolve SMTP server %s: %s", smtp_server, gai_strerror( gai_err ) );
-        free( b64_data );
         return -1;
     }
 
-    /* Connect */
     int sockfd = socket( res->ai_family, res->ai_socktype, res->ai_protocol );
     if( sockfd < 0 )
     {
         wype_log( WYPE_LOG_ERROR, "Email: Socket creation failed: %s", strerror( errno ) );
         freeaddrinfo( res );
-        free( b64_data );
         return -1;
     }
 
@@ -269,133 +227,402 @@ int wype_send_email( wype_context_t* c )
         wype_log( WYPE_LOG_ERROR, "Email: Cannot connect to %s:%d: %s", smtp_server, port, strerror( errno ) );
         close( sockfd );
         freeaddrinfo( res );
-        free( b64_data );
         return -1;
     }
     freeaddrinfo( res );
 
     wype_log( WYPE_LOG_INFO, "Email: Connected to SMTP server %s:%d", smtp_server, port );
+    return sockfd;
+}
+
+/**
+ * Perform SMTP handshake (greeting + EHLO + MAIL FROM + RCPT TO + DATA).
+ * Returns 0 on success, -1 on failure.
+ */
+static int smtp_handshake( int sockfd, const char* sender, const char* recipient )
+{
+    char cmd[512];
+
+    if( smtp_check_response( sockfd, "220" ) != 0 )
+        return -1;
+
+    snprintf( cmd, sizeof( cmd ), "EHLO wype\r\n" );
+    if( smtp_send_str( sockfd, cmd ) != 0 )
+        return -1;
+    if( smtp_check_response( sockfd, "250" ) != 0 )
+        return -1;
+
+    snprintf( cmd, sizeof( cmd ), "MAIL FROM:<%s>\r\n", sender );
+    if( smtp_send_str( sockfd, cmd ) != 0 )
+        return -1;
+    if( smtp_check_response( sockfd, "250" ) != 0 )
+        return -1;
+
+    snprintf( cmd, sizeof( cmd ), "RCPT TO:<%s>\r\n", recipient );
+    if( smtp_send_str( sockfd, cmd ) != 0 )
+        return -1;
+    if( smtp_check_response( sockfd, "250" ) != 0 )
+        return -1;
+
+    if( smtp_send_str( sockfd, "DATA\r\n" ) != 0 )
+        return -1;
+    if( smtp_check_response( sockfd, "354" ) != 0 )
+        return -1;
+
+    return 0;
+}
+
+int wype_send_summary_notification( wype_context_t** c, int count )
+{
+    const char* smtp_server = NULL;
+    const char* smtp_port_str = NULL;
+    const char* sender = NULL;
+    const char* recipient = NULL;
+
+    if( read_email_settings( &smtp_server, &smtp_port_str, &sender, &recipient ) != 0 )
+        return -1;
+
+    /* Count success/fail */
+    int success = 0;
+    int failed = 0;
+    int aborted = 0;
+    for( int i = 0; i < count; i++ )
+    {
+        if( strcmp( c[i]->wipe_status_txt, "ERASED" ) == 0 )
+            success++;
+        else if( strcmp( c[i]->wipe_status_txt, "ABORTED" ) == 0 )
+            aborted++;
+        else
+            failed++;
+    }
+
+    int sockfd = smtp_connect( smtp_server, smtp_port_str );
+    if( sockfd < 0 )
+        return -1;
 
     int result = -1;
-    char cmd[512];
-    const char* pdf_basename = get_basename( c->PDF_filename );
 
-    /* SMTP conversation */
     do
     {
-        /* Greeting */
-        if( smtp_check_response( sockfd, "220" ) != 0 )
+        if( smtp_handshake( sockfd, sender, recipient ) != 0 )
             break;
 
-        /* EHLO */
-        snprintf( cmd, sizeof( cmd ), "EHLO wype\r\n" );
-        if( smtp_send_str( sockfd, cmd ) != 0 )
-            break;
-        if( smtp_check_response( sockfd, "250" ) != 0 )
-            break;
-
-        /* MAIL FROM */
-        snprintf( cmd, sizeof( cmd ), "MAIL FROM:<%s>\r\n", sender );
-        if( smtp_send_str( sockfd, cmd ) != 0 )
-            break;
-        if( smtp_check_response( sockfd, "250" ) != 0 )
-            break;
-
-        /* RCPT TO */
-        snprintf( cmd, sizeof( cmd ), "RCPT TO:<%s>\r\n", recipient );
-        if( smtp_send_str( sockfd, cmd ) != 0 )
-            break;
-        if( smtp_check_response( sockfd, "250" ) != 0 )
-            break;
-
-        /* DATA */
-        if( smtp_send_str( sockfd, "DATA\r\n" ) != 0 )
-            break;
-        if( smtp_check_response( sockfd, "354" ) != 0 )
-            break;
-
-        /* Build and send MIME message */
+        /* Build plain text email */
         char header[2048];
         time_t now = time( NULL );
         struct tm* tm_info = localtime( &now );
         char date_str[64];
         strftime( date_str, sizeof( date_str ), "%a, %d %b %Y %H:%M:%S %z", tm_info );
 
+        /* Get hostname */
+        char hostname[256];
+        if( gethostname( hostname, sizeof( hostname ) ) != 0 )
+            strncpy( hostname, "unknown", sizeof( hostname ) );
+
         snprintf( header,
                   sizeof( header ),
                   "From: <%s>\r\n"
                   "To: <%s>\r\n"
                   "Date: %s\r\n"
-                  "Subject: Wype Erasure Certificate - %s - %s [%s]\r\n"
+                  "Subject: Wype - Wipe abgeschlossen (%d OK, %d Fehler, %d Abbruch)\r\n"
+                  "Content-Type: text/plain; charset=utf-8\r\n"
+                  "\r\n"
+                  "Wype Wipe-Vorgang abgeschlossen.\r\n"
+                  "\r\n"
+                  "Host: %s\r\n"
+                  "Festplatten gesamt: %d\r\n"
+                  "Erfolgreich: %d\r\n"
+                  "Fehlgeschlagen: %d\r\n"
+                  "Abgebrochen: %d\r\n"
+                  "\r\n"
+                  "Bitte am Geraet mit Enter bestaetigen.\r\n"
+                  "PDF-Zertifikate werden nach Bestaetigung per E-Mail gesendet.\r\n"
+                  "\r\n",
+                  sender,
+                  recipient,
+                  date_str,
+                  success,
+                  failed,
+                  aborted,
+                  hostname,
+                  count,
+                  success,
+                  failed,
+                  aborted );
+
+        if( smtp_send_str( sockfd, header ) != 0 )
+            break;
+
+        /* End DATA */
+        if( smtp_send_str( sockfd, ".\r\n" ) != 0 )
+            break;
+        if( smtp_check_response( sockfd, "250" ) != 0 )
+            break;
+
+        smtp_send_str( sockfd, "QUIT\r\n" );
+
+        result = 0;
+        wype_log( WYPE_LOG_INFO,
+                   "Email: Summary notification sent to %s (%d OK, %d failed, %d aborted)",
+                   recipient,
+                   success,
+                   failed,
+                   aborted );
+
+    } while( 0 );
+
+    if( result != 0 )
+    {
+        wype_log( WYPE_LOG_ERROR, "Email: Failed to send summary notification" );
+    }
+
+    close( sockfd );
+    return result;
+}
+
+int wype_send_all_certificates( wype_context_t** c, int count )
+{
+    const char* smtp_server = NULL;
+    const char* smtp_port_str = NULL;
+    const char* sender = NULL;
+    const char* recipient = NULL;
+
+    if( read_email_settings( &smtp_server, &smtp_port_str, &sender, &recipient ) != 0 )
+        return -1;
+
+    /* Count how many PDFs we have */
+    int pdf_count = 0;
+    for( int i = 0; i < count; i++ )
+    {
+        if( c[i]->PDF_filename[0] != '\0' )
+            pdf_count++;
+    }
+
+    if( pdf_count == 0 )
+    {
+        wype_log( WYPE_LOG_WARNING, "Email: No PDF certificates to send" );
+        return -1;
+    }
+
+    int sockfd = smtp_connect( smtp_server, smtp_port_str );
+    if( sockfd < 0 )
+        return -1;
+
+    int result = -1;
+
+    do
+    {
+        if( smtp_handshake( sockfd, sender, recipient ) != 0 )
+            break;
+
+        /* Build MIME header */
+        char header[4096];
+        time_t now = time( NULL );
+        struct tm* tm_info = localtime( &now );
+        char date_str[64];
+        strftime( date_str, sizeof( date_str ), "%a, %d %b %Y %H:%M:%S %z", tm_info );
+
+        /* Count success/fail for subject line */
+        int success = 0;
+        int failed = 0;
+        for( int i = 0; i < count; i++ )
+        {
+            if( strcmp( c[i]->wipe_status_txt, "ERASED" ) == 0 )
+                success++;
+            else
+                failed++;
+        }
+
+        /* Build summary text for the email body */
+        char body_text[4096];
+        int body_offset = 0;
+        body_offset += snprintf( body_text + body_offset,
+                                 sizeof( body_text ) - body_offset,
+                                 "Wype Erasure Certificates\r\n"
+                                 "\r\n"
+                                 "Festplatten gesamt: %d\r\n"
+                                 "Erfolgreich: %d\r\n"
+                                 "Fehlgeschlagen: %d\r\n"
+                                 "\r\n"
+                                 "Details:\r\n",
+                                 count,
+                                 success,
+                                 failed );
+
+        for( int i = 0; i < count; i++ )
+        {
+            body_offset += snprintf( body_text + body_offset,
+                                     sizeof( body_text ) - body_offset,
+                                     "  - %s (S/N: %s): %s\r\n",
+                                     c[i]->device_model ? c[i]->device_model : "Unknown",
+                                     c[i]->device_serial_no,
+                                     c[i]->wipe_status_txt );
+        }
+
+        snprintf( header,
+                  sizeof( header ),
+                  "From: <%s>\r\n"
+                  "To: <%s>\r\n"
+                  "Date: %s\r\n"
+                  "Subject: Wype Erasure Certificates - %d OK, %d Fehler\r\n"
                   "MIME-Version: 1.0\r\n"
                   "Content-Type: multipart/mixed; boundary=\"wype-cert-boundary\"\r\n"
                   "\r\n"
                   "--wype-cert-boundary\r\n"
                   "Content-Type: text/plain; charset=utf-8\r\n"
                   "\r\n"
-                  "Disk erasure certificate for %s (Serial: %s).\r\n"
-                  "Status: %s\r\n"
-                  "\r\n"
-                  "--wype-cert-boundary\r\n"
-                  "Content-Type: application/pdf\r\n"
-                  "Content-Disposition: attachment; filename=\"%s\"\r\n"
-                  "Content-Transfer-Encoding: base64\r\n"
+                  "%s"
                   "\r\n",
                   sender,
                   recipient,
                   date_str,
-                  c->device_model ? c->device_model : "Unknown",
-                  c->device_serial_no,
-                  c->wipe_status_txt,
-                  c->device_model ? c->device_model : "Unknown",
-                  c->device_serial_no,
-                  c->wipe_status_txt,
-                  pdf_basename );
+                  success,
+                  failed,
+                  body_text );
 
         if( smtp_send_str( sockfd, header ) != 0 )
             break;
 
-        /* Send base64 encoded PDF in chunks */
-        size_t offset = 0;
-        size_t chunk_size = 4096;
-        while( offset < b64_len )
+        /* Attach each PDF */
+        int attach_ok = 1;
+        for( int i = 0; i < count; i++ )
         {
-            size_t remaining = b64_len - offset;
-            size_t to_send = remaining < chunk_size ? remaining : chunk_size;
-            if( smtp_send( sockfd, b64_data + offset, to_send ) != 0 )
+            if( c[i]->PDF_filename[0] == '\0' )
+                continue;
+
+            FILE* pdf_file = fopen( c[i]->PDF_filename, "rb" );
+            if( !pdf_file )
+            {
+                wype_log( WYPE_LOG_ERROR, "Email: Cannot open PDF %s: %s", c[i]->PDF_filename, strerror( errno ) );
+                continue; /* Skip this PDF but try others */
+            }
+
+            fseek( pdf_file, 0, SEEK_END );
+            long pdf_size = ftell( pdf_file );
+            fseek( pdf_file, 0, SEEK_SET );
+
+            unsigned char* pdf_data = malloc( pdf_size );
+            if( !pdf_data )
+            {
+                fclose( pdf_file );
+                wype_log( WYPE_LOG_ERROR, "Email: Failed to allocate memory for PDF (%ld bytes)", pdf_size );
+                continue;
+            }
+
+            if( fread( pdf_data, 1, pdf_size, pdf_file ) != (size_t) pdf_size )
+            {
+                free( pdf_data );
+                fclose( pdf_file );
+                wype_log( WYPE_LOG_ERROR, "Email: Failed to read PDF %s", c[i]->PDF_filename );
+                continue;
+            }
+            fclose( pdf_file );
+
+            size_t b64_len;
+            char* b64_data = base64_encode( pdf_data, pdf_size, &b64_len );
+            free( pdf_data );
+
+            if( !b64_data )
+            {
+                wype_log( WYPE_LOG_ERROR, "Email: Failed to base64 encode PDF" );
+                continue;
+            }
+
+            const char* pdf_basename = get_basename( c[i]->PDF_filename );
+
+            /* MIME part header for this attachment */
+            char part_header[512];
+            snprintf( part_header,
+                      sizeof( part_header ),
+                      "--wype-cert-boundary\r\n"
+                      "Content-Type: application/pdf\r\n"
+                      "Content-Disposition: attachment; filename=\"%s\"\r\n"
+                      "Content-Transfer-Encoding: base64\r\n"
+                      "\r\n",
+                      pdf_basename );
+
+            if( smtp_send_str( sockfd, part_header ) != 0 )
+            {
+                free( b64_data );
+                attach_ok = 0;
                 break;
-            offset += to_send;
+            }
+
+            /* Send base64 encoded PDF in chunks */
+            size_t offset = 0;
+            size_t chunk_size = 4096;
+            while( offset < b64_len )
+            {
+                size_t remaining = b64_len - offset;
+                size_t to_send = remaining < chunk_size ? remaining : chunk_size;
+                if( smtp_send( sockfd, b64_data + offset, to_send ) != 0 )
+                    break;
+                offset += to_send;
+            }
+
+            free( b64_data );
+
+            if( offset < b64_len )
+            {
+                attach_ok = 0;
+                break;
+            }
+
+            if( smtp_send_str( sockfd, "\r\n" ) != 0 )
+            {
+                attach_ok = 0;
+                break;
+            }
         }
-        if( offset < b64_len )
+
+        if( !attach_ok )
             break;
 
         /* End MIME and DATA */
-        if( smtp_send_str( sockfd, "\r\n--wype-cert-boundary--\r\n.\r\n" ) != 0 )
+        if( smtp_send_str( sockfd, "--wype-cert-boundary--\r\n.\r\n" ) != 0 )
             break;
         if( smtp_check_response( sockfd, "250" ) != 0 )
             break;
 
-        /* QUIT */
         smtp_send_str( sockfd, "QUIT\r\n" );
 
         result = 0;
         wype_log( WYPE_LOG_INFO,
-                   "Email: Certificate sent successfully to %s for %s (Serial: %s)",
-                   recipient,
-                   c->device_model ? c->device_model : "Unknown",
-                   c->device_serial_no );
+                   "Email: All %d certificates sent successfully to %s",
+                   pdf_count,
+                   recipient );
 
     } while( 0 );
 
     if( result != 0 )
     {
-        wype_log( WYPE_LOG_ERROR,
-                   "Email: Failed to send certificate for %s (Serial: %s)",
-                   c->device_model ? c->device_model : "Unknown",
-                   c->device_serial_no );
+        wype_log( WYPE_LOG_ERROR, "Email: Failed to send certificates" );
     }
 
     close( sockfd );
-    free( b64_data );
+
+    /* Delete local PDFs on success, keep on failure */
+    for( int i = 0; i < count; i++ )
+    {
+        if( c[i]->PDF_filename[0] == '\0' )
+            continue;
+
+        if( result == 0 )
+        {
+            if( unlink( c[i]->PDF_filename ) == 0 )
+            {
+                wype_log( WYPE_LOG_INFO, "Email: Deleted local PDF %s", c[i]->PDF_filename );
+            }
+            else
+            {
+                wype_log( WYPE_LOG_WARNING, "Email: Could not delete PDF %s: %s", c[i]->PDF_filename, strerror( errno ) );
+            }
+        }
+        else
+        {
+            wype_log( WYPE_LOG_WARNING, "Email: Keeping local PDF %s (email send failed)", c[i]->PDF_filename );
+        }
+    }
+
     return result;
 }
