@@ -208,35 +208,16 @@ sudo wype
 
 To have wype start automatically on tty1 at boot (e.g. for dedicated wipe stations):
 
-**Enable auto-login for root on tty1:**
-
 ```bash
-sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
-sudo tee /etc/systemd/system/getty@tty1.service.d/override.conf > /dev/null << 'EOF'
-[Service]
-ExecStart=
-ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM
-EOF
+chmod +x setup.sh
+sudo ./setup.sh
 ```
 
-**Start wype automatically on login:**
+The interactive menu lets you enable/disable:
+- **Auto-login** — root logs in automatically on tty1 (no password prompt)
+- **Autostart** — wype launches automatically after login on tty1
 
-```bash
-cat >> /root/.bash_profile << 'PROFILE'
-
-# WYPE Autostart auf tty1
-if [[ "$(tty)" == "/dev/tty1" ]]; then
-    wype
-fi
-PROFILE
-```
-
-**Restart the system:**
-
-```bash
-sudo systemctl daemon-reload
-sudo reboot
-```
+Choose option **1** for the recommended setup (both enabled), or configure individually. Reboot after setup.
 
 ### 7. Update
 
