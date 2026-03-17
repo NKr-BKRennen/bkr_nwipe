@@ -59,6 +59,7 @@ void* wype_bmb( void* ptr );
 void* wype_secure_erase( void* ptr );
 void* wype_secure_erase_prng_verify( void* ptr );
 void* wype_sanitize_crypto_erase( void* ptr );
+void* wype_sanitize_crypto_erase_verify( void* ptr );
 void* wype_sanitize_block_erase( void* ptr );
 void* wype_sanitize_overwrite( void* ptr );
 

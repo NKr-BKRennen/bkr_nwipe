@@ -759,6 +759,14 @@ int wype_options_parse( int argc, char** argv )
                     wype_options.method = &wype_sanitize_crypto_erase;
                     break;
                 }
+                if( strcmp( optarg, "sanitize_crypto_verify" ) == 0
+                    || strcmp( optarg, "sanitize-crypto-verify" ) == 0
+                    || strcmp( optarg, "sanitize_crypto_erase_verify" ) == 0
+                    || strcmp( optarg, "sanitize-crypto-erase-verify" ) == 0 )
+                {
+                    wype_options.method = &wype_sanitize_crypto_erase_verify;
+                    break;
+                }
                 if( strcmp( optarg, "sanitize_block" ) == 0 || strcmp( optarg, "sanitize-block" ) == 0
                     || strcmp( optarg, "sanitize_block_erase" ) == 0
                     || strcmp( optarg, "sanitize-block-erase" ) == 0 )

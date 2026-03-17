@@ -3456,7 +3456,8 @@ void wype_gui_method( void )
         focus = 11;
     /* If any of the secure erase methods are selected, focus the submenu item */
     else if( wype_options.method == &wype_secure_erase || wype_options.method == &wype_secure_erase_prng_verify
-             || wype_options.method == &wype_sanitize_crypto_erase )
+             || wype_options.method == &wype_sanitize_crypto_erase
+             || wype_options.method == &wype_sanitize_crypto_erase_verify )
     {
         focus = 12;
     }
@@ -3624,7 +3625,7 @@ void wype_gui_method( void )
                 mvwprintw( main_window, 8, tab2, " - ATA/NVMe Secure Erase                          " );
                 mvwprintw( main_window, 9, tab2, " - Secure Erase + PRNG verification               " );
                 mvwprintw( main_window, 10, tab2, " - Sanitize Crypto Erase                         " );
-                mvwprintw( main_window, 11, tab2, "                                                  " );
+                mvwprintw( main_window, 11, tab2, " - Sanitize Crypto Erase + Verify                " );
                 mvwprintw( main_window, 12, tab2, "Press ENTER to view these options.                " );
                 break;
         }
@@ -3742,7 +3743,7 @@ int wype_gui_method_secure_erase_submenu( void )
      */
 
     extern int terminate_signal;
-    const int count = 5;
+    const int count = 6;
     const int tab1 = 2;
     const int tab2 = 44;
     int focus = 0;
@@ -3762,13 +3763,17 @@ int wype_gui_method_secure_erase_submenu( void )
     {
         focus = 2;
     }
-    else if( wype_options.method == &wype_sanitize_block_erase )
+    else if( wype_options.method == &wype_sanitize_crypto_erase_verify )
     {
         focus = 3;
     }
-    else if( wype_options.method == &wype_sanitize_overwrite )
+    else if( wype_options.method == &wype_sanitize_block_erase )
     {
         focus = 4;
+    }
+    else if( wype_options.method == &wype_sanitize_overwrite )
+    {
+        focus = 5;
     }
     else
     {
@@ -3793,6 +3798,7 @@ int wype_gui_method_secure_erase_submenu( void )
         mvwprintw( main_window, yy++, tab1, "  %s", wype_method_label( &wype_secure_erase ) );
         mvwprintw( main_window, yy++, tab1, "  %s", wype_method_label( &wype_secure_erase_prng_verify ) );
         mvwprintw( main_window, yy++, tab1, "  %s", wype_method_label( &wype_sanitize_crypto_erase ) );
+        mvwprintw( main_window, yy++, tab1, "  %s", wype_method_label( &wype_sanitize_crypto_erase_verify ) );
         mvwprintw( main_window, yy++, tab1, "  %s", wype_method_label( &wype_sanitize_block_erase ) );
         mvwprintw( main_window, yy++, tab1, "  %s", wype_method_label( &wype_sanitize_overwrite ) );
         mvwprintw( main_window, yy++, tab1, "                                             " );
@@ -3839,6 +3845,17 @@ int wype_gui_method_secure_erase_submenu( void )
                 mvwprintw( main_window, 11, tab2, "random data after key regeneration).             " );
                 break;
             case 3:
+                mvwprintw( main_window, 2, tab2, "Security Level: device internal (crypto erase + verify)" );
+                mvwprintw( main_window, 4, tab2, "Same as Sanitize Crypto Erase, but followed by   " );
+                mvwprintw( main_window, 5, tab2, "a full read-back verification pass. The verify    " );
+                mvwprintw( main_window, 6, tab2, "provides proof for the PDF certificate that the   " );
+                mvwprintw( main_window, 7, tab2, "drive contents have been erased.                  " );
+                mvwprintw( main_window, 8, tab2, "                                                  " );
+                mvwprintw( main_window, 9, tab2, "Recommended for SSDs when you need a verify      " );
+                mvwprintw( main_window, 10, tab2, "proof on the certificate.                         " );
+                break;
+
+            case 4:
                 mvwprintw( main_window, 2, tab2, "Security Level: device internal (sanitize block erase)" );
                 mvwprintw( main_window, 4, tab2, "Triggers Sanitize block erase (ATA/SCSI/NVMe)     " );
                 mvwprintw( main_window, 5, tab2, "where supported. Device internal media erase.     " );
@@ -3846,7 +3863,7 @@ int wype_gui_method_secure_erase_submenu( void )
                 mvwprintw( main_window, 7, tab2, "No read-back verify afterwards.                   " );
                 break;
 
-            case 4:
+            case 5:
                 mvwprintw( main_window, 2, tab2, "Security Level: device internal (sanitize overwrite)" );
                 mvwprintw( main_window, 4, tab2, "Triggers Sanitize overwrite (ATA/SCSI/NVMe)       " );
                 mvwprintw( main_window, 5, tab2, "where supported. Internal overwrite pass.         " );
@@ -3899,9 +3916,12 @@ int wype_gui_method_secure_erase_submenu( void )
             wype_options.method = &wype_sanitize_crypto_erase;
             break;
         case 3:
-            wype_options.method = &wype_sanitize_block_erase;
+            wype_options.method = &wype_sanitize_crypto_erase_verify;
             break;
         case 4:
+            wype_options.method = &wype_sanitize_block_erase;
+            break;
+        case 5:
             wype_options.method = &wype_sanitize_overwrite;
             break;
     }
@@ -5895,6 +5915,7 @@ void wype_gui_changelog( void )
         "  - Batch email: all PDFs in one email after confirmation",
         "  - Notification email when wipe is done (before Enter confirmation)",
         "  - Local PDFs deleted after successful email delivery",
+        "  - Sanitize Crypto Erase + Verify: crypto erase with read-back verification",
         "  - Drive rescan (F5): hot-plug detection without restart",
         "  - IN USE devices can no longer be edited or selected",
         "",

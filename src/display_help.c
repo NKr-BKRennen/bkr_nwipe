@@ -109,7 +109,15 @@ void display_help()
     BHCYN \
     "        secure_erase" reset "           -  Drive internal ATA/NVMe Secure Erase + zero verify\n" \
     BHCYN \
-    "        secure_erase_prng" reset "      -  Secure Erase + 1x PRNG pass + verify\n\n" \
+    "        secure_erase_prng" reset "      -  Secure Erase + 1x PRNG pass + verify\n" \
+    BHCYN \
+    "        sanitize_crypto" reset "        -  Sanitize Crypto Erase (destroy encryption key)\n" \
+    BHCYN \
+    "        sanitize_crypto_verify" reset " -  Sanitize Crypto Erase + read-back verify\n" \
+    BHCYN \
+    "        sanitize_block" reset "         -  Sanitize Block Erase (NVMe/SCSI)\n" \
+    BHCYN \
+    "        sanitize_overwrite" reset "     -  Sanitize Overwrite (SCSI)\n\n" \
     BHCYN \
     "  -l, --logfile=FILE\n" reset \
     "        Filename to log to. Default is STDOUT\n\n" \

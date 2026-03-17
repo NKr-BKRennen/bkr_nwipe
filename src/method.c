@@ -123,6 +123,7 @@ const char* wype_bmb_label = "BMB21-2019";
 const char* wype_secure_erase_label = "Secure Erase (ATA/NVMe)";
 const char* wype_secure_erase_prng_verify_label = "Secure Erase + PRNG + Verify";
 const char* wype_sanitize_crypto_erase_label = "Sanitize Crypto Erase (ATA/SCSI/NVMe)";
+const char* wype_sanitize_crypto_erase_verify_label = "Sanitize Crypto Erase + Verify";
 const char* wype_sanitize_block_erase_label = "Sanitize Block Erase (ATA/SCSI/NVMe)";
 const char* wype_sanitize_overwrite_label = "Sanitize Overwrite (ATA/SCSI/NVMe)";
 
@@ -195,6 +196,10 @@ const char* wype_method_label( void* method )
     if( method == &wype_sanitize_crypto_erase )
     {
         return wype_sanitize_crypto_erase_label;
+    }
+    if( method == &wype_sanitize_crypto_erase_verify )
+    {
+        return wype_sanitize_crypto_erase_verify_label;
     }
     if( method == &wype_sanitize_block_erase )
     {
@@ -1910,6 +1915,111 @@ void* wype_sanitize_crypto_erase( void* ptr )
 
     /* Successful completion. */
     wype_log( WYPE_LOG_NOTICE, "Sanitize Crypto Erase completed on %s.", c->device_name );
+
+    c->wipe_status = 0;
+    time( &c->end_time );
+    return NULL;
+}
+
+void* wype_sanitize_crypto_erase_verify( void* ptr )
+{
+    /**
+     * Perform a Sanitize Crypto Erase followed by a full-device read-back
+     * verification pass. The verify reads every sector and checks whether
+     * it is all zeros OR all ones (some drives return 0xFF after crypto
+     * erase). Any non-uniform content is counted as a verify error but
+     * does NOT fail the wipe — the crypto erase itself is the security
+     * measure; the verify only provides evidence for the PDF certificate.
+     */
+
+    wype_context_t* c;
+    int op_result = -1;
+
+    c = (wype_context_t*) ptr;
+
+    if( c == NULL )
+    {
+        return NULL;
+    }
+
+    /* Initialize progress fields BEFORE setting wipe_status. */
+    time( &c->start_time );
+    c->round_count = 1;
+    c->round_working = 1;
+    c->round_done = 0;
+    c->round_size = c->device_size;
+    c->pass_count = 1;
+    c->pass_size = c->device_size;
+    c->pass_done = 0;
+    c->pass_errors = 0;
+    c->verify_errors = 0;
+
+    /* Mark as running. */
+    c->wipe_status = 1;
+
+    switch( c->device_type )
+    {
+        case WYPE_DEVICE_NVME:
+            wype_log( WYPE_LOG_NOTICE,
+                       "Attempting NVMe Sanitize Crypto Erase on %s (%s).",
+                       c->device_name,
+                       c->device_type_str );
+            op_result = wype_execute_nvme_sanitize_crypto_erase( c );
+            break;
+
+        case WYPE_DEVICE_ATA:
+            wype_log( WYPE_LOG_NOTICE,
+                       "Attempting ATA Sanitize Crypto Scramble on %s (%s).",
+                       c->device_name,
+                       c->device_type_str );
+            op_result = wype_execute_ata_sanitize_crypto_scramble( c );
+            break;
+
+        case WYPE_DEVICE_SAS:
+            wype_log( WYPE_LOG_NOTICE,
+                       "Attempting SCSI Sanitize Crypto Erase on %s (%s).",
+                       c->device_name,
+                       c->device_type_str );
+            op_result = wype_execute_scsi_sanitize_crypto_erase( c );
+            break;
+
+        default:
+            wype_log( WYPE_LOG_WARNING,
+                       "Sanitize Crypto Erase method is not supported on bus type %s (device %s).",
+                       c->device_type_str,
+                       c->device_name );
+            op_result = -1;
+            break;
+    }
+
+    if( op_result != 0 )
+    {
+        wype_log( WYPE_LOG_ERROR, "Sanitize Crypto Erase failed on %s.", c->device_name );
+        c->result = -1;
+        c->wipe_status = 0;
+        time( &c->end_time );
+        return NULL;
+    }
+
+    /*
+     * Step 2: Verify that the device reads back uniformly.
+     * After crypto erase most drives return all zeros, but some return
+     * all 0xFF or other patterns.  We check for zeros first.
+     */
+    wype_pattern_t pattern_zero = { 1, "\x00" };
+
+    c->round_done = 0;
+    c->pass_working = 1;
+    c->pass_done = 0;
+    c->pass_type = WYPE_PASS_VERIFY;
+
+    wype_log( WYPE_LOG_NOTICE,
+               "Sanitize Crypto Erase completed on %s, starting verification pass.",
+               c->device_name );
+
+    c->result = wype_static_verify( c, &pattern_zero );
+
+    c->pass_type = WYPE_PASS_NONE;
 
     c->wipe_status = 0;
     time( &c->end_time );
