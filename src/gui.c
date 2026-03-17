@@ -9088,7 +9088,14 @@ void* wype_gui_status( void* ptr )
                         /* Modern progress bar with percentage (wype) */
                         {
                             int bar_width = 20;
-                            int filled = (int) ( c[i]->round_percent / 100.0 * bar_width );
+                            double pct = c[i]->round_percent;
+                            if( !( pct >= 0.0 ) )
+                                pct = 0.0; /* catches NaN and negative */
+                            if( pct > 100.0 )
+                                pct = 100.0;
+                            int filled = (int) ( pct / 100.0 * bar_width );
+                            if( filled < 0 )
+                                filled = 0;
                             if( filled > bar_width )
                                 filled = bar_width;
                             int empty = bar_width - filled;
@@ -9467,8 +9474,15 @@ int compute_stats( void* ptr )
             c[i]->throughput = (double) c[i]->round_done / (double) difftime( wype_time_now, c[i]->start_time );
         }
 
-        /* Update the percentage value. */
-        c[i]->round_percent = (double) c[i]->round_done / (double) c[i]->round_size * 100;
+        /* Update the percentage value (guard against division by zero during secure erase init). */
+        if( c[i]->round_size > 0 )
+        {
+            c[i]->round_percent = (double) c[i]->round_done / (double) c[i]->round_size * 100;
+        }
+        else
+        {
+            c[i]->round_percent = 0;
+        }
 
         if( c[i]->wipe_status == 1 )
         {

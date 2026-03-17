@@ -236,16 +236,43 @@ static int wype_execute_ata_secure_erase( wype_context_t* c )
     }
 
     /*
-     * Build a hdparm command line:
+     * Step 1: Set a temporary user password so that the security erase
+     *         command is accepted by the drive. Without this step,
+     *         --security-erase will fail on most drives.
+     *
+     * The password "NULL" is arbitrary but consistent with common
+     * hdparm usage for temporary erase passwords.
+     */
+    rc = snprintf( cmd,
+                   sizeof( cmd ),
+                   "hdparm --yes-i-know-what-i-am-doing "
+                   "--user-master u --security-set-pass NULL '%s' >/dev/null 2>&1",
+                   c->device_name );
+
+    if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
+    {
+        wype_log( WYPE_LOG_ERROR, "ATA Secure Erase: command line for device %s is too long.", c->device_name );
+        return -1;
+    }
+
+    wype_log( WYPE_LOG_NOTICE, "Setting ATA security password on %s.", c->device_name );
+
+    errno = 0;
+    rc = system( cmd );
+
+    if( rc != 0 )
+    {
+        wype_log( WYPE_LOG_ERROR,
+                   "ATA Secure Erase: failed to set security password on %s (rc=%d).",
+                   c->device_name,
+                   rc );
+        return -1;
+    }
+
+    /*
+     * Step 2: Issue the secure erase command.
      *
      *   hdparm --user-master u --security-erase NULL /dev/sdX
-     *
-     * Notes:
-     *   - We redirect all output to /dev/null to keep the GUI clean.
-     *   - The password "NULL" is arbitrary but consistent with common
-     *     hdparm usage for temporary erase passwords.
-     *   - The user is expected to run wype as root, so hdparm will
-     *     have the necessary privileges.
      */
     rc = snprintf( cmd,
                    sizeof( cmd ),
@@ -275,11 +302,6 @@ static int wype_execute_ata_secure_erase( wype_context_t* c )
         return -1;
     }
 
-    /*
-     * We treat any non-zero return code from system() as a failure of
-     * the secure erase operation. Detailed diagnostics are available
-     * by running hdparm manually without redirection.
-     */
     if( rc != 0 )
     {
         wype_log( WYPE_LOG_ERROR, "ATA Secure Erase: hdparm reported failure on %s (rc=%d).", c->device_name, rc );
@@ -1559,6 +1581,18 @@ void* wype_secure_erase( void* ptr )
     /* get current time at the start of the wipe  */
     time( &c->start_time );
 
+    /* Initialize progress fields BEFORE setting wipe_status, so the GUI
+     * thread never sees wipe_status==1 with round_size==0. */
+    c->round_count = 1;
+    c->round_working = 1;
+    c->round_done = 0;
+    c->round_size = c->device_size;
+    c->pass_count = 1;
+    c->pass_size = c->device_size;
+    c->pass_done = 0;
+    c->pass_errors = 0;
+    c->verify_errors = 0;
+
     /* set wipe in progress flag for GUI */
     c->wipe_status = 1;
 
@@ -1616,16 +1650,11 @@ void* wype_secure_erase( void* ptr )
     /* Single-byte zero pattern. */
     wype_pattern_t pattern_zero = { 1, "\x00" };
 
-    /* Initialize progress accounting for a single verify pass. */
-    c->round_count = 1;
-    c->round_working = 1;
+    /* Progress fields were already initialized before wipe_status was set.
+     * Reset round_done and set pass_working for the verify pass. */
     c->round_done = 0;
-    c->round_size = c->device_size;
-
-    c->pass_count = 1;
     c->pass_working = 1;
     c->pass_done = 0;
-    c->pass_size = c->device_size;
 
     /* Mark this pass as a verification pass. */
     c->pass_type = WYPE_PASS_VERIFY;
@@ -1666,6 +1695,19 @@ void* wype_secure_erase_prng_verify( void* ptr )
 
     /* get current time at the start of the wipe */
     time( &c->start_time );
+
+    /* Initialize progress fields BEFORE setting wipe_status, so the GUI
+     * thread never sees wipe_status==1 with round_size==0 (division by
+     * zero → NaN → stack overflow in the progress bar). */
+    c->round_count = 1;
+    c->round_working = 1;
+    c->round_done = 0;
+    c->round_size = c->device_size * 2;
+    c->pass_count = 2;
+    c->pass_size = c->device_size;
+    c->pass_done = 0;
+    c->pass_errors = 0;
+    c->verify_errors = 0;
 
     /* set wipe in progress flag for GUI */
     c->wipe_status = 1;
@@ -1739,17 +1781,9 @@ void* wype_secure_erase_prng_verify( void* ptr )
         return NULL;
     }
 
-    /* Progress accounting: one write pass + one verify pass. */
-    c->round_count = 1;
-    c->round_working = 1;
+    /* Progress fields were already initialized before wipe_status was set.
+     * Reset round_done in case the secure erase step took time. */
     c->round_done = 0;
-    c->round_size = c->device_size * 2;
-
-    c->pass_count = 2;
-    c->pass_size = c->device_size;
-    c->pass_done = 0;
-    c->pass_errors = 0;
-    c->verify_errors = 0;
 
     /* Pass 1: PRNG write. */
     c->pass_working = 1;
@@ -1818,9 +1852,18 @@ void* wype_sanitize_crypto_erase( void* ptr )
         return NULL;
     }
 
+    /* Initialize progress fields BEFORE setting wipe_status. */
+    time( &c->start_time );
+    c->round_count = 1;
+    c->round_working = 1;
+    c->round_done = 0;
+    c->round_size = c->device_size;
+    c->pass_count = 1;
+    c->pass_size = c->device_size;
+    c->pass_done = 0;
+
     /* Mark as running. */
     c->wipe_status = 1;
-    time( &c->start_time );
 
     switch( c->device_type )
     {
@@ -1896,9 +1939,18 @@ void* wype_sanitize_block_erase( void* ptr )
         return NULL;
     }
 
+    /* Initialize progress fields BEFORE setting wipe_status. */
+    time( &c->start_time );
+    c->round_count = 1;
+    c->round_working = 1;
+    c->round_done = 0;
+    c->round_size = c->device_size;
+    c->pass_count = 1;
+    c->pass_size = c->device_size;
+    c->pass_done = 0;
+
     /* Mark as running. */
     c->wipe_status = 1;
-    time( &c->start_time );
 
     switch( c->device_type )
     {
@@ -1974,9 +2026,18 @@ void* wype_sanitize_overwrite( void* ptr )
         return NULL;
     }
 
+    /* Initialize progress fields BEFORE setting wipe_status. */
+    time( &c->start_time );
+    c->round_count = 1;
+    c->round_working = 1;
+    c->round_done = 0;
+    c->round_size = c->device_size;
+    c->pass_count = 1;
+    c->pass_size = c->device_size;
+    c->pass_done = 0;
+
     /* Mark as running. */
     c->wipe_status = 1;
-    time( &c->start_time );
 
     switch( c->device_type )
     {
