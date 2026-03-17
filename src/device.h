@@ -27,6 +27,7 @@
 
 void wype_device_identify( wype_context_t* c );  // Get hardware information about the device.
 int wype_device_scan( wype_context_t*** c );  // Find devices that we can wipe.
+int wype_device_rescan( wype_context_t*** c, int current_count );  // Rescan for new devices (hot-plug).
 
 /**
  * Gets information about devices

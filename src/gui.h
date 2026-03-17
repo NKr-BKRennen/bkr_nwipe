@@ -45,7 +45,7 @@ void wype_gui_create_all_windows_on_terminal_resize(
  * @modifies   options     Sets program options according to to user input.
  *
  */
-void wype_gui_select( int count, wype_context_t** c );  // Select devices to wipe.
+void wype_gui_select( int* p_count, wype_context_t*** p_c );  // Select devices to wipe (pointers for rescan).
 void* wype_gui_status( void* ptr );  // Update operation progress.
 void wype_gui_method( void );  // Change the method option.
 int wype_gui_method_secure_erase_submenu( void );  // Submenu for Secure Erase selection.

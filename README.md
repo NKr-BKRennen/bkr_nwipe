@@ -318,6 +318,7 @@ Verfügbar über **GUI**: `m` → "Secure Erase / Sanitize >" im Methoden-Menü.
 | **t** | Details zur fokussierten Festplatte |
 | **h** | Hilfe anzeigen |
 | **l** | Changelog anzeigen |
+| **F5** | Festplatten neu scannen (Hot-Plug) |
 | **Ctrl+A** | Alle Festplatten auswählen |
 | **Ctrl+C** | Beenden |
 
@@ -373,6 +374,7 @@ Wype verwendet [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 - Benachrichtigungs-E-Mail wenn Wipe fertig ("bitte am Gerät bestätigen")
 - Lokale PDFs werden nach erfolgreichem E-Mail-Versand automatisch gelöscht
 - Post-Wipe E-Mail-Status-Feedback im Log
+- Festplatten-Rescan (`F5`): Hot-Plug Erkennung neuer Festplatten ohne Neustart
 
 **Change:**
 - Alle Einstellungen über ein zentrales Menü erreichbar (`c`-Taste)

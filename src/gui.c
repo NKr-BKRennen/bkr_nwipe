@@ -64,6 +64,7 @@
 #include "customers.h"
 #include "conf.h"
 #include "send_email.h"
+#include "device.h"
 #include "unistd.h"
 #include "cpu_features.h"
 
@@ -150,9 +151,9 @@ const char* stats_title = " Status ";
 
 /* Footer labels. */
 const char* main_window_footer =
-    " S=Start  Space=Select  e=Edit Disk  c=Einstellungen  h=Hilfe  l=Log  ^C=Quit";
+    " S=Start  Space=Select  e=Edit Disk  c=Einstellungen  h=Hilfe  l=Log  F5=Rescan  ^C=Quit";
 const char* shredos_main_window_footer =
-    " S=Start  Space=Select  e=Edit  c=Einstellungen  h=Hilfe  l=Log  f=Font  ^C=Quit";
+    " S=Start  Space=Select  e=Edit  c=Einstellungen  h=Hilfe  l=Log  F5=Rescan  f=Font  ^C=Quit";
 char** p_main_window_footer;
 const char* main_window_footer_warning_lower_case_s = "  WARNING: To start the wipe press SHIFT+S (uppercase S)  ";
 
@@ -1084,8 +1085,12 @@ void wype_gui_create_all_windows_on_terminal_resize( int force_creation, const c
     }
 }
 
-void wype_gui_select( int count, wype_context_t** c )
+void wype_gui_select( int* p_count, wype_context_t*** p_c )
 {
+    /* Local aliases — updated by rescan via the pointers */
+    int count = *p_count;
+    wype_context_t** c = *p_c;
+
     extern int terminate_signal;
 
     /* Widget labels. */
@@ -1824,6 +1829,48 @@ void wype_gui_select( int count, wype_context_t** c )
                 case 'L':
                     validkeyhit = 1;
                     wype_gui_changelog();
+                    break;
+
+                case KEY_F( 5 ):
+                    validkeyhit = 1;
+                    {
+                        int old_count = count;
+                        wype_gui_create_footer_window( " Scanne nach neuen Festplatten... " );
+                        doupdate();
+                        count = wype_device_rescan( p_c, count );
+                        c = *p_c; /* realloc may have moved the array */
+                        *p_count = count; /* update caller's count */
+                        if( count > old_count )
+                        {
+                            /* Initialize new devices */
+                            for( i = 0; i < count; i++ )
+                            {
+                                if( c[i]->select == WYPE_SELECT_NONE )
+                                {
+                                    if( c[i]->device_busy && !wype_options.force )
+                                    {
+                                        c[i]->select = WYPE_SELECT_DISABLED_BUSY;
+                                    }
+                                    else
+                                    {
+                                        c[i]->select = WYPE_SELECT_FALSE;
+                                    }
+                                    wype_init_temperature( c[i] );
+                                }
+                            }
+                            char msg[80];
+                            snprintf( msg, sizeof( msg ), " %d neue Festplatte(n) gefunden! ", count - old_count );
+                            wattron( footer_window, COLOR_PAIR( 16 ) );
+                            wype_gui_create_footer_window( msg );
+                            wattroff( footer_window, COLOR_PAIR( 16 ) );
+                        }
+                        else
+                        {
+                            wype_gui_create_footer_window( " Keine neuen Festplatten gefunden. " );
+                        }
+                        doupdate();
+                        sleep( 2 );
+                    }
                     break;
 
                 case 'S':
@@ -5711,6 +5758,10 @@ void wype_gui_help( void )
         mvwprintw( main_window, yy, tab1, "t" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy++, tab2, "Details zur Festplatte anzeigen" );
+        wattron( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy, tab1, "F5" );
+        wattroff( main_window, COLOR_PAIR( 2 ) );
+        mvwprintw( main_window, yy++, tab2, "Festplatten neu scannen (Hot-Plug)" );
         yy++;
 
         wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
@@ -5799,6 +5850,7 @@ void wype_gui_changelog( void )
         "  - Sammel-E-Mail: alle PDFs in einer E-Mail nach Bestaetigung",
         "  - Benachrichtigungs-E-Mail wenn Wipe fertig (vor Enter-Bestaetigung)",
         "  - Lokale PDFs werden nach erfolgreichem E-Mail-Versand geloescht",
+        "  - Festplatten-Rescan (F5): Hot-Plug Erkennung ohne Neustart",
         "",
         "  Change:",
         "  - Alle Einstellungen ueber ein zentrales Menue erreichbar (c-Taste)",

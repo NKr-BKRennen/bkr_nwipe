@@ -203,6 +203,77 @@ int wype_device_scan( wype_context_t*** c )
 
 } /* wype_device_scan */
 
+int wype_device_rescan( wype_context_t*** c, int current_count )
+{
+    /**
+     * Rescans for new devices that were plugged in after initial scan.
+     * Only adds devices not already in the list (compared by device name).
+     * Does not remove or modify existing devices.
+     *
+     * @parameter c              A reference to the existing device array.
+     * @parameter current_count  The current number of devices in the array.
+     * @returns                  The new total number of devices.
+     */
+
+    PedDevice* dev = NULL;
+    int dcount = current_count;
+    int i;
+    int already_exists;
+
+    /* Probe for new devices. Note: we must NOT call ped_device_free_all()
+     * because existing contexts hold direct pointers to libparted strings
+     * (dev->path, dev->model) that would be freed. ped_device_probe_all()
+     * will discover new devices and add them to libparted's internal list. */
+    ped_device_probe_all();
+
+    while( ( dev = ped_device_get_next( dev ) ) )
+    {
+        /* Check if this device is already in our list */
+        already_exists = 0;
+        for( i = 0; i < current_count; i++ )
+        {
+            if( strcmp( ( *c )[i]->device_name, dev->path ) == 0 )
+            {
+                already_exists = 1;
+                break;
+            }
+        }
+
+        if( already_exists )
+        {
+            continue;
+        }
+
+        /* New device found, add it */
+        if( check_device( c, dev, dcount ) )
+        {
+            wype_log( WYPE_LOG_NOTICE, "Rescan: new device found: %s", dev->path );
+            dcount++;
+        }
+
+        if( terminate_signal == 1 )
+        {
+            break;
+        }
+    }
+
+    if( dcount > current_count )
+    {
+        /* Sort the full list so new devices appear in order */
+        extern int devnamecmp( const void* a, const void* b );
+        qsort( (void*) *c, (size_t) dcount, sizeof( wype_context_t* ), devnamecmp );
+
+        wype_log( WYPE_LOG_NOTICE, "Rescan: %d new device(s) found", dcount - current_count );
+    }
+    else
+    {
+        wype_log( WYPE_LOG_NOTICE, "Rescan: no new devices found" );
+    }
+
+    return dcount;
+
+} /* wype_device_rescan */
+
 int wype_device_get( wype_context_t*** c, char** devnamelist, int ndevnames )
 {
     PedDevice* dev = NULL;

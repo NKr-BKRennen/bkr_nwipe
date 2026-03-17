@@ -755,7 +755,7 @@ int main( int argc, char** argv )
                 }
 
                 /* Get device selections from the user. */
-                wype_gui_select( wype_enumerated, c1 );
+                wype_gui_select( &wype_enumerated, &c1 );
             }
             break;
 
@@ -771,6 +771,16 @@ int main( int argc, char** argv )
                 "system error: wype_options.autonuke (should be 0 or 1) is invalid, wype_options.autonuke=%i !? \n",
                 wype_options.autonuke );
     }
+
+    /* Rescan may have added devices — reallocate c2 to match current count */
+    c2 = (wype_context_t**) realloc( c2, wype_enumerated * sizeof( wype_context_t* ) );
+    if( c2 == NULL )
+    {
+        wype_log( WYPE_LOG_ERROR, "memory reallocation for c2 failed" );
+        cleanup();
+        exit( 1 );
+    }
+    wype_misc_thread_data.wype_enumerated = wype_enumerated;
 
     /* Initialise some of the variables in the drive contexts
      */
