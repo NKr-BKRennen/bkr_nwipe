@@ -596,16 +596,20 @@ int hpa_dco_status( wype_context_t* ptr )
                 c->HPA_status = HPA_NOT_APPLICABLE;
                 wype_log( WYPE_LOG_INFO, "No hidden sectors on %s", c->device_name );
             }
-            else
+            else if( c->device_bus == WYPE_DEVICE_USB )
             {
                 c->HPA_status = HPA_UNKNOWN;
-                if( c->device_bus == WYPE_DEVICE_USB )
-                {
-                    wype_log( WYPE_LOG_WARNING,
-                               "HIDDEN SECTORS INDETERMINATE! on %s, Some USB adapters & memory sticks don't support "
-                               "ATA pass through",
-                               c->device_name );
-                }
+                wype_log( WYPE_LOG_WARNING,
+                           "HIDDEN SECTORS INDETERMINATE! on %s, Some USB adapters & memory sticks don't support "
+                           "ATA pass through",
+                           c->device_name );
+            }
+            else
+            {
+                /* SATA SSDs and other ATA devices that don't support HPA/DCO commands
+                 * return all zeros. Treat as not applicable rather than unknown. */
+                c->HPA_status = HPA_NOT_APPLICABLE;
+                wype_log( WYPE_LOG_INFO, "HPA/DCO not supported on %s, treating as not applicable.", c->device_name );
             }
         }
         else
