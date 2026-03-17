@@ -586,6 +586,7 @@ void wype_gui_init( void )
 
     /* Clear the screen. */
     wclear( stdscr );
+    wnoutrefresh( stdscr );
 
     /* Create the header window. */
     wype_gui_create_header_window();
@@ -1057,6 +1058,7 @@ void wype_gui_create_all_windows_on_terminal_resize( int force_creation, const c
 
         /* Clear the screen. */
         wclear( stdscr );
+        wnoutrefresh( stdscr );
 
         /* Create a new header window and panel due to terminal size having changed */
         wype_gui_create_header_window();
