@@ -1,53 +1,53 @@
 # WYPE
 
-Angepasste Version von [nwipe](https://github.com/martijnvanbrummelen/nwipe) mit eigenem Branding und erweiterten Funktionen.
+Customized version of [nwipe](https://github.com/martijnvanbrummelen/nwipe) with custom branding and extended features.
 
-Basiert auf nwipe (Fork von `dwipe` / Darik's Boot and Nuke) mit folgenden Erweiterungen:
+Based on nwipe (fork of `dwipe` / Darik's Boot and Nuke) with the following extensions:
 
-- **Wype-Branding**: Logo, angepasstes PDF-Zertifikat-Layout, modernisierte GUI
-- **PDF-Zertifikate**: Hostname, Inventarnummer, Organisation, Kunde auf dem Zertifikat
-- **Secure Erase / Sanitize**: Hardware-basierte Lösch-Methoden für ATA, NVMe und SCSI (inkl. SSDs)
-- **Per-Disk Metadaten**: Hostname und Inventarnummer pro Festplatte direkt in der GUI eingeben
-- **E-Mail-Versand**: Gesammelter Versand aller PDF-Zertifikate per SMTP nach Bestätigung
-- **Hilfe & Changelog**: Direkt in der GUI abrufbar (`h` und `l`)
+- **Wype Branding**: Logo, customized PDF certificate layout, modernized GUI
+- **PDF Certificates**: Hostname, Inventory Number, organization, customer on the certificate
+- **Secure Erase / Sanitize**: Hardware-based wipe methods for ATA, NVMe and SCSI (incl. SSDs)
+- **Per-Disk Metadata**: Hostname and Inventory Number per disk directly editable in the GUI
+- **Email Delivery**: Batch delivery of all PDF certificates via SMTP after confirmation
+- **Help & Changelog**: Accessible directly in the GUI (`h` and `l`)
 
-> **Für ein bootbares USB/ISO-Image** das direkt in Wype startet (ohne installiertes OS): [wypeOS](https://github.com/NKr-BKRennen/wypeOS)
-
----
-
-## Typischer Workflow
-
-So sieht ein typischer Lösch-Vorgang mit Wype aus:
-
-1. **Wype starten** → `sudo wype`
-2. **Lösch-Methode wählen** → `m` drücken → z.B. "DoD 5220.22-M" für HDDs oder "Secure Erase / Sanitize >" für SSDs
-3. **Optionen anpassen** (optional) → `v` Verifikation, `r` Durchläufe, `p` PRNG, `b` Blanking
-4. **Festplatten auswählen** → Pfeiltasten + `Space` (oder `Ctrl+A` für alle)
-5. **Metadaten eingeben** → `e` auf jeder Festplatte drücken → Hostname und Inventarnummer eintragen
-6. **Wipe starten** → `S` (Shift+S) — Wype warnt automatisch wenn Metadaten fehlen
-7. **Warten** → Fortschritt wird live angezeigt. Bei aktivem E-Mail-Versand wird eine Benachrichtigung gesendet wenn alle Wipes fertig sind.
-8. **Bestätigen** → `Enter` drücken → PDFs werden erstellt und per E-Mail versendet
-
-> **Tipp:** `h` zeigt jederzeit eine Hilfe-Seite mit allen Tastenbelegungen. `l` zeigt den Changelog.
+> **For a bootable USB/ISO image** that starts directly into Wype (without an installed OS): [wypeOS](https://github.com/NKr-BKRennen/wypeOS)
 
 ---
 
-## Konfiguration
+## Typical Workflow
 
-Wype speichert alle Einstellungen in `/etc/wype/wype.conf` (libconfig-Format).
-Die Datei wird beim **ersten Start** automatisch mit Standardwerten erstellt.
+This is what a typical wipe process with Wype looks like:
 
-Es gibt **drei Wege** Einstellungen zu ändern:
+1. **Start Wype** → `sudo wype`
+2. **Select Wipe Method** → press `m` → e.g. "DoD 5220.22-M" for HDDs or "Secure Erase / Sanitize >" for SSDs
+3. **Adjust options** (optional) → `v` Verification, `r` Rounds, `p` PRNG, `b` Blanking
+4. **Select disks** → Arrow keys + `Space` (or `Ctrl+A` for all)
+5. **Enter metadata** → press `e` on each disk → enter Hostname and Inventory Number
+6. **Start wipe** → `S` (Shift+S) — Wype automatically warns if metadata is missing
+7. **Wait** → Progress is displayed live. If email delivery is active, a notification is sent when all wipes are finished.
+8. **Confirm** → press `Enter` → PDFs are created and sent via email
 
-| Weg | Was | Wann |
-|-----|-----|------|
-| **GUI-Config-Menü** (`c`-Taste) | Organisation, Kunde, PDF-Optionen | Zur Laufzeit, wird in `wype.conf` gespeichert |
-| **GUI-Einstellungen** (Tasten `m`, `v`, `r`, `p`, `b`, `d`) | Lösch-Methode, Verifikation, Durchläufe etc. | Zur Laufzeit, nur für aktuelle Sitzung |
-| **Direkt in `/etc/wype/wype.conf` editieren** | Alles inkl. E-Mail-Einstellungen | Vor dem Start, persistent |
+> **Tip:** `h` shows a Help page with all key bindings at any time. `l` shows the Changelog.
 
-### Organisations-Details
+---
 
-Diese Angaben erscheinen auf jedem PDF-Lösch-Zertifikat. **Vor dem ersten Einsatz konfigurieren:**
+## Configuration
+
+Wype stores all settings in `/etc/wype/wype.conf` (libconfig format).
+The file is automatically created with default values on **first startup**.
+
+There are **three ways** to change settings:
+
+| Way | What | When |
+|-----|------|------|
+| **GUI Config Menu** (`c` key) | Organization, customer, PDF options | At runtime, saved to `wype.conf` |
+| **GUI Settings** (keys `m`, `v`, `r`, `p`, `b`, `d`) | Wipe Method, Verification, Rounds etc. | At runtime, only for current session |
+| **Edit `/etc/wype/wype.conf` directly** | Everything incl. email settings | Before startup, persistent |
+
+### Organization Details
+
+These details appear on every PDF wipe certificate. **Configure before first use:**
 
 ```
 Organisation_Details: {
@@ -59,11 +59,11 @@ Organisation_Details: {
 }
 ```
 
-> Konfigurierbar über **c** → "PDF Report - Edit Organisation" in der GUI.
+> Configurable via **c** → "PDF Report - Edit Organisation" in the GUI.
 
-### Kunden-Zuordnung
+### Customer Assignment
 
-Optional kann ein Kunde zugeordnet werden, der auf dem Zertifikat erscheint:
+Optionally, a customer can be assigned that appears on the certificate:
 
 ```
 Selected_Customer: {
@@ -74,10 +74,10 @@ Selected_Customer: {
 }
 ```
 
-> Kunden können über **c** → "PDF Report - Select/Add/Delete Customer" verwaltet werden.
-> Kundendaten liegen in `/etc/wype/wype_customers.csv`.
+> Customers can be managed via **c** → "PDF Report - Select/Add/Delete Customer".
+> Customer data is stored in `/etc/wype/wype_customers.csv`.
 
-### PDF-Zertifikat
+### PDF Certificate
 
 ```
 PDF_Certificate: {
@@ -89,33 +89,33 @@ PDF_Certificate: {
 }
 ```
 
-| Einstellung | Beschreibung |
-|-------------|-------------|
-| `PDF_Enable` | PDF-Zertifikate nach Wipe erstellen (`ENABLED`/`DISABLED`) |
-| `PDF_Preview` | PDF nach Erstellung öffnen (nur mit Desktop) |
-| `PDF_Host_Visibility` | System-Hostname auf dem Zertifikat anzeigen |
-| `PDF_tag` | Benutzerdefinierten Tag auf dem Zertifikat anzeigen |
-| `User_Defined_Tag` | Freitext-Tag für das Zertifikat |
+| Setting | Description |
+|---------|-------------|
+| `PDF_Enable` | Create PDF certificates after wipe (`ENABLED`/`DISABLED`) |
+| `PDF_Preview` | Open PDF after creation (desktop only) |
+| `PDF_Host_Visibility` | Show system hostname on the certificate |
+| `PDF_tag` | Show user-defined tag on the certificate |
+| `User_Defined_Tag` | Free-text tag for the certificate |
 
-### Per-Disk Metadaten (Hostname / Inventarnummer)
+### Per-Disk Metadata (Hostname / Inventory Number)
 
-Pro Festplatte können individuelle Werte gesetzt werden, die auf dem jeweiligen PDF-Zertifikat erscheinen:
+Individual values can be set per disk, which appear on the respective PDF certificate:
 
-1. Festplatte mit Pfeiltasten fokussieren
-2. **e** drücken → Hostname und Inventarnummer eingeben (Tab wechselt zwischen Feldern) → Enter
+1. Focus a disk with arrow keys
+2. Press **e** → enter Hostname and Inventory Number (Tab switches between fields) → Enter
 
-> Diese Werte werden **nicht** in `wype.conf` gespeichert, sondern nur während der Laufzeit gehalten und ins PDF geschrieben.
-> Beim Wipe-Start warnt Wype automatisch, wenn bei einer ausgewählten Festplatte Metadaten fehlen.
+> These values are **not** saved in `wype.conf`, but only held at runtime and written to the PDF.
+> When starting a wipe, Wype automatically warns if metadata is missing for a selected disk.
 
-### E-Mail-Versand (SMTP)
+### Email Delivery (SMTP)
 
-Nach Abschluss aller Wipes werden die PDF-Zertifikate gesammelt per E-Mail versendet:
+After all wipes are completed, the PDF certificates are sent in a batch via email:
 
-1. Alle Wipes fertig → Benachrichtigungs-E-Mail ("Wipe fertig, bitte am Gerät bestätigen")
-2. Benutzer drückt Enter → PDFs werden erstellt und in **einer** E-Mail gesendet
-3. Bei Erfolg: lokale PDFs werden gelöscht. Bei Fehler: PDFs bleiben lokal erhalten.
+1. All wipes finished → notification email ("Wipe finished, please confirm at the device")
+2. User presses Enter → PDFs are created and sent in **one** email
+3. On success: local PDFs are deleted. On failure: PDFs are kept locally.
 
-Der E-Mail-Status wird im Options-Fenster angezeigt (grün "Aktiv" / rot "Deaktiviert").
+The email status is displayed in the options window (green "Active" / red "Disabled").
 
 ```
 Email_Settings: {
@@ -127,28 +127,28 @@ Email_Settings: {
 }
 ```
 
-| Einstellung | Beschreibung |
-|-------------|-------------|
-| `Email_Enable` | E-Mail-Versand aktivieren (`ENABLED`/`DISABLED`) |
-| `SMTP_Server` | Hostname oder IP des SMTP-Servers |
-| `SMTP_Port` | SMTP-Port (Standard: `25`) |
-| `Sender_Address` | Absender-Adresse |
-| `Recipient_Address` | Empfänger-Adresse (leer = kein Versand) |
+| Setting | Description |
+|---------|-------------|
+| `Email_Enable` | Enable email delivery (`ENABLED`/`DISABLED`) |
+| `SMTP_Server` | Hostname or IP of the SMTP server |
+| `SMTP_Port` | SMTP port (default: `25`) |
+| `Sender_Address` | Sender address |
+| `Recipient_Address` | Recipient address (empty = no delivery) |
 
-> Standardmäßig deaktiviert. Unterstützt SMTP ohne Authentifizierung (Port 25, internes Netz).
-> E-Mail-Einstellungen müssen direkt in `/etc/wype/wype.conf` editiert werden (kein GUI-Menü dafür).
+> Disabled by default. Supports SMTP without authentication (port 25, internal network).
+> Email settings must be edited directly in `/etc/wype/wype.conf` (no GUI menu for this).
 
 ---
 
-## Installation auf Debian 13 (Trixie)
+## Installation on Debian 13 (Trixie)
 
-### 1. System vorbereiten
+### 1. Prepare the system
 
 ```bash
 sudo apt update && sudo apt upgrade -y
 ```
 
-### 2. Abhängigkeiten installieren
+### 2. Install dependencies
 
 ```bash
 sudo apt install -y \
@@ -168,7 +168,7 @@ sudo apt install -y \
   hdparm
 ```
 
-### 3. Repository klonen und kompilieren
+### 3. Clone repository and compile
 
 ```bash
 cd /root
@@ -178,7 +178,7 @@ chmod +x build.sh autogen.sh
 ./build.sh
 ```
 
-Alternativ manuell:
+Alternatively, manually:
 
 ```bash
 chmod +x autogen.sh
@@ -188,27 +188,27 @@ make -j$(nproc)
 sudo make install
 ```
 
-### 4. Konfiguration anpassen
+### 4. Adjust configuration
 
-Beim ersten Start wird `/etc/wype/wype.conf` mit Standardwerten erstellt. Danach anpassen:
+On first startup, `/etc/wype/wype.conf` is created with default values. Then adjust:
 
 ```bash
 sudo nano /etc/wype/wype.conf
 ```
 
-Oder in der GUI über die **c**-Taste (Organisation, Kunde, PDF-Einstellungen).
+Or in the GUI via the **c** key (organization, customer, PDF settings).
 
-### 5. Starten
+### 5. Start
 
 ```bash
 sudo wype
 ```
 
-### 6. Autostart einrichten (optional)
+### 6. Set up autostart (optional)
 
-Damit wype beim Booten automatisch auf tty1 startet (z.B. für dedizierte Lösch-Stationen):
+To have wype start automatically on tty1 at boot (e.g. for dedicated wipe stations):
 
-**Auto-Login für root auf tty1 aktivieren:**
+**Enable auto-login for root on tty1:**
 
 ```bash
 sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
@@ -219,7 +219,7 @@ ExecStart=-/sbin/agetty --autologin root --noclear %I $TERM
 EOF
 ```
 
-**wype beim Login automatisch starten:**
+**Start wype automatically on login:**
 
 ```bash
 cat >> /root/.bash_profile << 'PROFILE'
@@ -231,14 +231,14 @@ fi
 PROFILE
 ```
 
-**System neustarten:**
+**Restart the system:**
 
 ```bash
 sudo systemctl daemon-reload
 sudo reboot
 ```
 
-### 7. Aktualisieren
+### 7. Update
 
 ```bash
 cd /root/wype
@@ -247,9 +247,9 @@ cd /root/wype
 
 ---
 
-## Schnellinstallation (Copy-Paste)
+## Quick Installation (Copy-Paste)
 
-Alles in einem Block für eine frische Debian 13 Installation:
+Everything in one block for a fresh Debian 13 installation:
 
 ```bash
 sudo apt update && sudo apt install -y \
@@ -259,82 +259,82 @@ sudo apt update && sudo apt install -y \
 cd /root && \
 git clone https://github.com/NKr-BKRennen/wype.git && \
 cd wype && chmod +x build.sh autogen.sh && ./build.sh && \
-echo "Installation abgeschlossen. Starten mit: sudo wype"
+echo "Installation complete. Start with: sudo wype"
 ```
 
 ---
 
-## Lösch-Methoden
+## Wipe Methods
 
-### Software-basierte Methoden
+### Software-based Methods
 
-| Methode | Beschreibung | Pässe |
-|---------|-------------|--------|
-| Fill With Zeros | Füllt mit Nullen (`0x00`) | 1 |
-| Fill With Ones | Füllt mit Einsen (`0xFF`) | 1 |
+| Method | Description | Passes |
+|--------|-------------|--------|
+| Fill With Zeros | Fills with zeros (`0x00`) | 1 |
+| Fill With Ones | Fills with ones (`0xFF`) | 1 |
 | RCMP TSSIT OPS-II | Royal Canadian Mounted Police Standard | 8 |
-| DoD Short | US DoD 5220.22-M (kurz) | 3 |
-| DoD 5220.22-M | US DoD 5220.22-M (voll) — **empfohlen für HDDs** | 7 |
-| Gutmann Wipe | Peter Gutmann 35-Pass Methode | 35 |
-| PRNG Stream | Zufallsdaten vom gewählten PRNG | 1 |
+| DoD Short | US DoD 5220.22-M (short) | 3 |
+| DoD 5220.22-M | US DoD 5220.22-M (full) — **recommended for HDDs** | 7 |
+| Gutmann Wipe | Peter Gutmann 35-pass method | 35 |
+| PRNG Stream | Random data from the selected PRNG | 1 |
 | HMG IS5 Enhanced | UK HMG IS5 (Enhanced) | 3 |
-| Schneier Wipe | Bruce Schneier 7-Pass Methode | 7 |
-| BMB21-2019 | Chinesischer Standard für Datensanitisierung | 6 |
+| Schneier Wipe | Bruce Schneier 7-pass method | 7 |
+| BMB21-2019 | Chinese standard for data sanitization | 6 |
 
-### Hardware-basierte Methoden (Secure Erase / Sanitize)
+### Hardware-based Methods (Secure Erase / Sanitize)
 
-Diese Methoden arbeiten auf Firmware-Ebene und erreichen auch versteckte/reservierte SSD-Bereiche.
-**Empfohlen für SSDs/NVMe** — Software-Überschreiben ist bei Flash-Speicher nicht zuverlässig.
+These methods operate at the firmware level and reach hidden/reserved SSD areas.
+**Recommended for SSDs/NVMe** — software overwriting is not reliable for flash storage.
 
-| Methode | CLI-Flag | Beschreibung |
-|---------|----------|-------------|
-| Secure Erase | `--method=secure_erase` | ATA/NVMe Secure Erase + Zero-Verifikation |
-| Secure Erase + PRNG | `--method=secure_erase_prng` | Secure Erase + PRNG-Pass + Verifikation |
-| Sanitize Crypto Erase | `--method=sanitize_crypto` | Zerstört den Encryption Key — **empfohlen für SSDs** |
+| Method | CLI Flag | Description |
+|--------|----------|-------------|
+| Secure Erase | `--method=secure_erase` | ATA/NVMe Secure Erase + zero verification |
+| Secure Erase + PRNG | `--method=secure_erase_prng` | Secure Erase + PRNG pass + verification |
+| Sanitize Crypto Erase | `--method=sanitize_crypto` | Destroys the encryption key — **recommended for SSDs** |
 | Sanitize Block Erase | `--method=sanitize_block` | Block Erase (NVMe/SCSI) |
 | Sanitize Overwrite | `--method=sanitize_overwrite` | Sanitize Overwrite (SCSI) |
 
-Verfügbar über **GUI**: `m` → "Secure Erase / Sanitize >" im Methoden-Menü.
+Available via **GUI**: `m` → "Secure Erase / Sanitize >" in the method menu.
 
-> **Voraussetzungen:** `hdparm` (ATA), `nvme-cli` (NVMe), `sg3_utils` (SCSI)
+> **Prerequisites:** `hdparm` (ATA), `nvme-cli` (NVMe), `sg3_utils` (SCSI)
 
 ---
 
-## GUI-Bedienung
+## GUI Operation
 
-### Tastenbelegung (Hauptbildschirm)
+### Key Bindings (Main Screen)
 
-| Taste | Funktion |
-|-------|----------|
-| **Space** | Festplatte auswählen/abwählen |
-| **S** | Wipe starten (Shift+S) — prüft fehlende Metadaten |
-| **e** | Hostname/Inventarnummer für fokussierte Festplatte bearbeiten |
-| **m** | Lösch-Methode wählen |
-| **p** | PRNG wählen |
-| **v** | Verifikation einstellen |
-| **r** | Anzahl Durchläufe |
-| **b** | Blanking ein/aus |
-| **d** | Schreibrichtung |
-| **c** | Konfiguration (Organisation, Kunde, PDF) |
-| **t** | Details zur fokussierten Festplatte |
-| **h** | Hilfe anzeigen |
-| **l** | Changelog anzeigen |
-| **F5** | Festplatten neu scannen (Hot-Plug) |
-| **Ctrl+A** | Alle Festplatten auswählen |
-| **Ctrl+C** | Beenden |
+| Key | Function |
+|-----|----------|
+| **Space** | Select/deselect disk |
+| **S** | Start wipe (Shift+S) — checks for missing metadata |
+| **e** | EditDisk: edit Hostname/Inventory Number for the focused disk |
+| **m** | Select Wipe Method |
+| **p** | Select PRNG |
+| **v** | Set Verification |
+| **r** | Number of Rounds |
+| **b** | Blanking on/off |
+| **d** | Write Direction |
+| **c** | Configuration (organization, customer, PDF) |
+| **t** | Details for the focused disk |
+| **h** | Show Help |
+| **l** | Show Changelog |
+| **F5** | Rescan disks (hot-plug) |
+| **Ctrl+A** | Select all disks |
+| **Ctrl+C** | Quit |
 
-### Config-Menü (`c`-Taste)
+### Config Menu (`c` key)
 
-Über die **c**-Taste öffnet sich das Konfigurationsmenü mit folgenden Optionen:
+The **c** key opens the configuration menu with the following options:
 
-- **PDF Report - Edit Organisation** → Firmenname, Adresse, Ansprechpartner, Techniker
-- **PDF Report - Select/Add/Delete Customer** → Kundenverwaltung für das Zertifikat
-- **PDF Report - Enable/Disable PDF** → PDF-Erstellung an/aus
-- **PDF Report - Preview** → PDF nach Erstellung öffnen
-- **PDF Report - Host Visibility** → System-Hostname auf Zertifikat anzeigen
-- **PDF Report - Custom Tag** → Freitext-Tag auf dem Zertifikat
+- **PDF Report - Edit Organisation** → Company name, address, contact person, technician
+- **PDF Report - Select/Add/Delete Customer** → Customer management for the certificate
+- **PDF Report - Enable/Disable PDF** → Enable/disable PDF creation
+- **PDF Report - Preview** → Open PDF after creation
+- **PDF Report - Host Visibility** → Show system hostname on certificate
+- **PDF Report - Custom Tag** → Free-text tag on the certificate
 
-Alle hier gemachten Änderungen werden persistent in `/etc/wype/wype.conf` gespeichert.
+All changes made here are persistently saved in `/etc/wype/wype.conf`.
 
 ---
 
@@ -343,20 +343,20 @@ Alle hier gemachten Änderungen werden persistent in `/etc/wype/wype.conf` gespe
 * WYPE: [https://github.com/NKr-BKRennen/wype](https://github.com/NKr-BKRennen/wype)
 * Original nwipe: [https://github.com/martijnvanbrummelen/nwipe](https://github.com/martijnvanbrummelen/nwipe)
 
-## Lizenz
+## License
 
-Wype ist lizenziert unter der **GNU General Public License v2.0**.
-Siehe `LICENSE` für Details.
+Wype is licensed under the **GNU General Public License v2.0**.
+See `LICENSE` for details.
 
 ---
 
-## Versionierung
+## Versioning
 
-Wype verwendet [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
+Wype uses [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 
-- **MAJOR**: Inkompatible Änderungen (z.B. neues Config-Format, Breaking Changes)
-- **MINOR**: Neue Features, rückwärtskompatibel
-- **PATCH**: Bugfixes, kleine Verbesserungen
+- **MAJOR**: Incompatible changes (e.g. new config format, breaking changes)
+- **MINOR**: New features, backwards compatible
+- **PATCH**: Bug fixes, minor improvements
 
 ---
 
@@ -365,54 +365,54 @@ Wype verwendet [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 ### v1.2.0 (2026-03-17)
 
 **Add:**
-- Einheitliches Einstellungsmenü (`c`-Taste) mit Pfeilnavigation (Methode, PRNG, Verifikation, Durchläufe, Blanking, Schreibrichtung, Organisation & PDF, E-Mail)
-- Disk-Metadaten-Editor (`e`-Taste): Hostname + Inventarnummer in einem Dialog mit Tab-Wechsel
-- Hilfe-Seite (`h`-Taste) mit allen Tastenbelegungen, Erklärungen und Workflow
-- Changelog-Ansicht (`l`-Taste) direkt in der GUI
-- E-Mail-Status-Anzeige im Options-Fenster (Aktiv/Deaktiviert)
-- Warnung beim Wipe-Start wenn Hostname/Inventarnummer fehlt (pro Festplatte bestätigen)
-- Sammel-E-Mail: alle PDF-Zertifikate in einer E-Mail nach Enter-Bestätigung
-- Benachrichtigungs-E-Mail wenn Wipe fertig ("bitte am Gerät bestätigen")
-- Lokale PDFs werden nach erfolgreichem E-Mail-Versand automatisch gelöscht
-- Post-Wipe E-Mail-Status-Feedback im Log
-- Festplatten-Rescan (`F5`): Hot-Plug Erkennung neuer Festplatten ohne Neustart
+- Unified settings menu (`c` key) with arrow navigation (method, PRNG, Verification, Rounds, Blanking, Write Direction, Organization & PDF, Email)
+- Disk metadata editor (`e` key): Hostname + Inventory Number in a single dialog with Tab switching
+- Help page (`h` key) with all key bindings, explanations and workflow
+- Changelog view (`l` key) directly in the GUI
+- Email status display in the options window (Active/Disabled)
+- Warning when starting a wipe if Hostname/Inventory Number is missing (confirm per disk)
+- Batch email: all PDF certificates in one email after Enter confirmation
+- Notification email when wipe is finished ("please confirm at the device")
+- Local PDFs are automatically deleted after successful email delivery
+- Post-wipe email status feedback in the log
+- Disk rescan (`F5`): hot-plug detection of new disks without restart
 
 **Change:**
-- Alle Einstellungen über ein zentrales Menü erreichbar (`c`-Taste)
-- Footer überarbeitet: übersichtlichere Tastenbelegung
-- Tastenbelegung: `e`=Edit Disk, `c`=Einstellungen, `h`=Hilfe, `l`=Changelog (statt H/I für einzelne Felder)
-- "Inventarnummer" wird in der GUI ausgeschrieben (statt "Inventarnr")
+- All settings accessible via a central menu (`c` key)
+- Footer redesigned: clearer key bindings
+- Key bindings: `e`=EditDisk, `c`=Settings, `h`=Help, `l`=Changelog (instead of H/I for individual fields)
+- "Inventory Number" is now written out in full in the GUI (instead of abbreviated form)
 
 ### v1.1.0 (2026-03-17)
 
 **Add:**
-- Per-Disk Metadaten: Hostname und Inventarnummer pro Festplatte
-- Automatischer E-Mail-Versand der PDF-Zertifikate per SMTP
-- Secure Erase / Sanitize Methoden für ATA, NVMe und SCSI (Hardware-basiert)
-- ASCII-Art "BK RENNEN" Logo im GUI-Header
-- `build.sh` und `update.sh` Skripte für vereinfachtes Bauen und Aktualisieren
-- E-Mail-Konfiguration in `/etc/wype/wype.conf`
+- Per-disk metadata: Hostname and Inventory Number per disk
+- Automatic email delivery of PDF certificates via SMTP
+- Secure Erase / Sanitize methods for ATA, NVMe and SCSI (hardware-based)
+- ASCII art "BK RENNEN" logo in the GUI header
+- `build.sh` and `update.sh` scripts for simplified building and updating
+- Email configuration in `/etc/wype/wype.conf`
 
 **Fix:**
-- Terminal-Hintergrund bleibt nach Beenden (Ctrl+C) nicht mehr blau
-- Footer-Leiste hat jetzt einheitlichen Hintergrund (kein weißer Balken mehr)
-- [IN USE] und [HS? YES] Tags sind jetzt rot auf blau statt rot auf weiß
-- Hostname/Inventarnummer werden jetzt zuverlässig auf das PDF-Zertifikat geschrieben
-- Barcode im PDF-Zertifikat deaktiviert
+- Terminal background no longer stays blue after quitting (Ctrl+C)
+- Footer bar now has a uniform background (no more white bar)
+- [IN USE] and [HS? YES] tags are now red on blue instead of red on white
+- Hostname/Inventory Number are now reliably written to the PDF certificate
+- Barcode on PDF certificate disabled
 
 **Change:**
-- Projekt umbenannt von nwipe/BKR_NWIPE zu Wype
-- Modernisierte GUI: Farbschema (Teal/Navy/Yellow), farbige Status-Tags, Progress Bars
-- Eigenes Versionierungsschema (Semantic Versioning)
-- README komplett auf Deutsch, nur Debian 13
+- Project renamed from nwipe/BKR_NWIPE to Wype
+- Modernized GUI: color scheme (Teal/Navy/Yellow), colored status tags, progress bars
+- Custom versioning scheme (Semantic Versioning)
+- README completely in English, Debian 13 only
 
 **Remove:**
-- Unterstützung für andere Distributionen (nur noch Debian 13)
-- Barcode auf PDF-Zertifikat (Code bleibt erhalten, nur deaktiviert)
+- Support for other distributions (Debian 13 only now)
+- Barcode on PDF certificate (code remains, just disabled)
 
 ### v1.0.0 (2026-03-16)
 
 **Add:**
-- Initiales Release basierend auf nwipe 0.40
-- BKR-Branding: Logo im PDF-Zertifikat
-- PDF-Lösch-Zertifikate mit Organisations- und Kundendetails
+- Initial release based on nwipe 0.40
+- BKR branding: logo on PDF certificate
+- PDF wipe certificates with organization and customer details

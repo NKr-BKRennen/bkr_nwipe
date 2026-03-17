@@ -1,6 +1,6 @@
 #!/bin/bash
-# WYPE Update-Skript
-# Pullt die neueste Version von main und baut/installiert wype.
+# WYPE Update Script
+# Pulls the latest version from main and builds/installs wype.
 
 set -e
 
@@ -14,5 +14,5 @@ git pull origin main
 
 echo ""
 
-# build.sh aufrufen (fragt am Ende ob wype gestartet werden soll)
+# Run build.sh (asks at the end whether to start wype)
 ./build.sh

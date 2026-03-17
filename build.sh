@@ -1,22 +1,22 @@
 #!/bin/bash
-# WYPE Build-Skript
-# Baut wype und installiert es nach /usr/local/bin.
+# WYPE Build Script
+# Builds wype and installs it to /usr/local/bin.
 
 set -e
 
 echo "=== WYPE Build ==="
 echo ""
 
-# Ins Skript-Verzeichnis wechseln
+# Change to script directory
 cd "$(dirname "$0")"
 
-# autogen.sh nur ausführen wenn configure nicht existiert oder configure.ac neuer ist
+# Only run autogen.sh if configure does not exist or configure.ac is newer
 if [ ! -f configure ] || [ configure.ac -nt configure ]; then
     echo ">>> autogen.sh ..."
     ./autogen.sh
 fi
 
-# configure nur ausführen wenn Makefile nicht existiert oder configure neuer ist
+# Only run configure if Makefile does not exist or configure is newer
 if [ ! -f Makefile ] || [ configure -nt Makefile ]; then
     echo ">>> configure ..."
     ./configure
@@ -29,9 +29,9 @@ echo ">>> make install ..."
 sudo make install
 
 echo ""
-echo "=== Installation abgeschlossen ==="
+echo "=== Installation complete ==="
 echo ""
-read -p "wype jetzt starten? [j/N] " answer
+read -p "Start wype now? [y/N] " answer
 if [[ "$answer" =~ ^[jJyY]$ ]]; then
     sudo wype
 fi

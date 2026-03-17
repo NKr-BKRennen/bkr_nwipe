@@ -1011,7 +1011,7 @@ void wype_log_summary( wype_thread_data_ptr_t* ptrx, wype_context_t** ptr, int w
         int email_result = wype_send_all_certificates( c, wype_selected );
         if( email_result == 0 )
         {
-            wype_log( WYPE_LOG_INFO, "E-Mail-Versand erfolgreich. Lokale PDFs wurden geloescht." );
+            wype_log( WYPE_LOG_INFO, "Email delivery successful. Local PDFs have been deleted." );
         }
         else
         {
@@ -1021,7 +1021,7 @@ void wype_log_summary( wype_thread_data_ptr_t* ptrx, wype_context_t** ptr, int w
                 if( c[ei]->PDF_filename[0] != '\0' )
                 {
                     wype_log( WYPE_LOG_WARNING,
-                               "E-Mail-Versand fehlgeschlagen. PDFs lokal gespeichert unter: %s",
+                               "Email delivery failed. PDFs saved locally at: %s",
                                wype_options.PDFreportpath );
                     break;
                 }

@@ -822,7 +822,7 @@ static double wype_prng_monotonic_seconds( void )
     return (double) ts.tv_sec + (double) ts.tv_nsec / 1000000000.0;
 }
 
-/* einfacher LCG zum Seed-Befüllen – nur für Benchmark, kein Kryptokram */
+/* Simple LCG for seed filling - benchmark only, not cryptographic */
 static void wype_prng_make_seed( unsigned char* seed, size_t len )
 {
     unsigned long t = (unsigned long) time( NULL );

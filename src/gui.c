@@ -151,9 +151,9 @@ const char* stats_title = " Status ";
 
 /* Footer labels. */
 const char* main_window_footer =
-    " S=Start  Space=Select  e=Edit Disk  c=Einstellungen  h=Hilfe  l=Log  F5=Rescan  ^C=Quit";
+    " S=Start  Space=Select  e=EditDisk  c=Settings  h=Help  l=Log  F5=Rescan  ^C=Quit";
 const char* shredos_main_window_footer =
-    " S=Start  Space=Select  e=Edit  c=Einstellungen  h=Hilfe  l=Log  F5=Rescan  f=Font  ^C=Quit";
+    " S=Start  Space=Select  e=EditDisk  c=Settings  h=Help  l=Log  F5=Rescan  f=Font  ^C=Quit";
 char** p_main_window_footer;
 const char* main_window_footer_warning_lower_case_s = "  WARNING: To start the wipe press SHIFT+S (uppercase S)  ";
 
@@ -204,7 +204,7 @@ int stdscr_cols_previous;
 int tft_saver = 0;
 
 /* Draw one "└── " prefix using ncurses ACS characters (portable, no UTF-8 needed).
- * Falls dein Terminal ACS nicht sauber kann, kannst du unten auf ASCII fallbacken.
+ * If your terminal doesn't render ACS properly, you can fall back to ASCII below.
  */
 static void wype_gui_draw_acs_prefix( WINDOW* w, int y, int x )
 {
@@ -1398,7 +1398,7 @@ void wype_gui_select( int* p_count, wype_context_t*** p_c )
                 }
 
                 wattron( main_window, COLOR_PAIR( 2 ) );
-                wprintw( main_window, "  Inventarnummer: " );
+                wprintw( main_window, "  Inventory No.: " );
                 wattroff( main_window, COLOR_PAIR( 2 ) );
                 if( c[i + offset]->inventory_number[0] != '\0' )
                 {
@@ -1813,7 +1813,8 @@ void wype_gui_select( int* p_count, wype_context_t*** p_c )
                 case 'e':
                 case 'E':
                     validkeyhit = 1;
-                    if( count > 0 )
+                    if( count > 0 && c[focus]->select != WYPE_SELECT_DISABLED_BUSY
+                        && c[focus]->select != WYPE_SELECT_DISABLED )
                     {
                         wype_gui_edit_disk_metadata( c[focus] );
                     }
@@ -1835,7 +1836,7 @@ void wype_gui_select( int* p_count, wype_context_t*** p_c )
                     validkeyhit = 1;
                     {
                         int old_count = count;
-                        wype_gui_create_footer_window( " Scanne nach neuen Festplatten... " );
+                        wype_gui_create_footer_window( " Scanning for new drives... " );
                         doupdate();
                         count = wype_device_rescan( p_c, count );
                         c = *p_c; /* realloc may have moved the array */
@@ -1859,14 +1860,14 @@ void wype_gui_select( int* p_count, wype_context_t*** p_c )
                                 }
                             }
                             char msg[80];
-                            snprintf( msg, sizeof( msg ), " %d neue Festplatte(n) gefunden! ", count - old_count );
+                            snprintf( msg, sizeof( msg ), " %d new drive(s) found! ", count - old_count );
                             wattron( footer_window, COLOR_PAIR( 16 ) );
                             wype_gui_create_footer_window( msg );
                             wattroff( footer_window, COLOR_PAIR( 16 ) );
                         }
                         else
                         {
-                            wype_gui_create_footer_window( " Keine neuen Festplatten gefunden. " );
+                            wype_gui_create_footer_window( " No new drives found. " );
                         }
                         doupdate();
                         sleep( 2 );
@@ -1929,10 +1930,10 @@ void wype_gui_select( int* p_count, wype_context_t*** p_c )
                                     /* Show warning for this disk */
                                     werase( main_window );
                                     box( main_window, 0, 0 );
-                                    wype_gui_title( main_window, " Metadaten fehlen " );
+                                    wype_gui_title( main_window, " Missing Metadata " );
 
                                     int wy = 3;
-                                    mvwprintw( main_window, wy++, 3, "Festplatte: %s", c[i]->device_name );
+                                    mvwprintw( main_window, wy++, 3, "Drive: %s", c[i]->device_name );
                                     if( c[i]->device_model )
                                         mvwprintw( main_window, wy++, 3, "Model: %s  S/N: %s",
                                                    c[i]->device_model, c[i]->device_serial_no );
@@ -1941,21 +1942,21 @@ void wype_gui_select( int* p_count, wype_context_t*** p_c )
                                     if( c[i]->device_hostname[0] == '\0' )
                                     {
                                         wattron( main_window, COLOR_PAIR( 3 ) | A_BOLD );
-                                        mvwprintw( main_window, wy++, 3, "! Hostname fehlt" );
+                                        mvwprintw( main_window, wy++, 3, "! Hostname missing" );
                                         wattroff( main_window, COLOR_PAIR( 3 ) | A_BOLD );
                                     }
                                     if( c[i]->inventory_number[0] == '\0' )
                                     {
                                         wattron( main_window, COLOR_PAIR( 3 ) | A_BOLD );
-                                        mvwprintw( main_window, wy++, 3, "! Inventarnummer fehlt" );
+                                        mvwprintw( main_window, wy++, 3, "! Inventory number missing" );
                                         wattroff( main_window, COLOR_PAIR( 3 ) | A_BOLD );
                                     }
                                     wy++;
 
                                     wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
-                                    mvwprintw( main_window, wy++, 3, "Enter = Trotzdem fortfahren" );
-                                    mvwprintw( main_window, wy++, 3, "e     = Metadaten jetzt eingeben" );
-                                    mvwprintw( main_window, wy++, 3, "ESC   = Abbrechen" );
+                                    mvwprintw( main_window, wy++, 3, "Enter = Continue anyway" );
+                                    mvwprintw( main_window, wy++, 3, "e     = Edit metadata now" );
+                                    mvwprintw( main_window, wy++, 3, "ESC   = Cancel" );
                                     wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
 
                                     wrefresh( main_window );
@@ -2189,7 +2190,7 @@ void wype_gui_options( void )
         config_setting_t* email_setting = config_lookup( &wype_cfg, "Email_Settings" );
 
         wattron( options_window, COLOR_PAIR( 2 ) );
-        mvwprintw( options_window, 6, WYPE_GUI_OPTIONS_ROUNDS_X, "E-Mail  " );
+        mvwprintw( options_window, 6, WYPE_GUI_OPTIONS_ROUNDS_X, "Email   " );
         wattroff( options_window, COLOR_PAIR( 2 ) );
 
         if( email_setting != NULL )
@@ -2200,13 +2201,13 @@ void wype_gui_options( void )
         if( email_enable != NULL && strcasecmp( email_enable, "ENABLED" ) == 0 )
         {
             wattron( options_window, COLOR_PAIR( 16 ) | A_BOLD );
-            wprintw( options_window, "Aktiv" );
+            wprintw( options_window, "Enabled" );
             wattroff( options_window, COLOR_PAIR( 16 ) | A_BOLD );
         }
         else
         {
             wattron( options_window, COLOR_PAIR( 3 ) );
-            wprintw( options_window, "Deaktiviert" );
+            wprintw( options_window, "Disabled" );
             wattroff( options_window, COLOR_PAIR( 3 ) );
         }
     }
@@ -5641,7 +5642,7 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
             wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
         else
             wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, tab1, "Inventarnummer:" );
+        mvwprintw( main_window, yy, tab1, "Inventory No.:" );
         if( active_field == 1 )
             wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
         else
@@ -5653,16 +5654,26 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
             wprintw( main_window, "_" );
         wattroff( main_window, A_BOLD );
 
+        /* Position cursor at end of active field so hardware cursor is visible there */
+        if( active_field == 0 )
+            wmove( main_window, 5, field_x + hostname_idx );
+        else
+            wmove( main_window, 7, field_x + inventory_idx );
+
+        curs_set( 1 );
         wrefresh( main_window );
 
-        timeout( 250 );
-        keystroke = getch();
-        timeout( -1 );
+        wtimeout( main_window, 250 );
+        keystroke = wgetch( main_window );
+        wtimeout( main_window, -1 );
 
         if( keystroke == 27 ) /* ESC */
+        {
+            curs_set( 0 );
             return;
+        }
 
-        if( keystroke == 9 ) /* Tab */
+        if( keystroke == 9 || keystroke == KEY_DOWN || keystroke == KEY_UP ) /* Tab / Arrow */
         {
             active_field = active_field == 0 ? 1 : 0;
             continue;
@@ -5695,6 +5706,8 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
 
     } while( terminate_signal != 1 );
 
+    curs_set( 0 );
+
     /* Save values */
     strncpy( c->device_hostname, hostname_buf, sizeof( c->device_hostname ) - 1 );
     c->device_hostname[sizeof( c->device_hostname ) - 1] = '\0';
@@ -5702,7 +5715,7 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
     strncpy( c->inventory_number, inventory_buf, sizeof( c->inventory_number ) - 1 );
     c->inventory_number[sizeof( c->inventory_number ) - 1] = '\0';
 
-    wype_log( WYPE_LOG_INFO, "Metadata set for %s: Hostname='%s', Inventarnummer='%s'",
+    wype_log( WYPE_LOG_INFO, "Metadata set for %s: Hostname='%s', Inventory='%s'",
               c->device_name, c->device_hostname, c->inventory_number );
 }
 
@@ -5720,7 +5733,7 @@ void wype_gui_help( void )
         werase( main_window );
         wype_gui_create_all_windows_on_terminal_resize( 0, " Press ESC or Enter to return " );
         box( main_window, 0, 0 );
-        wype_gui_title( main_window, " Hilfe " );
+        wype_gui_title( main_window, " Help " );
 
         int yy = 2;
         int tab1 = 3;
@@ -5732,49 +5745,49 @@ void wype_gui_help( void )
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "Up/Down, j/k" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Festplatte fokussieren" );
+        mvwprintw( main_window, yy++, tab2, "Focus drive" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "Space" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Festplatte an/abwaehlen" );
+        mvwprintw( main_window, yy++, tab2, "Select/deselect drive" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "Ctrl+A" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Alle auswaehlen/abwaehlen" );
+        mvwprintw( main_window, yy++, tab2, "Select/deselect all" );
         yy++;
 
         wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
-        mvwprintw( main_window, yy++, tab1, "Aktionen" );
+        mvwprintw( main_window, yy++, tab1, "Actions" );
         wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "S (Shift+S)" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Wipe starten (prueft Metadaten)" );
+        mvwprintw( main_window, yy++, tab2, "Start wipe (checks metadata)" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "e" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Hostname/Inventarnummer bearbeiten" );
+        mvwprintw( main_window, yy++, tab2, "Edit hostname/inventory number" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "t" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Details zur Festplatte anzeigen" );
+        mvwprintw( main_window, yy++, tab2, "View drive details" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "F5" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Festplatten neu scannen (Hot-Plug)" );
+        mvwprintw( main_window, yy++, tab2, "Rescan drives (hot-plug)" );
         yy++;
 
         wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
-        mvwprintw( main_window, yy++, tab1, "Einstellungen" );
+        mvwprintw( main_window, yy++, tab1, "Settings" );
         wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "c" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Einstellungsmenue (Methode, PRNG, PDF, ...)" );
+        mvwprintw( main_window, yy++, tab2, "Settings menu (Method, PRNG, PDF, ...)" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "m/p/v/r/b/d" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Schnellzugriff: Methode/PRNG/Verify/..." );
+        mvwprintw( main_window, yy++, tab2, "Quick access: Method/PRNG/Verify/..." );
         yy++;
 
         wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
@@ -5783,15 +5796,15 @@ void wype_gui_help( void )
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "h" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Diese Hilfe anzeigen" );
+        mvwprintw( main_window, yy++, tab2, "Show this help" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "l" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Changelog anzeigen" );
+        mvwprintw( main_window, yy++, tab2, "Show changelog" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy, tab1, "Ctrl+C" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy++, tab2, "Beenden" );
+        mvwprintw( main_window, yy++, tab2, "Quit" );
         yy++;
 
         wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
@@ -5800,19 +5813,19 @@ void wype_gui_help( void )
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy++, tab1, "1." );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy - 1, 6, "c druecken > Methode/PRNG/Organisation einstellen" );
+        mvwprintw( main_window, yy - 1, 6, "Press c > Set method/PRNG/organization" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy++, tab1, "2." );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy - 1, 6, "Space > Festplatten auswaehlen" );
+        mvwprintw( main_window, yy - 1, 6, "Space > Select drives" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy++, tab1, "3." );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy - 1, 6, "e > Hostname/Inventarnummer pro Festplatte eingeben" );
+        mvwprintw( main_window, yy - 1, 6, "e > Enter hostname/inventory number per drive" );
         wattron( main_window, COLOR_PAIR( 2 ) );
         mvwprintw( main_window, yy++, tab1, "4." );
         wattroff( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy - 1, 6, "S > Wipe starten, Enter > PDFs + E-Mail" );
+        mvwprintw( main_window, yy - 1, 6, "S > Start wipe, Enter > PDFs + Email" );
 
         wrefresh( main_window );
 
@@ -5841,52 +5854,54 @@ void wype_gui_changelog( void )
         "v1.2.0",
         "",
         "  Add:",
-        "  - Einheitliches Einstellungsmenue (c-Taste) mit Pfeilnavigation",
-        "  - Disk-Metadaten-Editor (e-Taste): Hostname + Inventarnummer in einem Dialog",
-        "  - Hilfe-Seite (h-Taste) mit allen Tastenbelegungen und Workflow",
-        "  - Changelog-Ansicht (l-Taste)",
-        "  - E-Mail-Status-Anzeige im Options-Fenster",
-        "  - Warnung beim Start wenn Hostname/Inventarnummer fehlt",
-        "  - Sammel-E-Mail: alle PDFs in einer E-Mail nach Bestaetigung",
-        "  - Benachrichtigungs-E-Mail wenn Wipe fertig (vor Enter-Bestaetigung)",
-        "  - Lokale PDFs werden nach erfolgreichem E-Mail-Versand geloescht",
-        "  - Festplatten-Rescan (F5): Hot-Plug Erkennung ohne Neustart",
+        "  - Unified settings menu (c key) with arrow key navigation",
+        "  - Disk metadata editor (e key): Hostname + inventory number in one dialog",
+        "  - Help screen (h key) with all keybindings and workflow",
+        "  - Changelog viewer (l key)",
+        "  - Email status display in options window",
+        "  - Warning on start if hostname/inventory number is missing",
+        "  - Batch email: all PDFs in one email after confirmation",
+        "  - Notification email when wipe is done (before Enter confirmation)",
+        "  - Local PDFs deleted after successful email delivery",
+        "  - Drive rescan (F5): hot-plug detection without restart",
+        "  - IN USE devices can no longer be edited or selected",
         "",
         "  Change:",
-        "  - Alle Einstellungen ueber ein zentrales Menue erreichbar (c-Taste)",
-        "  - Footer ueberarbeitet und uebersichtlicher",
-        "  - Tastenbelegung: e=Edit Disk, c=Einstellungen, h=Hilfe, l=Changelog",
-        "  - Inventarnummer wird in der GUI ausgeschrieben",
+        "  - All settings accessible via central menu (c key)",
+        "  - Footer redesigned for clarity",
+        "  - Keybindings: e=EditDisk, c=Settings, h=Help, l=Changelog",
+        "  - Inventory number fully spelled out in GUI",
+        "  - All GUI text translated to English",
         "",
         "v1.1.0 (2026-03-17)",
         "",
         "  Add:",
-        "  - Per-Disk Metadaten: Hostname und Inventarnummer pro Festplatte",
-        "  - Automatischer E-Mail-Versand der PDF-Zertifikate per SMTP",
-        "  - Secure Erase / Sanitize Methoden fuer ATA, NVMe und SCSI",
-        "  - ASCII-Art BK RENNEN Logo im GUI-Header",
-        "  - build.sh und update.sh Skripte",
-        "  - E-Mail-Konfiguration in /etc/wype/wype.conf",
+        "  - Per-disk metadata: hostname and inventory number per drive",
+        "  - Automatic email delivery of PDF certificates via SMTP",
+        "  - Secure Erase / Sanitize methods for ATA, NVMe and SCSI",
+        "  - ASCII-Art BK RENNEN logo in GUI header",
+        "  - build.sh and update.sh scripts",
+        "  - Email configuration in /etc/wype/wype.conf",
         "",
         "  Fix:",
-        "  - Terminal-Hintergrund bleibt nach Beenden nicht mehr blau",
-        "  - Footer-Leiste hat jetzt einheitlichen Hintergrund",
-        "  - IN USE und HS? YES Tags: rot auf blau statt rot auf weiss",
-        "  - Hostname/Inventarnummer werden zuverlaessig aufs PDF geschrieben",
-        "  - Barcode im PDF deaktiviert",
-        "  - Schwarzer Balken am unteren Rand behoben",
+        "  - Terminal background no longer stays blue after exit",
+        "  - Footer bar now has uniform background",
+        "  - IN USE and HS? YES tags: red on blue instead of red on white",
+        "  - Hostname/inventory number reliably written to PDF",
+        "  - Barcode in PDF disabled",
+        "  - Black bar at bottom of screen fixed",
         "",
         "  Change:",
-        "  - Projekt umbenannt von nwipe zu Wype",
-        "  - Modernisierte GUI: Farbschema, farbige Status-Tags, Progress Bars",
-        "  - Eigenes Versionierungsschema (Semantic Versioning)",
+        "  - Project renamed from nwipe to Wype",
+        "  - Modernized GUI: color scheme, colored status tags, progress bars",
+        "  - Custom versioning scheme (Semantic Versioning)",
         "",
         "v1.0.0 (2026-03-16)",
         "",
         "  Add:",
-        "  - Initiales Release basierend auf nwipe 0.40",
-        "  - BKR-Branding: Logo im PDF-Zertifikat",
-        "  - PDF-Loesch-Zertifikate mit Organisations- und Kundendetails",
+        "  - Initial release based on nwipe 0.40",
+        "  - BKR branding: logo in PDF certificate",
+        "  - PDF erasure certificates with organization and customer details",
     };
     int log_lines = sizeof( log ) / sizeof( log[0] );
 
@@ -5959,14 +5974,14 @@ void wype_gui_settings( void )
 
     /* Menu items: label + action type */
     #define SETTINGS_ITEMS 8
-    /* 0=Lösch-Methode, 1=PRNG, 2=Verifikation, 3=Durchläufe, 4=Blanking, 5=Schreibrichtung, 6=Organisation & PDF, 7=E-Mail */
+    /* 0=Wipe Method, 1=PRNG, 2=Verification, 3=Rounds, 4=Blanking, 5=Write Direction, 6=Organization & PDF, 7=Email */
 
     do
     {
         werase( main_window );
-        wype_gui_create_all_windows_on_terminal_resize( 0, " Up/Down=Navigation  Enter=Aendern  ESC=Zurueck " );
+        wype_gui_create_all_windows_on_terminal_resize( 0, " Up/Down=Navigate  Enter=Change  ESC=Back " );
         box( main_window, 0, 0 );
-        wype_gui_title( main_window, " Einstellungen " );
+        wype_gui_title( main_window, " Settings " );
 
         int yy = 2;
         int label_x = 5;
@@ -5975,7 +5990,7 @@ void wype_gui_settings( void )
 
         /* Section: Wipe-Optionen */
         wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
-        mvwprintw( main_window, yy++, 3, "Wipe-Optionen" );
+        mvwprintw( main_window, yy++, 3, "Wipe Options" );
         wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
 
         for( i = 0; i < 6; i++ )
@@ -5991,7 +6006,7 @@ void wype_gui_settings( void )
             switch( i )
             {
                 case 0:
-                    mvwprintw( main_window, yy, label_x, "Loesch-Methode" );
+                    mvwprintw( main_window, yy, label_x, "Wipe Method" );
                     mvwprintw( main_window, yy, value_x, "%s%s",
                                wype_method_label( wype_options.method ),
                                wype_options.io_direction == WYPE_IO_DIRECTION_FORWARD ? "" : " (R)" );
@@ -6001,48 +6016,48 @@ void wype_gui_settings( void )
                     mvwprintw( main_window, yy, value_x, "%s", wype_options.prng->label );
                     break;
                 case 2:
-                    mvwprintw( main_window, yy, label_x, "Verifikation" );
+                    mvwprintw( main_window, yy, label_x, "Verification" );
                     switch( wype_options.verify )
                     {
                         case WYPE_VERIFY_NONE:
-                            mvwprintw( main_window, yy, value_x, "Aus" );
+                            mvwprintw( main_window, yy, value_x, "Off" );
                             break;
                         case WYPE_VERIFY_LAST:
-                            mvwprintw( main_window, yy, value_x, "Letzter Durchlauf" );
+                            mvwprintw( main_window, yy, value_x, "Last Pass" );
                             break;
                         case WYPE_VERIFY_ALL:
-                            mvwprintw( main_window, yy, value_x, "Alle Durchlaeufe" );
+                            mvwprintw( main_window, yy, value_x, "All Passes" );
                             break;
                         default:
                             mvwprintw( main_window, yy, value_x, "?" );
                     }
                     break;
                 case 3:
-                    mvwprintw( main_window, yy, label_x, "Durchlaeufe" );
+                    mvwprintw( main_window, yy, label_x, "Rounds" );
                     if( wype_options.noblank )
-                        mvwprintw( main_window, yy, value_x, "%i (ohne Blanking)", wype_options.rounds );
+                        mvwprintw( main_window, yy, value_x, "%i (no blanking)", wype_options.rounds );
                     else
-                        mvwprintw( main_window, yy, value_x, "%i (+ Blanking)", wype_options.rounds );
+                        mvwprintw( main_window, yy, value_x, "%i (+ blanking)", wype_options.rounds );
                     break;
                 case 4:
                     mvwprintw( main_window, yy, label_x, "Blanking" );
                     if( wype_options.noblank )
                     {
                         wattron( main_window, COLOR_PAIR( 3 ) );
-                        mvwprintw( main_window, yy, value_x, "Aus" );
+                        mvwprintw( main_window, yy, value_x, "Off" );
                         wattroff( main_window, COLOR_PAIR( 3 ) );
                     }
                     else
                     {
                         wattron( main_window, COLOR_PAIR( 16 ) );
-                        mvwprintw( main_window, yy, value_x, "Ein" );
+                        mvwprintw( main_window, yy, value_x, "On" );
                         wattroff( main_window, COLOR_PAIR( 16 ) );
                     }
                     break;
                 case 5:
-                    mvwprintw( main_window, yy, label_x, "Schreibrichtung" );
+                    mvwprintw( main_window, yy, label_x, "Write Direction" );
                     mvwprintw( main_window, yy, value_x, "%s",
-                               wype_options.io_direction == WYPE_IO_DIRECTION_FORWARD ? "Vorwaerts" : "Rueckwaerts" );
+                               wype_options.io_direction == WYPE_IO_DIRECTION_FORWARD ? "Forward" : "Reverse" );
                     break;
             }
 
@@ -6066,15 +6081,15 @@ void wype_gui_settings( void )
 
         /* Section: PDF & Organisation */
         wattron( main_window, COLOR_PAIR( 17 ) | A_BOLD );
-        mvwprintw( main_window, yy++, 3, "PDF & Organisation" );
+        mvwprintw( main_window, yy++, 3, "PDF & Organization" );
         wattroff( main_window, COLOR_PAIR( 17 ) | A_BOLD );
 
         /* Item 6: Organisation & PDF */
         if( focus == 6 )
             wattron( main_window, A_REVERSE );
         mvwprintw( main_window, yy, label_x, "                                                          " );
-        mvwprintw( main_window, yy, label_x, "Organisation & PDF" );
-        mvwprintw( main_window, yy, value_x, "> Menue oeffnen" );
+        mvwprintw( main_window, yy, label_x, "Organization & PDF" );
+        mvwprintw( main_window, yy, value_x, "> Open menu" );
         if( focus == 6 )
             wattroff( main_window, A_REVERSE );
         if( focus == 6 )
@@ -6096,7 +6111,7 @@ void wype_gui_settings( void )
         if( focus == 7 )
             wattron( main_window, A_REVERSE );
         mvwprintw( main_window, yy, label_x, "                                                          " );
-        mvwprintw( main_window, yy, label_x, "E-Mail-Versand" );
+        mvwprintw( main_window, yy, label_x, "Email Delivery" );
         {
             const char* email_enable = NULL;
             config_setting_t* email_setting = config_lookup( &wype_cfg, "Email_Settings" );
@@ -6106,13 +6121,13 @@ void wype_gui_settings( void )
             if( email_enable != NULL && strcasecmp( email_enable, "ENABLED" ) == 0 )
             {
                 wattron( main_window, COLOR_PAIR( 16 ) );
-                mvwprintw( main_window, yy, value_x, "Aktiv" );
+                mvwprintw( main_window, yy, value_x, "Enabled" );
                 wattroff( main_window, COLOR_PAIR( 16 ) );
             }
             else
             {
                 wattron( main_window, COLOR_PAIR( 3 ) );
-                mvwprintw( main_window, yy, value_x, "Deaktiviert" );
+                mvwprintw( main_window, yy, value_x, "Disabled" );
                 wattroff( main_window, COLOR_PAIR( 3 ) );
             }
         }
@@ -6128,7 +6143,7 @@ void wype_gui_settings( void )
 
         /* Hint for email */
         wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, label_x, "E-Mail-Einstellungen in /etc/wype/wype.conf bearbeiten" );
+        mvwprintw( main_window, yy, label_x, "Edit email settings in /etc/wype/wype.conf" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
 
         wrefresh( main_window );
