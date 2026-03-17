@@ -1008,7 +1008,25 @@ void wype_log_summary( wype_thread_data_ptr_t* ptrx, wype_context_t** ptr, int w
     /* Send all PDF certificates in one email after all PDFs have been created (wype) */
     if( wype_options.PDF_enable == 1 )
     {
-        wype_send_all_certificates( c, wype_selected );
+        int email_result = wype_send_all_certificates( c, wype_selected );
+        if( email_result == 0 )
+        {
+            wype_log( WYPE_LOG_INFO, "E-Mail-Versand erfolgreich. Lokale PDFs wurden geloescht." );
+        }
+        else
+        {
+            /* Find PDF path for the log message */
+            for( int ei = 0; ei < wype_selected; ei++ )
+            {
+                if( c[ei]->PDF_filename[0] != '\0' )
+                {
+                    wype_log( WYPE_LOG_WARNING,
+                               "E-Mail-Versand fehlgeschlagen. PDFs lokal gespeichert unter: %s",
+                               wype_options.PDFreportpath );
+                    break;
+                }
+            }
+        }
     }
 
     /* Create a PDF that contains, system information and wipe status for all drives */

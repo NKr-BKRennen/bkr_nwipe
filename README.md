@@ -176,9 +176,8 @@ Verfügbar über **GUI** unter "Secure Erase / Sanitize >" im Methoden-Menü.
 | Taste | Funktion |
 |-------|----------|
 | **Space** | Festplatte auswählen/abwählen |
-| **S** | Wipe starten (Shift+S) |
-| **H** | Hostname für fokussierte Festplatte setzen |
-| **I** | Inventarnummer für fokussierte Festplatte setzen |
+| **S** | Wipe starten (Shift+S) — prüft fehlende Metadaten |
+| **e** | Hostname/Inventarnummer für fokussierte Festplatte bearbeiten |
 | **m** | Lösch-Methode wählen |
 | **p** | PRNG wählen |
 | **v** | Verifikation einstellen |
@@ -186,6 +185,9 @@ Verfügbar über **GUI** unter "Secure Erase / Sanitize >" im Methoden-Menü.
 | **b** | Blanking ein/aus |
 | **d** | Schreibrichtung |
 | **c** | Konfiguration (Organisation, Kunde, PDF) |
+| **h** | Hilfe anzeigen |
+| **l** | Changelog anzeigen |
+| **t** | Details zur fokussierten Festplatte |
 | **Ctrl+A** | Alle Festplatten auswählen |
 | **Ctrl+C** | Beenden |
 
@@ -254,15 +256,21 @@ PDF_Certificate: {
 Zusätzlich zu den globalen Einstellungen können **pro Festplatte** individuelle Werte gesetzt werden, die direkt auf dem jeweiligen PDF-Zertifikat erscheinen:
 
 1. Mit Pfeiltasten die gewünschte Festplatte fokussieren
-2. **H** drücken → Hostname eingeben → Enter
-3. **I** drücken → Inventarnummer eingeben → Enter
-4. In der Disk-Liste erscheint `[H:hostname I:INV-001]` als Bestätigung
+2. **e** drücken → Hostname und Inventarnummer eingeben (Tab wechselt zwischen Feldern) → Enter
+3. In der Disk-Liste erscheinen Hostname und Inventarnummer als Bestätigung
 
 > Diese Werte werden **nicht** in `wype.conf` gespeichert, sondern nur während der Laufzeit gehalten und ins PDF geschrieben.
 
 ### E-Mail-Versand (SMTP)
 
-Nach Abschluss eines Wipes kann das PDF-Zertifikat automatisch per E-Mail versendet werden.
+Nach Abschluss aller Wipes werden die PDF-Zertifikate gesammelt per E-Mail versendet:
+
+1. Alle Wipes laufen → Status wird angezeigt
+2. Alle Wipes fertig → Benachrichtigungs-E-Mail ("Wipe fertig, bitte am Gerät bestätigen")
+3. Benutzer drückt Enter → PDFs werden erstellt und in **einer** E-Mail gesendet
+4. Bei Erfolg: lokale PDFs werden gelöscht. Bei Fehler: PDFs bleiben lokal erhalten.
+
+Der E-Mail-Status wird im Options-Fenster angezeigt (Aktiv/Deaktiviert).
 
 ```
 Email_Settings: {
@@ -316,6 +324,24 @@ Wype verwendet [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 ---
 
 ## Changelog
+
+### v1.2.0 (2026-03-17)
+
+**Add:**
+- Disk-Metadaten-Editor (`e`-Taste): Hostname + Inventarnummer in einem Dialog mit Tab-Wechsel
+- Hilfe-Seite (`h`-Taste) mit allen Tastenbelegungen und Erklärungen
+- Changelog-Ansicht (`l`-Taste) direkt in der GUI
+- E-Mail-Status-Anzeige im Options-Fenster (Aktiv/Deaktiviert)
+- Warnung beim Wipe-Start wenn Hostname/Inventarnummer fehlt (pro Festplatte bestätigen)
+- Sammel-E-Mail: alle PDF-Zertifikate in einer E-Mail nach Enter-Bestätigung
+- Benachrichtigungs-E-Mail wenn Wipe fertig ("bitte am Gerät bestätigen")
+- Lokale PDFs werden nach erfolgreichem E-Mail-Versand automatisch gelöscht
+- Post-Wipe E-Mail-Status-Feedback im Log
+
+**Change:**
+- Footer überarbeitet: übersichtlichere Tastenbelegung
+- Tastenbelegung: `e`=Edit Disk, `h`=Hilfe, `l`=Changelog (statt H/I für einzelne Felder)
+- "Inventarnummer" wird in der GUI ausgeschrieben (statt "Inventarnr")
 
 ### v1.1.0 (2026-03-17)
 

@@ -65,6 +65,9 @@ void wype_gui_organisation_contact_phone( const char* );  // Edit business conta
 void wype_gui_organisation_op_tech_name( const char* );  // Edit the name of the operator/technician
 void wype_gui_set_device_hostname( wype_context_t* c );  // Set hostname for a specific device (wype)
 void wype_gui_set_device_inventory_number( wype_context_t* c );  // Set inventory number for a specific device (wype)
+void wype_gui_edit_disk_metadata( wype_context_t* c );  // Combined editor for hostname and inventory number (wype)
+void wype_gui_help( void );  // Display help screen with keybindings (wype)
+void wype_gui_changelog( void );  // Display changelog (wype)
 void wype_gui_list( int, char* window_title, char**, int* );
 void wype_gui_add_customer( void );  // Add new customer
 void wype_gui_add_customer_name( char* );  // Add new customer name
