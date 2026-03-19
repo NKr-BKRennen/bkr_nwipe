@@ -228,9 +228,10 @@ int wype_device_rescan( wype_context_t*** c, int current_count )
 
     while( ( dev = ped_device_get_next( dev ) ) )
     {
-        /* Check if this device is already in our list */
+        /* Check if this device is already in our list (including devices
+         * added earlier in this rescan iteration, hence dcount not current_count) */
         already_exists = 0;
-        for( i = 0; i < current_count; i++ )
+        for( i = 0; i < dcount; i++ )
         {
             if( strcmp( ( *c )[i]->device_name, dev->path ) == 0 )
             {
@@ -368,9 +369,8 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
     }
     ped_device_close( dev );
 
-    /* New device, reallocate memory for additional struct pointer */
-    *c = realloc( *c, ( dcount + 1 ) * sizeof( wype_context_t* ) );
-
+    /* Allocate the device context first, before expanding the array.
+     * This avoids leaving an uninitialized slot if malloc fails. */
     next_device = malloc( sizeof( wype_context_t ) );
 
     /* Check the allocation. */
@@ -379,6 +379,19 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
         wype_perror( errno, __FUNCTION__, "malloc" );
         wype_log( WYPE_LOG_FATAL, "Unable to create the array of enumeration contexts." );
         return 0;
+    }
+
+    /* Now expand the array to hold the additional struct pointer */
+    {
+        wype_context_t** tmp = realloc( *c, ( dcount + 1 ) * sizeof( wype_context_t* ) );
+        if( !tmp )
+        {
+            free( next_device );
+            wype_perror( errno, __FUNCTION__, "realloc" );
+            wype_log( WYPE_LOG_FATAL, "Unable to expand device array." );
+            return 0;
+        }
+        *c = tmp;
     }
 
     /* Zero the allocation. */
