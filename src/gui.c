@@ -766,8 +766,17 @@ void wype_gui_create_header_window()
         wattroff( header_window, COLOR_PAIR( 17 ) | A_BOLD );
         wattron( header_window, COLOR_PAIR( 2 ) );
     }
-    mvwprintw( header_window, 3, 2, "Based on nwipe - Rebuilt and modified by Niklas Kronig" );
-    mvwprintw( header_window, 4, 2, "%s", bannerplus );
+
+    /* Version + attribution on one line */
+    mvwprintw( header_window, 3, 2, "%s - Based on nwipe, rebuilt and modified by Niklas Kronig", bannerplus );
+
+    /* Horizontal separator line */
+    mvwhline( header_window, 4, 2, ACS_HLINE, COLS - 4 );
+
+    if( has_colors() )
+    {
+        wattroff( header_window, COLOR_PAIR( 2 ) );
+    }
 
     /* Read organisation, customer and technician from config */
     setting = config_lookup( &wype_cfg, "Organisation_Details" );
@@ -795,11 +804,15 @@ void wype_gui_create_header_window()
               ( tech_name && tech_name[0] && strstr( tech_name, "Not Applicable" ) == NULL ) ? tech_name
                                                                                               : "(none)" );
 
-    mvwprintw( header_window, 5, 2, "%.*s", COLS - 4, info_line );
-
+    /* Info line in yellow bold so it stands out */
     if( has_colors() )
     {
-        wattroff( header_window, COLOR_PAIR( 2 ) );
+        wattron( header_window, COLOR_PAIR( 17 ) | A_BOLD );
+    }
+    mvwprintw( header_window, 5, 2, "%.*s", COLS - 4, info_line );
+    if( has_colors() )
+    {
+        wattroff( header_window, COLOR_PAIR( 17 ) | A_BOLD );
     }
 
     /* Refresh the header window */
