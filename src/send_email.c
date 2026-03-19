@@ -466,12 +466,36 @@ int wype_send_all_certificates( wype_context_t** c, int count )
 
         for( int i = 0; i < count; i++ )
         {
-            body_offset += snprintf( body_text + body_offset,
-                                     sizeof( body_text ) - body_offset,
-                                     "  - %s (S/N: %s): %s\r\n",
-                                     c[i]->device_model ? c[i]->device_model : "Unknown",
-                                     c[i]->device_serial_no,
-                                     c[i]->wipe_status_txt );
+            /* Check if this disk shares a PDF with other disks (grouped certificate) */
+            int group_members = 0;
+            for( int k = 0; k < count; k++ )
+            {
+                if( k != i && c[i]->PDF_filename[0] != '\0' && c[k]->PDF_filename[0] != '\0'
+                    && strcmp( c[i]->PDF_filename, c[k]->PDF_filename ) == 0 )
+                {
+                    group_members++;
+                }
+            }
+
+            if( group_members > 0 )
+            {
+                body_offset += snprintf( body_text + body_offset,
+                                         sizeof( body_text ) - body_offset,
+                                         "  - %s (S/N: %s): %s  [grouped in shared PDF with %d other drive(s)]\r\n",
+                                         c[i]->device_model ? c[i]->device_model : "Unknown",
+                                         c[i]->device_serial_no,
+                                         c[i]->wipe_status_txt,
+                                         group_members );
+            }
+            else
+            {
+                body_offset += snprintf( body_text + body_offset,
+                                         sizeof( body_text ) - body_offset,
+                                         "  - %s (S/N: %s): %s\r\n",
+                                         c[i]->device_model ? c[i]->device_model : "Unknown",
+                                         c[i]->device_serial_no,
+                                         c[i]->wipe_status_txt );
+            }
         }
 
         snprintf( header,

@@ -829,44 +829,35 @@ int create_single_disc_pdf( wype_context_t* ptr )
     p = localtime( &c->end_time );
     snprintf( date_str, sizeof( date_str ), "%04i%02i%02i", 1900 + p->tm_year, 1 + p->tm_mon, p->tm_mday );
 
-    if( c->device_hostname[0] != '\0' && c->inventory_number[0] != '\0' )
+    if( c->device_hostname[0] != '\0' )
     {
         strncpy( hostname_safe, c->device_hostname, sizeof( hostname_safe ) - 1 );
         hostname_safe[sizeof( hostname_safe ) - 1] = '\0';
         replace_non_alphanumeric( hostname_safe, '_' );
-
-        strncpy( invnr_safe, c->inventory_number, sizeof( invnr_safe ) - 1 );
-        invnr_safe[sizeof( invnr_safe ) - 1] = '\0';
-        replace_non_alphanumeric( invnr_safe, '_' );
-
-        snprintf( c->PDF_filename,
-                  sizeof( c->PDF_filename ),
-                  "%s/%s_%s_InvNr%s_bkr-loeschzertifikat.pdf",
-                  wype_options.PDFreportpath,
-                  date_str,
-                  hostname_safe,
-                  invnr_safe );
     }
     else
     {
-        /* Fallback: use model and serial when hostname/inventory not set */
-        char model_safe[256] = "";
-        char serial_safe[256] = "";
-        strncpy( model_safe, c->device_model, sizeof( model_safe ) - 1 );
-        model_safe[sizeof( model_safe ) - 1] = '\0';
-        replace_non_alphanumeric( model_safe, '_' );
-        strncpy( serial_safe, c->device_serial_no, sizeof( serial_safe ) - 1 );
-        serial_safe[sizeof( serial_safe ) - 1] = '\0';
-        replace_non_alphanumeric( serial_safe, '_' );
-
-        snprintf( c->PDF_filename,
-                  sizeof( c->PDF_filename ),
-                  "%s/%s_%s_%s_bkr-loeschzertifikat.pdf",
-                  wype_options.PDFreportpath,
-                  date_str,
-                  model_safe,
-                  serial_safe );
+        strncpy( hostname_safe, "NA", sizeof( hostname_safe ) - 1 );
     }
+
+    if( c->inventory_number[0] != '\0' )
+    {
+        strncpy( invnr_safe, c->inventory_number, sizeof( invnr_safe ) - 1 );
+        invnr_safe[sizeof( invnr_safe ) - 1] = '\0';
+        replace_non_alphanumeric( invnr_safe, '_' );
+    }
+    else
+    {
+        strncpy( invnr_safe, "NA", sizeof( invnr_safe ) - 1 );
+    }
+
+    snprintf( c->PDF_filename,
+              sizeof( c->PDF_filename ),
+              "%s/%s_%s_InvNr%s_bkr-loeschzertifikat.pdf",
+              wype_options.PDFreportpath,
+              date_str,
+              hostname_safe,
+              invnr_safe );
 
     pdf_save( pdf, c->PDF_filename );
     pdf_destroy( pdf );
@@ -955,44 +946,35 @@ void create_grouped_pdfs( wype_context_t** c, int count )
         p = localtime( &c[i]->end_time );
         snprintf( date_str, sizeof( date_str ), "%04i%02i%02i", 1900 + p->tm_year, 1 + p->tm_mon, p->tm_mday );
 
-        if( can_group )
+        if( c[i]->device_hostname[0] != '\0' )
         {
             strncpy( hostname_safe, c[i]->device_hostname, sizeof( hostname_safe ) - 1 );
             hostname_safe[sizeof( hostname_safe ) - 1] = '\0';
             replace_non_alphanumeric( hostname_safe, '_' );
-
-            strncpy( invnr_safe, c[i]->inventory_number, sizeof( invnr_safe ) - 1 );
-            invnr_safe[sizeof( invnr_safe ) - 1] = '\0';
-            replace_non_alphanumeric( invnr_safe, '_' );
-
-            snprintf( filename,
-                      sizeof( filename ),
-                      "%s/%s_%s_InvNr%s_bkr-loeschzertifikat.pdf",
-                      wype_options.PDFreportpath,
-                      date_str,
-                      hostname_safe,
-                      invnr_safe );
         }
         else
         {
-            /* Fallback: use model and serial */
-            char model_safe[256] = "";
-            char serial_safe[256] = "";
-            strncpy( model_safe, c[i]->device_model, sizeof( model_safe ) - 1 );
-            model_safe[sizeof( model_safe ) - 1] = '\0';
-            replace_non_alphanumeric( model_safe, '_' );
-            strncpy( serial_safe, c[i]->device_serial_no, sizeof( serial_safe ) - 1 );
-            serial_safe[sizeof( serial_safe ) - 1] = '\0';
-            replace_non_alphanumeric( serial_safe, '_' );
-
-            snprintf( filename,
-                      sizeof( filename ),
-                      "%s/%s_%s_%s_bkr-loeschzertifikat.pdf",
-                      wype_options.PDFreportpath,
-                      date_str,
-                      model_safe,
-                      serial_safe );
+            strncpy( hostname_safe, "NA", sizeof( hostname_safe ) - 1 );
         }
+
+        if( c[i]->inventory_number[0] != '\0' )
+        {
+            strncpy( invnr_safe, c[i]->inventory_number, sizeof( invnr_safe ) - 1 );
+            invnr_safe[sizeof( invnr_safe ) - 1] = '\0';
+            replace_non_alphanumeric( invnr_safe, '_' );
+        }
+        else
+        {
+            strncpy( invnr_safe, "NA", sizeof( invnr_safe ) - 1 );
+        }
+
+        snprintf( filename,
+                  sizeof( filename ),
+                  "%s/%s_%s_InvNr%s_bkr-loeschzertifikat.pdf",
+                  wype_options.PDFreportpath,
+                  date_str,
+                  hostname_safe,
+                  invnr_safe );
 
         /* Save and set filename on all disks in this group */
         pdf_save( pdf, filename );
