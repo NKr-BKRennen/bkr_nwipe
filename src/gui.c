@@ -795,14 +795,9 @@ void wype_gui_create_header_window()
     snprintf( info_line,
               sizeof( info_line ),
               "Org: %s  |  Customer: %s  |  Technician: %s",
-              ( business_name && business_name[0] && strstr( business_name, "Not Applicable" ) == NULL )
-                  ? business_name
-                  : "(none)",
-              ( customer_name && customer_name[0] && strstr( customer_name, "Not Applicable" ) == NULL )
-                  ? customer_name
-                  : "(none)",
-              ( tech_name && tech_name[0] && strstr( tech_name, "Not Applicable" ) == NULL ) ? tech_name
-                                                                                              : "(none)" );
+              ( business_name && business_name[0] ) ? business_name : "(none)",
+              ( customer_name && customer_name[0] ) ? customer_name : "(none)",
+              ( tech_name && tech_name[0] ) ? tech_name : "(none)" );
 
     /* Info line in yellow bold so it stands out */
     if( has_colors() )
