@@ -9341,6 +9341,26 @@ void* wype_gui_status( void* ptr )
                     wprintw_temperature( c[i] );
                     wprintw( main_window, " %s/%s", c[i]->device_model, c[i]->device_serial_no );
 
+                    /* Show hostname and inventory number if set (wype) */
+                    if( c[i]->device_hostname[0] != '\0' || c[i]->inventory_number[0] != '\0' )
+                    {
+                        wprintw( main_window, " " );
+                        wattron( main_window, COLOR_PAIR( 17 ) );
+                        if( c[i]->device_hostname[0] != '\0' )
+                        {
+                            wprintw( main_window, "H:%s", c[i]->device_hostname );
+                        }
+                        if( c[i]->device_hostname[0] != '\0' && c[i]->inventory_number[0] != '\0' )
+                        {
+                            wprintw( main_window, " " );
+                        }
+                        if( c[i]->inventory_number[0] != '\0' )
+                        {
+                            wprintw( main_window, "I:%s", c[i]->inventory_number );
+                        }
+                        wattroff( main_window, COLOR_PAIR( 17 ) );
+                    }
+
                     /* Check whether the child process is still running the wipe. */
                     if( c[i]->wipe_status == 1 )
                     {
