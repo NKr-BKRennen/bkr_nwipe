@@ -137,7 +137,7 @@ Email_Settings: {
 | `Recipient_Address` | Recipient address (empty = no delivery) |
 
 > Disabled by default. Supports SMTP without authentication (port 25, internal network).
-> Email settings must be edited directly in `/etc/wype/wype.conf` (no GUI menu for this).
+> Email can be toggled on/off in the GUI settings menu (`c` key). SMTP server details must be edited in `/etc/wype/wype.conf`.
 
 ---
 
@@ -296,7 +296,7 @@ Available via **GUI**: `m` → "Secure Erase / Sanitize >" in the method menu.
 | **p** | Select PRNG |
 | **v** | Set Verification |
 | **r** | Number of Rounds |
-| **b** | Blanking on/off |
+| **b** | TFT saver (dim) → blank screen → normal (cycle) |
 | **d** | Write Direction |
 | **c** | Configuration (organization, customer, PDF) |
 | **t** | Details for the focused disk |
@@ -313,9 +313,10 @@ The **c** key opens the configuration menu with the following options:
 - **PDF Report - Edit Organisation** → Company name, address, contact person, technician
 - **PDF Report - Select/Add/Delete Customer** → Customer management for the certificate
 - **PDF Report - Enable/Disable PDF** → Enable/disable PDF creation
-- **PDF Report - Preview** → Open PDF after creation
+- **PDF Report - Preview** → Show organisation/customer overview before drive selection
 - **PDF Report - Host Visibility** → Show system hostname on certificate
 - **PDF Report - Custom Tag** → Free-text tag on the certificate
+- **Email Delivery** → Toggle email on/off (SMTP details in `wype.conf`)
 
 All changes made here are persistently saved in `/etc/wype/wype.conf`.
 
@@ -345,15 +346,23 @@ Wype uses [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 
 ## Changelog
 
-### v1.3.0 (2026-03-19)
+### v1.3.0 (2026-03-20)
 
 **Add:**
 - Startup overview screen: shows all organisation and customer details on every launch
 - Direct customer selection from the startup screen
 - Edit organisation directly from the startup screen
+- Email delivery can be toggled on/off directly in the settings menu
+- Boot device detection via `/proc/mounts` — USB sticks running wypeOS now show `[IN USE]`
+
+**Fix:**
+- TFT saver mode (`b` key during wipe) now dims all colors consistently (was partially unreadable)
+- NVMe Sanitize Crypto Erase now logs the actual error message instead of discarding it
+- Startup overview now respects the PDF_Preview setting (was always shown regardless)
 
 **Change:**
-- Startup overview always shown before drive selection (replaces optional "PDF Preview at Start")
+- PDF_Preview default changed to `ENABLED`
+- Startup overview shown before drive selection only when PDF_Preview is enabled
 - Updated workflow: review org/customer before drive selection
 
 ### v1.2.0 (2026-03-17)

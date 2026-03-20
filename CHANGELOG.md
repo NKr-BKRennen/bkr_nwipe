@@ -1,15 +1,23 @@
 RELEASE NOTES
 =============
 
-Wype v1.3.0 (2026-03-19)
+Wype v1.3.0 (2026-03-20)
 -----------------------
 **Add:**
 - Startup overview screen: shows all organisation and customer details on every launch
 - Direct customer selection from the startup screen (no need to navigate to config menu first)
 - Edit organisation directly from the startup screen
+- Email delivery can be toggled on/off directly in the settings menu
+- Boot device detection via /proc/mounts — USB sticks running wypeOS now show [IN USE]
+
+**Fix:**
+- TFT saver mode (b key during wipe) now dims all colors consistently (was partially unreadable)
+- NVMe Sanitize Crypto Erase now logs the actual error message instead of discarding it
+- Startup overview now respects the PDF_Preview setting (was always shown regardless)
 
 **Change:**
-- Startup overview is now shown before drive selection only when PDF_Preview is enabled (default: ENABLED)
+- PDF_Preview default changed to ENABLED
+- Startup overview shown before drive selection only when PDF_Preview is enabled
 - Updated workflow: review and confirm org/customer before drive selection
 
 Wype v1.2.0 (2026-03-17)
