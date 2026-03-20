@@ -430,7 +430,7 @@ static int wype_execute_nvme_sanitize_crypto_erase( wype_context_t* c )
      * nvme-sanitize expects the controller character device (e.g. /dev/nvme0).
      * We request the Crypto Erase Sanitize operation (action 4 / start-crypto-erase).
      */
-    rc = snprintf( cmd, sizeof( cmd ), "nvme sanitize '%s' -a 4 >/dev/null 2>&1", ctrl );
+    rc = snprintf( cmd, sizeof( cmd ), "nvme sanitize '%s' -a 4 2>&1", ctrl );
     if( rc < 0 || (size_t) rc >= sizeof( cmd ) )
     {
         wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Crypto Erase: command line for device %s is too long.", ctrl );
@@ -441,11 +441,49 @@ static int wype_execute_nvme_sanitize_crypto_erase( wype_context_t* c )
         WYPE_LOG_NOTICE, "Starting NVMe Sanitize Crypto Erase via nvme on %s (from %s).", ctrl, c->device_name );
 
     errno = 0;
-    rc = system( cmd );
-    if( rc != 0 )
     {
-        wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Crypto Erase failed on %s (rc=%d).", ctrl, rc );
-        return -1;
+        /* Capture command output to log the actual error message */
+        FILE* fp = popen( cmd, "r" );
+        if( fp == NULL )
+        {
+            wype_log( WYPE_LOG_ERROR, "NVMe Sanitize Crypto Erase: failed to execute command on %s.", ctrl );
+            return -1;
+        }
+        char output[512] = { 0 };
+        size_t total = 0;
+        while( total < sizeof( output ) - 1 )
+        {
+            size_t n = fread( output + total, 1, sizeof( output ) - 1 - total, fp );
+            if( n == 0 )
+                break;
+            total += n;
+        }
+        output[total] = '\0';
+        rc = pclose( fp );
+
+        /* Strip trailing newline */
+        while( total > 0 && ( output[total - 1] == '\n' || output[total - 1] == '\r' ) )
+        {
+            output[--total] = '\0';
+        }
+
+        if( rc != 0 )
+        {
+            if( total > 0 )
+            {
+                wype_log( WYPE_LOG_ERROR,
+                          "NVMe Sanitize Crypto Erase failed on %s (rc=%d): %s",
+                          ctrl, rc, output );
+            }
+            else
+            {
+                wype_log( WYPE_LOG_ERROR,
+                          "NVMe Sanitize Crypto Erase failed on %s (rc=%d). "
+                          "Check that the drive supports Sanitize and that nvme-cli is installed.",
+                          ctrl, rc );
+            }
+            return -1;
+        }
     }
 
     return 0;

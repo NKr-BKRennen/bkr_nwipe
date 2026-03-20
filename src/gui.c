@@ -483,72 +483,48 @@ void wype_init_pairs( void )
             init_color( COLOR_MAGENTA, 600, 400, 900 ); /* Modern purple */
         }
 
-        /* If we are in tft saver mode set grey text on black background else
-         * Set white on dark navy as the emphasis color */
         if( tft_saver )
         {
-            init_pair( 1, COLOR_BLACK, COLOR_BLACK );
+            /* TFT saver mode: dim grey text on black background for all pairs */
+            init_pair( 1, COLOR_WHITE, COLOR_BLACK );   /* Main text */
+            init_pair( 2, COLOR_WHITE, COLOR_BLACK );   /* Secondary text */
+            init_pair( 3, COLOR_WHITE, COLOR_BLACK );   /* Hilite */
+            init_pair( 4, COLOR_BLACK, COLOR_WHITE );   /* Header/footer bar (keep readable) */
+            init_pair( 5, COLOR_WHITE, COLOR_BLACK );   /* Success */
+            init_pair( 6, COLOR_WHITE, COLOR_BLACK );   /* Failure */
+            init_pair( 7, COLOR_BLACK, COLOR_BLACK );   /* Hidden */
+            init_pair( 8, COLOR_WHITE, COLOR_BLACK );   /* Success indicators */
+            init_pair( 9, COLOR_WHITE, COLOR_BLACK );   /* Error messages */
+            init_pair( 10, COLOR_WHITE, COLOR_BLACK );  /* Warnings */
+            init_pair( 11, COLOR_WHITE, COLOR_BLACK );  /* Min temp */
+            init_pair( 12, COLOR_BLACK, COLOR_BLACK );  /* Temp invisible */
+            init_pair( 13, COLOR_WHITE, COLOR_BLACK );  /* Purple/accent */
+            init_pair( 14, COLOR_WHITE, COLOR_BLACK );  /* Low critical temp */
+            init_pair( 15, COLOR_WHITE, COLOR_BLACK );  /* Accents */
+            init_pair( 16, COLOR_WHITE, COLOR_BLACK );  /* Progress bars */
+            init_pair( 17, COLOR_WHITE, COLOR_BLACK );  /* Labels */
         }
         else
         {
-            init_pair( 1, COLOR_WHITE, COLOR_BLUE );
+            /* Normal color mode */
+            init_pair( 1, COLOR_WHITE, COLOR_BLUE );    /* Main text: white on dark navy */
+            init_pair( 2, COLOR_CYAN, COLOR_BLUE );     /* Secondary: teal/cyan on dark */
+            init_pair( 3, COLOR_RED, COLOR_BLUE );      /* Hilite: red on dark */
+            init_pair( 4, COLOR_BLUE, COLOR_WHITE );    /* Header/footer bar */
+            init_pair( 5, COLOR_WHITE, COLOR_GREEN );   /* Success messages */
+            init_pair( 6, COLOR_WHITE, COLOR_RED );     /* Failure messages */
+            init_pair( 7, COLOR_BLACK, COLOR_BLACK );   /* Hidden display */
+            init_pair( 8, COLOR_GREEN, COLOR_WHITE );   /* Success indicators */
+            init_pair( 9, COLOR_RED, COLOR_WHITE );     /* Error messages */
+            init_pair( 10, COLOR_BLACK, COLOR_YELLOW ); /* Warnings */
+            init_pair( 11, COLOR_BLACK, COLOR_BLUE );   /* Min temperature */
+            init_pair( 12, COLOR_BLUE, COLOR_BLUE );    /* Temperature invisible */
+            init_pair( 13, COLOR_MAGENTA, COLOR_BLUE ); /* Purple/accent */
+            init_pair( 14, COLOR_WHITE, COLOR_BLACK );  /* Low critical temp */
+            init_pair( 15, COLOR_CYAN, COLOR_BLACK );   /* Accents */
+            init_pair( 16, COLOR_GREEN, COLOR_BLUE );   /* Progress bars */
+            init_pair( 17, COLOR_YELLOW, COLOR_BLUE );  /* Labels */
         }
-
-        /* Set teal/cyan on dark background as the normal/secondary text color. */
-        init_pair( 2, COLOR_CYAN, COLOR_BLUE );
-
-        /* Set red on dark background as the hilite color. */
-        init_pair( 3, COLOR_RED, COLOR_BLUE );
-
-        /* If we are in tft saver mode set grey text on black background else
-         * Set header/footer bar style */
-        if( tft_saver )
-        {
-            init_pair( 4, COLOR_BLACK, COLOR_BLACK );
-        }
-        else
-        {
-            init_pair( 4, COLOR_BLUE, COLOR_WHITE );
-        }
-
-        /* Set white on green for success messages. */
-        init_pair( 5, COLOR_WHITE, COLOR_GREEN );
-
-        /* Set white on red for failure messages. */
-        init_pair( 6, COLOR_WHITE, COLOR_RED );
-
-        /* Set black on black for when hiding the display. */
-        init_pair( 7, COLOR_BLACK, COLOR_BLACK );
-
-        /* Set green on dark for success indicators */
-        init_pair( 8, COLOR_GREEN, COLOR_WHITE );
-
-        /* Set red on white for error messages */
-        init_pair( 9, COLOR_RED, COLOR_WHITE );
-
-        /* Set black on yellow for warning messages */
-        init_pair( 10, COLOR_BLACK, COLOR_YELLOW );
-
-        /* Set black on blue for minimum temperature reached */
-        init_pair( 11, COLOR_BLACK, COLOR_BLUE );
-
-        /* Set blue on blue to make temperature invisible */
-        init_pair( 12, COLOR_BLUE, COLOR_BLUE );
-
-        /* Set magenta/purple on dark background */
-        init_pair( 13, COLOR_MAGENTA, COLOR_BLUE );
-
-        /* Set white on black for low critical temperature */
-        init_pair( 14, COLOR_WHITE, COLOR_BLACK );
-
-        /* Pair 15: Cyan/teal on dark for accents (wype) */
-        init_pair( 15, COLOR_CYAN, COLOR_BLACK );
-
-        /* Pair 16: Green on dark for progress bars (wype) */
-        init_pair( 16, COLOR_GREEN, COLOR_BLUE );
-
-        /* Pair 17: Yellow on dark for labels (wype) */
-        init_pair( 17, COLOR_YELLOW, COLOR_BLUE );
 
         /* Set the background style. */
         wbkgdset( stdscr, COLOR_PAIR( 1 ) | ' ' );
@@ -6258,7 +6234,7 @@ void wype_gui_settings( void )
 
         /* Hint for email */
         wattron( main_window, COLOR_PAIR( 2 ) );
-        mvwprintw( main_window, yy, label_x, "Edit email settings in /etc/wype/wype.conf" );
+        mvwprintw( main_window, yy, label_x, "Press Enter to toggle. SMTP settings in /etc/wype/wype.conf" );
         wattroff( main_window, COLOR_PAIR( 2 ) );
 
         wrefresh( main_window );
@@ -6310,8 +6286,25 @@ void wype_gui_settings( void )
                         wype_gui_config();
                         break;
                     case 7:
-                        /* E-Mail: read-only, just show hint */
+                    {
+                        /* Toggle Email_Enable on pressing ENTER key */
+                        const char* email_enable = NULL;
+                        config_setting_t* email_setting = config_lookup( &wype_cfg, "Email_Settings" );
+                        if( email_setting != NULL )
+                            config_setting_lookup_string( email_setting, "Email_Enable", &email_enable );
+
+                        if( email_enable == NULL || strcasecmp( email_enable, "ENABLED" ) != 0 )
+                        {
+                            /* Enable email */
+                            wype_conf_update_setting( "Email_Settings.Email_Enable", "ENABLED" );
+                        }
+                        else
+                        {
+                            /* Disable email */
+                            wype_conf_update_setting( "Email_Settings.Email_Enable", "DISABLED" );
+                        }
                         break;
+                    }
                 }
                 break;
         }

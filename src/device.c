@@ -404,6 +404,44 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
      */
     next_device->device_busy = ped_device_is_busy( dev );
 
+    /*
+     * Additional mount check: scan /proc/mounts for any partition of this device.
+     * This catches cases where libparted does not report the device as busy,
+     * e.g. live USB systems (WypeOS) where the overlay root hides the mount
+     * from libparted but the underlying device is still in use.
+     */
+    if( !next_device->device_busy )
+    {
+        FILE* mounts_fp = fopen( "/proc/mounts", "r" );
+        if( mounts_fp != NULL )
+        {
+            char mount_line[1024];
+            const char* dev_basename = dev->path;  /* e.g. /dev/sda */
+            size_t dev_len = strlen( dev_basename );
+
+            while( fgets( mount_line, sizeof( mount_line ), mounts_fp ) != NULL )
+            {
+                /* Each line starts with the device path, check if it matches
+                 * the device itself or any partition (e.g. /dev/sda1, /dev/sda2) */
+                if( strncmp( mount_line, dev_basename, dev_len ) == 0 )
+                {
+                    char next_ch = mount_line[dev_len];
+                    /* Match exact device or partition suffix (digit) or space */
+                    if( next_ch == ' ' || next_ch == '\t' || ( next_ch >= '0' && next_ch <= '9' )
+                        || next_ch == 'p' ) /* for nvme0n1p1 style */
+                    {
+                        next_device->device_busy = 1;
+                        wype_log( WYPE_LOG_NOTICE,
+                                  "Device %s detected as in use via /proc/mounts.",
+                                  dev->path );
+                        break;
+                    }
+                }
+            }
+            fclose( mounts_fp );
+        }
+    }
+
     /* Get device information */
     next_device->device_model = dev->model;
     remove_ATA_prefix( next_device->device_model );
