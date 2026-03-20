@@ -46,6 +46,6 @@ The following table does not claim or warrant to be complete, it is highly advis
 ## Advised Procedure for Sanitization of SSD Drives
 
 1.  Complete an intial sanitization using the manufacturer tools or if supported by the manufacturer use hdparm, sg_utils or nvme;
-2.  Follow up with SHREDOS/Wype with a single PRNG stream with verification (PRNG data is extremely hard if not impossible to compress and therefor has to be written out by the firmware);
+2.  Follow up with Wype with a single PRNG stream with verification (PRNG data is extremely hard if not impossible to compress and therefor has to be written out by the firmware);
 3.  Complete an additional sanitization using the manufacturer tools or if supported by the manufacturer use hdparm, sg_utils or nvme;
 4.  Validate that the data has been overwritten.
