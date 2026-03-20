@@ -36,10 +36,12 @@
 #include "logging.h"
 #include <sys/ioctl.h>
 #include <linux/hdreg.h>  // Drive specific defs
+#include <linux/limits.h>  // PATH_MAX
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <unistd.h>
 #include <ctype.h>
 #include "hpa_dco.h"
 #include "miscellaneous.h"
@@ -407,8 +409,7 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
     /*
      * Additional mount check: scan /proc/mounts for any partition of this device.
      * This catches cases where libparted does not report the device as busy,
-     * e.g. live USB systems (WypeOS) where the overlay root hides the mount
-     * from libparted but the underlying device is still in use.
+     * e.g. when a partition is mounted but libparted doesn't see it.
      */
     if( !next_device->device_busy )
     {
@@ -439,6 +440,55 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
                 }
             }
             fclose( mounts_fp );
+        }
+    }
+
+    /*
+     * Boot device check: detect the wypeOS boot USB stick.
+     * wypeOS boots via initramfs so the USB is not mounted after boot,
+     * making it invisible to both libparted and /proc/mounts.
+     * We check /dev/disk/by-label/WYPEOS which points to the boot partition,
+     * then match its parent disk against the current device.
+     */
+    if( !next_device->device_busy )
+    {
+        char label_target[PATH_MAX];
+        ssize_t len = readlink( "/dev/disk/by-label/WYPEOS", label_target, sizeof( label_target ) - 1 );
+        if( len > 0 )
+        {
+            label_target[len] = '\0';
+
+            /* label_target is relative like ../../sda1, resolve to absolute path */
+            char resolved[PATH_MAX];
+            if( realpath( "/dev/disk/by-label/WYPEOS", resolved ) != NULL )
+            {
+                /* resolved is e.g. /dev/sda1 or /dev/sdb2, strip partition suffix to get parent disk */
+                char parent_disk[PATH_MAX];
+                strncpy( parent_disk, resolved, sizeof( parent_disk ) - 1 );
+                parent_disk[sizeof( parent_disk ) - 1] = '\0';
+
+                /* Strip trailing digits (partition number) */
+                size_t plen = strlen( parent_disk );
+                while( plen > 0 && parent_disk[plen - 1] >= '0' && parent_disk[plen - 1] <= '9' )
+                {
+                    plen--;
+                }
+                /* For nvme style (nvme0n1p1), also strip the 'p' before partition number */
+                if( plen > 0 && parent_disk[plen - 1] == 'p' && plen >= 2
+                    && parent_disk[plen - 2] >= '0' && parent_disk[plen - 2] <= '9' )
+                {
+                    plen--;
+                }
+                parent_disk[plen] = '\0';
+
+                if( strcmp( dev->path, parent_disk ) == 0 )
+                {
+                    next_device->device_busy = 1;
+                    wype_log( WYPE_LOG_NOTICE,
+                              "Device %s is the wypeOS boot device (label WYPEOS on %s).",
+                              dev->path, resolved );
+                }
+            }
         }
     }
 
