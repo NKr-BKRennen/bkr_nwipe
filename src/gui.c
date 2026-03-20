@@ -9428,15 +9428,26 @@ void* wype_gui_status( void* ptr )
                             wattron( main_window, COLOR_PAIR( 6 ) | A_BOLD );
                             wprintw( main_window, " FAILED " );
                             wattroff( main_window, COLOR_PAIR( 6 ) | A_BOLD );
+                            if( c[i]->result_message[0] != '\0' )
+                            {
+                                wprintw( main_window, " %s", c[i]->result_message );
+                            }
                             yy++;
                         }
                         else /* Fatal error */
                         {
                             mvwprintw( main_window, yy, 4, " " );
                             wattron( main_window, COLOR_PAIR( 6 ) | A_BOLD );
-                            wprintw( main_window, " IOERR  " );
+                            wprintw( main_window, " FAILED " );
                             wattroff( main_window, COLOR_PAIR( 6 ) | A_BOLD );
-                            wprintw( main_window, " code %i", c[i]->result );
+                            if( c[i]->result_message[0] != '\0' )
+                            {
+                                wprintw( main_window, " %s", c[i]->result_message );
+                            }
+                            else
+                            {
+                                wprintw( main_window, " code %i", c[i]->result );
+                            }
                             yy++;
                         }
 

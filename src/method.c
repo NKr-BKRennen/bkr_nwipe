@@ -1677,6 +1677,8 @@ void* wype_secure_erase( void* ptr )
     {
         wype_log( WYPE_LOG_ERROR, "Secure Erase could not be executed on %s. Aborting method.", c->device_name );
         c->result = -1;
+        snprintf( c->result_message, sizeof( c->result_message ),
+                  "Not supported by this drive" );
 
         c->wipe_status = 0;
         time( &c->end_time );
@@ -1784,6 +1786,8 @@ void* wype_secure_erase_prng_verify( void* ptr )
     {
         wype_log( WYPE_LOG_ERROR, "Secure Erase could not be executed on %s. Aborting method.", c->device_name );
         c->result = -1;
+        snprintf( c->result_message, sizeof( c->result_message ),
+                  "Not supported by this drive" );
 
         c->wipe_status = 0;
         time( &c->end_time );
@@ -1946,6 +1950,9 @@ void* wype_sanitize_crypto_erase( void* ptr )
     if( op_result != 0 )
     {
         wype_log( WYPE_LOG_ERROR, "Sanitize Crypto Erase failed on %s.", c->device_name );
+        c->result = -1;
+        snprintf( c->result_message, sizeof( c->result_message ),
+                  "Not supported by this drive" );
         c->wipe_status = 0;
         time( &c->end_time );
         return NULL;
@@ -2034,6 +2041,8 @@ void* wype_sanitize_crypto_erase_verify( void* ptr )
     {
         wype_log( WYPE_LOG_ERROR, "Sanitize Crypto Erase failed on %s.", c->device_name );
         c->result = -1;
+        snprintf( c->result_message, sizeof( c->result_message ),
+                  "Not supported by this drive" );
         c->wipe_status = 0;
         time( &c->end_time );
         return NULL;
@@ -2138,6 +2147,9 @@ void* wype_sanitize_block_erase( void* ptr )
     if( op_result != 0 )
     {
         wype_log( WYPE_LOG_ERROR, "Sanitize Block Erase failed on %s.", c->device_name );
+        c->result = -1;
+        snprintf( c->result_message, sizeof( c->result_message ),
+                  "Not supported by this drive" );
         c->wipe_status = 0;
         time( &c->end_time );
         return NULL;
@@ -2223,6 +2235,9 @@ void* wype_sanitize_overwrite( void* ptr )
     if( op_result != 0 )
     {
         wype_log( WYPE_LOG_ERROR, "Sanitize Overwrite failed on %s.", c->device_name );
+        c->result = -1;
+        snprintf( c->result_message, sizeof( c->result_message ),
+                  "Not supported by this drive" );
         c->wipe_status = 0;
         time( &c->end_time );
         return NULL;

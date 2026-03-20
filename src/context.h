@@ -157,6 +157,7 @@ typedef struct wype_context_t_
     wype_entropy_t prng_seed;  // The random data that is used to seed the PRNG.
     void* prng_state;  // The private internal state of the PRNG.
     int result;  // The process return value.
+    char result_message[128];  // Human-readable reason for failure (shown in GUI).
     int round_count;  // The number of rounds requested by the user for the working wipe method.
     u64 round_done;  // The number of bytes that have already been i/o'd.
     u64 round_errors;  // The number of errors across all rounds.
