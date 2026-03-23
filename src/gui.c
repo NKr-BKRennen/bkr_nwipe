@@ -2503,12 +2503,8 @@ void wype_gui_options( void )
 
         if( wype_api_server_is_running() )
         {
-            const char* api_port = "5000";
-            config_setting_t* dash_setting = config_lookup( &wype_cfg, "Dashboard" );
-            if( dash_setting != NULL )
-                config_setting_lookup_string( dash_setting, "API_Port", &api_port );
             wattron( options_window, COLOR_PAIR( 16 ) | A_BOLD );
-            wprintw( options_window, ":%s", api_port != NULL ? api_port : "5000" );
+            wprintw( options_window, "Enabled" );
             wattroff( options_window, COLOR_PAIR( 16 ) | A_BOLD );
         }
         else

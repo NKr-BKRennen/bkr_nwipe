@@ -4,6 +4,10 @@
 
 set -e
 
+WYPE_DEPS="build-essential autoconf automake pkg-config \
+    libncurses-dev libparted-dev libconfig-dev \
+    libmicrohttpd-dev libcjson-dev"
+
 OVERRIDE_DIR="/etc/systemd/system/getty@tty1.service.d"
 OVERRIDE_FILE="$OVERRIDE_DIR/override.conf"
 PROFILE_FILE="/root/.bash_profile"
@@ -72,6 +76,29 @@ PROFILE
     echo "Wype autostart on tty1 enabled."
 }
 
+install_dependencies() {
+    echo ""
+    echo "Installing build dependencies..."
+    apt-get update -qq
+    apt-get install -y $WYPE_DEPS
+    echo ""
+    echo "All dependencies installed."
+}
+
+check_dependencies() {
+    local missing=""
+    for pkg in $WYPE_DEPS; do
+        if ! dpkg -s "$pkg" >/dev/null 2>&1; then
+            missing="$missing $pkg"
+        fi
+    done
+    if [ -n "$missing" ]; then
+        echo "[MISSING:$missing ]"
+    else
+        echo "[ALL INSTALLED]"
+    fi
+}
+
 disable_autostart() {
     if ! is_autostart_enabled; then
         echo "Autostart is already disabled."
@@ -97,6 +124,7 @@ show_menu() {
         echo "  Current status:"
         echo "    Auto-login (root on tty1):  $(status_text $AL)"
         echo "    Autostart (wype on tty1):   $(status_text $AS)"
+        echo "    Build dependencies:         $(check_dependencies)"
         echo ""
         echo "  1) Enable auto-login + autostart (recommended)"
         echo "  2) Enable auto-login only"
@@ -104,6 +132,7 @@ show_menu() {
         echo "  4) Disable auto-login"
         echo "  5) Disable autostart"
         echo "  6) Disable both"
+        echo "  7) Install build dependencies"
         echo "  q) Quit"
         echo ""
         read -p "  Choice: " choice
@@ -115,6 +144,7 @@ show_menu() {
             4) disable_autologin ;;
             5) disable_autostart ;;
             6) disable_autologin; disable_autostart ;;
+            7) install_dependencies ;;
             q|Q) echo ""; exit 0 ;;
             *) echo "  Invalid choice." ;;
         esac
