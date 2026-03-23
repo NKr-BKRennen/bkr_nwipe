@@ -53,6 +53,7 @@
 #include "temperature.h"
 #include "miscellaneous.h"
 #include "api_server.h"
+#include "dashboard_register.h"
 
 #include <sys/ioctl.h> /* FIXME: Twice Included */
 #include <sys/shm.h>
@@ -745,6 +746,16 @@ int main( int argc, char** argv )
         }
 
         wype_api_server_start( &c1, &wype_enumerated, &wype_misc_thread_data, api_port, api_password_val );
+
+        /* Start dashboard self-registration (if Dashboard_URL is set) */
+        {
+            const char* dashboard_url = NULL;
+            if( wype_conf_read_setting( "Dashboard.Dashboard_URL", &dashboard_url ) == 0
+                && dashboard_url && dashboard_url[0] != '\0' )
+            {
+                wype_dashboard_register_start( dashboard_url, api_password_val, api_port );
+            }
+        }
     }
 
     /* Start the ncurses interface. */
@@ -1575,6 +1586,9 @@ int cleanup()
         log_elements_allocated = 0;  // zeroed just in case cleanup is called twice.
         free( log_lines );
     }
+
+    /* Stop dashboard self-registration */
+    wype_dashboard_register_stop();
 
     /* Stop the dashboard API server */
     wype_api_server_stop();

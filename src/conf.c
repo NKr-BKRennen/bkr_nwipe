@@ -148,6 +148,7 @@ int wype_conf_init()
      */
     wype_conf_populate( "Dashboard.API_Port", "5000" );
     wype_conf_populate( "Dashboard.API_Password", "wype" );
+    wype_conf_populate( "Dashboard.Dashboard_URL", "" );
 
     /**
      * Write out the new configuration.
