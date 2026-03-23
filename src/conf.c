@@ -144,6 +144,12 @@ int wype_conf_init()
     wype_conf_populate( "Email_Settings.Recipient_Address", "" );
 
     /**
+     * Dashboard API settings
+     */
+    wype_conf_populate( "Dashboard.API_Port", "5000" );
+    wype_conf_populate( "Dashboard.API_Password", "wype" );
+
+    /**
      * Write out the new configuration.
      */
     if( !config_write_file( &wype_cfg, wype_config_file ) )
