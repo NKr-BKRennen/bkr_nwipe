@@ -52,6 +52,7 @@
 #include "gui.h"
 #include "temperature.h"
 #include "miscellaneous.h"
+#include "api_server.h"
 
 #include <sys/ioctl.h> /* FIXME: Twice Included */
 #include <sys/shm.h>
@@ -724,6 +725,27 @@ int main( int argc, char** argv )
     /* Fork the temperature thread */
     errno = pthread_create(
         &wype_temperature_thread, NULL, wype_update_temperature_thread, &wype_temperature_thread_data );
+
+    /* Start the dashboard API server (if configured) */
+    {
+        const char* api_password_val = getenv( "WYPE_API_PASSWORD" );
+        int api_port = 5000;
+
+        if( api_password_val == NULL )
+        {
+            const char* conf_val;
+            if( wype_conf_read_setting( "Dashboard.API_Password", &conf_val ) == 0 )
+                api_password_val = conf_val;
+        }
+
+        {
+            const char* conf_port;
+            if( wype_conf_read_setting( "Dashboard.API_Port", &conf_port ) == 0 )
+                api_port = atoi( conf_port );
+        }
+
+        wype_api_server_start( &c1, &wype_enumerated, &wype_misc_thread_data, api_port, api_password_val );
+    }
 
     /* Start the ncurses interface. */
     switch( wype_options.nogui )
@@ -1553,6 +1575,9 @@ int cleanup()
         log_elements_allocated = 0;  // zeroed just in case cleanup is called twice.
         free( log_lines );
     }
+
+    /* Stop the dashboard API server */
+    wype_api_server_stop();
 
     /* Deallocate libconfig resources */
     config_destroy( &wype_cfg );

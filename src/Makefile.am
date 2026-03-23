@@ -64,8 +64,12 @@ WYPE_HDDTEMP = \
     hddtemp_scsi/hddtemp.h hddtemp_scsi/scsi.h hddtemp_scsi/scsicmds.h \
     hddtemp_scsi/get_scsi_temp.c hddtemp_scsi/scsi.c hddtemp_scsi/scsicmds.c
 
+# Dashboard API server (stubs if libraries absent)
+WYPE_API = \
+    api_server.c api_server.h
+
 # Combine all sources
-wype_SOURCES = $(WYPE_CORE) $(WYPE_PRNG) $(WYPE_PDF) $(WYPE_HDDTEMP)
+wype_SOURCES = $(WYPE_CORE) $(WYPE_PRNG) $(WYPE_PDF) $(WYPE_HDDTEMP) $(WYPE_API)
 wype_LDADD = $(PARTED_LIBS) $(LIBCONFIG)
 
 test_round_size_SOURCES = ../tests/unit/test_round_size.c round_size.c round_size.h

@@ -78,6 +78,19 @@ fi
 PKG_CHECK_MODULES([PARTED], [libparted])
 AC_CHECK_LIB([pthread], [main], ,[AC_MSG_ERROR([pthread development library not found])])
 
+# Optional: Dashboard API server (libmicrohttpd + cJSON)
+PKG_CHECK_MODULES([MICROHTTPD], [libmicrohttpd >= 0.9], [have_microhttpd=yes], [have_microhttpd=no])
+PKG_CHECK_MODULES([CJSON], [libcjson], [have_cjson=yes], [have_cjson=no])
+
+if test "x$have_microhttpd" = "xyes" -a "x$have_cjson" = "xyes"; then
+	AC_DEFINE([HAVE_API_SERVER], [1], [Define if dashboard API server support is available])
+	CFLAGS="${CFLAGS} ${MICROHTTPD_CFLAGS} ${CJSON_CFLAGS}"
+	LIBS="${LIBS} ${MICROHTTPD_LIBS} ${CJSON_LIBS}"
+	AC_MSG_NOTICE([Dashboard API server: enabled])
+else
+	AC_MSG_NOTICE([Dashboard API server: disabled (install libmicrohttpd-dev and libcjson-dev to enable)])
+fi
+
 # Checks for header files.
 AC_CHECK_HEADERS([libconfig.h fcntl.h inttypes.h netinet/in.h stddef.h stdint.h stdlib.h string.h sys/file.h sys/ioctl.h unistd.h])
 
