@@ -5914,8 +5914,10 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
     int keystroke;
     char hostname_buf[256] = "";
     char inventory_buf[256] = "";
-    int hostname_idx = 0;
-    int inventory_idx = 0;
+    int hostname_len = 0;
+    int inventory_len = 0;
+    int hostname_cur = 0;  /* cursor position within buffer */
+    int inventory_cur = 0;
     int active_field = 0; /* 0 = hostname, 1 = inventory */
     extern int terminate_signal;
 
@@ -5928,11 +5930,13 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
     /* Pre-fill with existing values */
     strncpy( hostname_buf, c->device_hostname, sizeof( hostname_buf ) - 1 );
     hostname_buf[sizeof( hostname_buf ) - 1] = '\0';
-    hostname_idx = strlen( hostname_buf );
+    hostname_len = strlen( hostname_buf );
+    hostname_cur = hostname_len;
 
     strncpy( inventory_buf, c->inventory_number, sizeof( inventory_buf ) - 1 );
     inventory_buf[sizeof( inventory_buf ) - 1] = '\0';
-    inventory_idx = strlen( inventory_buf );
+    inventory_len = strlen( inventory_buf );
+    inventory_cur = inventory_len;
 
     do
     {
@@ -5962,9 +5966,10 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
 
         wattron( main_window, A_BOLD );
         mvwprintw( main_window, yy, field_x, "%s", hostname_buf );
-        if( active_field == 0 )
+        if( active_field == 0 && hostname_cur == hostname_len )
             wprintw( main_window, "_" );
         wattroff( main_window, A_BOLD );
+        int hostname_yy = yy;
         yy += 2;
 
         /* Inventory field */
@@ -5980,15 +5985,16 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
 
         wattron( main_window, A_BOLD );
         mvwprintw( main_window, yy, field_x, "%s", inventory_buf );
-        if( active_field == 1 )
+        if( active_field == 1 && inventory_cur == inventory_len )
             wprintw( main_window, "_" );
         wattroff( main_window, A_BOLD );
+        int inventory_yy = yy;
 
-        /* Position cursor at end of active field so hardware cursor is visible there */
+        /* Position cursor at current cursor position within active field */
         if( active_field == 0 )
-            wmove( main_window, 5, field_x + hostname_idx );
+            wmove( main_window, hostname_yy, field_x + hostname_cur );
         else
-            wmove( main_window, 7, field_x + inventory_idx );
+            wmove( main_window, inventory_yy, field_x + inventory_cur );
 
         curs_set( 1 );
         wrefresh( main_window );
@@ -6016,13 +6022,64 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
         if( keystroke == 10 ) /* Enter */
             break;
 
-        if( keystroke == KEY_BACKSPACE || keystroke == KEY_LEFT || keystroke == 127 )
+        if( keystroke == KEY_LEFT )
+        {
+            int* cur = active_field == 0 ? &hostname_cur : &inventory_cur;
+            if( *cur > 0 )
+                ( *cur )--;
+            continue;
+        }
+
+        if( keystroke == KEY_RIGHT )
+        {
+            int* cur = active_field == 0 ? &hostname_cur : &inventory_cur;
+            int len = active_field == 0 ? hostname_len : inventory_len;
+            if( *cur < len )
+                ( *cur )++;
+            continue;
+        }
+
+        if( keystroke == KEY_HOME )
+        {
+            if( active_field == 0 )
+                hostname_cur = 0;
+            else
+                inventory_cur = 0;
+            continue;
+        }
+
+        if( keystroke == KEY_END )
+        {
+            if( active_field == 0 )
+                hostname_cur = hostname_len;
+            else
+                inventory_cur = inventory_len;
+            continue;
+        }
+
+        if( keystroke == KEY_BACKSPACE || keystroke == 127 )
         {
             char* buf = active_field == 0 ? hostname_buf : inventory_buf;
-            int* idx = active_field == 0 ? &hostname_idx : &inventory_idx;
-            if( *idx > 0 )
+            int* len = active_field == 0 ? &hostname_len : &inventory_len;
+            int* cur = active_field == 0 ? &hostname_cur : &inventory_cur;
+            if( *cur > 0 )
             {
-                buf[--(*idx)] = 0;
+                memmove( &buf[*cur - 1], &buf[*cur], *len - *cur + 1 );
+                ( *len )--;
+                ( *cur )--;
+            }
+            continue;
+        }
+
+        if( keystroke == KEY_DC ) /* Delete key */
+        {
+            char* buf = active_field == 0 ? hostname_buf : inventory_buf;
+            int* len = active_field == 0 ? &hostname_len : &inventory_len;
+            int* cur = active_field == 0 ? &hostname_cur : &inventory_cur;
+            if( *cur < *len )
+            {
+                memmove( &buf[*cur], &buf[*cur + 1], *len - *cur );
+                ( *len )--;
             }
             continue;
         }
@@ -6031,11 +6088,14 @@ void wype_gui_edit_disk_metadata( wype_context_t* c )
         if( keystroke >= ' ' && keystroke <= '~' && keystroke != '\"' )
         {
             char* buf = active_field == 0 ? hostname_buf : inventory_buf;
-            int* idx = active_field == 0 ? &hostname_idx : &inventory_idx;
-            if( *idx < 255 )
+            int* len = active_field == 0 ? &hostname_len : &inventory_len;
+            int* cur = active_field == 0 ? &hostname_cur : &inventory_cur;
+            if( *len < 255 )
             {
-                buf[(*idx)++] = keystroke;
-                buf[*idx] = 0;
+                memmove( &buf[*cur + 1], &buf[*cur], *len - *cur + 1 );
+                buf[*cur] = keystroke;
+                ( *len )++;
+                ( *cur )++;
             }
         }
 
