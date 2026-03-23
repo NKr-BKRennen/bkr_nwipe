@@ -73,6 +73,16 @@ int wype_strip_path( char*, char* );
 void replace_non_alphanumeric( char*, char );
 
 /**
+ * Sanitize a user-entered value for use as part of a filename.
+ * Converts German umlauts (ä→ae, ö→oe, etc.), keeps alphanumeric,
+ * hyphens and dots, replaces everything else with '-'.
+ * @param out     Output buffer for the sanitized string
+ * @param out_size  Size of the output buffer
+ * @param in      Input string to sanitize
+ */
+void sanitize_filename( char* out, size_t out_size, const char* in );
+
+/**
  * I found this function necessary when converting a double of say
  * 99.999999999999999999 to text using printf. I only wanted 99.99
  * printed but if you specified a precision of %.2f in printf i.e 2 digits

@@ -262,6 +262,69 @@ void replace_non_alphanumeric( char* str, char replacement_char )
     }
 }
 
+void sanitize_filename( char* out, size_t out_size, const char* in )
+{
+    /* Sanitize a user-entered value for use as part of a filename.
+     * - Replaces German umlauts: ä→ae, ö→oe, ü→ue, Ä→Ae, Ö→Oe, Ü→Ue, ß→ss
+     * - Keeps alphanumeric characters, hyphens '-' and dots '.'
+     * - Replaces everything else (spaces, special chars) with '-'
+     * This is used WITHIN a single value (hostname, inventory number).
+     * The '_' separator between values is handled by the snprintf format string. */
+    size_t j = 0;
+    for( size_t i = 0; in[i] != '\0' && j < out_size - 1; i++ )
+    {
+        unsigned char c = (unsigned char) in[i];
+
+        /* Check for UTF-8 two-byte German umlauts (0xC3 prefix) */
+        if( c == 0xC3 && in[i + 1] != '\0' )
+        {
+            unsigned char c2 = (unsigned char) in[i + 1];
+            const char* repl = NULL;
+            switch( c2 )
+            {
+                case 0xA4: repl = "ae"; break; /* ä */
+                case 0xB6: repl = "oe"; break; /* ö */
+                case 0xBC: repl = "ue"; break; /* ü */
+                case 0x84: repl = "Ae"; break; /* Ä */
+                case 0x96: repl = "Oe"; break; /* Ö */
+                case 0x9C: repl = "Ue"; break; /* Ü */
+                case 0x9F: repl = "ss"; break; /* ß */
+            }
+            if( repl != NULL )
+            {
+                for( int k = 0; repl[k] != '\0' && j < out_size - 1; k++ )
+                {
+                    out[j++] = repl[k];
+                }
+                i++; /* skip second byte of UTF-8 sequence */
+                continue;
+            }
+        }
+
+        /* Keep alphanumeric, hyphens and dots as-is */
+        if( ( c >= '0' && c <= '9' ) || ( c >= 'A' && c <= 'Z' ) || ( c >= 'a' && c <= 'z' ) || c == '-'
+            || c == '.' )
+        {
+            out[j++] = (char) c;
+        }
+        else if( c >= 0x80 )
+        {
+            /* Skip remaining bytes of unknown multi-byte UTF-8 sequences */
+            out[j++] = '-';
+            while( i + 1 < out_size && ( (unsigned char) in[i + 1] & 0xC0 ) == 0x80 )
+            {
+                i++;
+            }
+        }
+        else
+        {
+            /* Replace spaces, special chars etc. with hyphen */
+            out[j++] = '-';
+        }
+    }
+    out[j] = '\0';
+}
+
 void convert_double_to_string( char* output_str, double value )
 {
     int idx = 0;

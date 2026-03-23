@@ -831,9 +831,7 @@ int create_single_disc_pdf( wype_context_t* ptr )
 
     if( c->device_hostname[0] != '\0' )
     {
-        strncpy( hostname_safe, c->device_hostname, sizeof( hostname_safe ) - 1 );
-        hostname_safe[sizeof( hostname_safe ) - 1] = '\0';
-        replace_non_alphanumeric( hostname_safe, '_' );
+        sanitize_filename( hostname_safe, sizeof( hostname_safe ), c->device_hostname );
     }
     else
     {
@@ -842,9 +840,7 @@ int create_single_disc_pdf( wype_context_t* ptr )
 
     if( c->inventory_number[0] != '\0' )
     {
-        strncpy( invnr_safe, c->inventory_number, sizeof( invnr_safe ) - 1 );
-        invnr_safe[sizeof( invnr_safe ) - 1] = '\0';
-        replace_non_alphanumeric( invnr_safe, '_' );
+        sanitize_filename( invnr_safe, sizeof( invnr_safe ), c->inventory_number );
     }
     else
     {
@@ -948,9 +944,7 @@ void create_grouped_pdfs( wype_context_t** c, int count )
 
         if( c[i]->device_hostname[0] != '\0' )
         {
-            strncpy( hostname_safe, c[i]->device_hostname, sizeof( hostname_safe ) - 1 );
-            hostname_safe[sizeof( hostname_safe ) - 1] = '\0';
-            replace_non_alphanumeric( hostname_safe, '_' );
+            sanitize_filename( hostname_safe, sizeof( hostname_safe ), c[i]->device_hostname );
         }
         else
         {
@@ -959,9 +953,7 @@ void create_grouped_pdfs( wype_context_t** c, int count )
 
         if( c[i]->inventory_number[0] != '\0' )
         {
-            strncpy( invnr_safe, c[i]->inventory_number, sizeof( invnr_safe ) - 1 );
-            invnr_safe[sizeof( invnr_safe ) - 1] = '\0';
-            replace_non_alphanumeric( invnr_safe, '_' );
+            sanitize_filename( invnr_safe, sizeof( invnr_safe ), c[i]->inventory_number );
         }
         else
         {
