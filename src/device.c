@@ -447,47 +447,80 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
      * Boot device check: detect the wypeOS boot USB stick.
      * wypeOS boots via initramfs so the USB is not mounted after boot,
      * making it invisible to both libparted and /proc/mounts.
-     * We check /dev/disk/by-label/WYPEOS which points to the boot partition,
-     * then match its parent disk against the current device.
+     *
+     * Method 1: Check /dev/disk/by-label/WYPEOS (requires eudev).
+     * Method 2: Fallback using blkid to scan for WYPEOS label.
      */
     if( !next_device->device_busy )
     {
-        char label_target[PATH_MAX];
-        ssize_t len = readlink( "/dev/disk/by-label/WYPEOS", label_target, sizeof( label_target ) - 1 );
-        if( len > 0 )
+        char resolved[PATH_MAX];
+        int found_boot_partition = 0;
+
+        /* Method 1: Try /dev/disk/by-label/WYPEOS (eudev creates this symlink) */
+        if( realpath( "/dev/disk/by-label/WYPEOS", resolved ) != NULL )
         {
-            label_target[len] = '\0';
+            found_boot_partition = 1;
+            wype_log( WYPE_LOG_DEBUG,
+                      "wypeOS boot partition found via /dev/disk/by-label/WYPEOS -> %s",
+                      resolved );
+        }
 
-            /* label_target is relative like ../../sda1, resolve to absolute path */
-            char resolved[PATH_MAX];
-            if( realpath( "/dev/disk/by-label/WYPEOS", resolved ) != NULL )
+        /* Method 2: Fallback using blkid if eudev symlink doesn't exist */
+        if( !found_boot_partition )
+        {
+            FILE* bp = popen( "blkid -L WYPEOS 2>/dev/null", "r" );
+            if( bp != NULL )
             {
-                /* resolved is e.g. /dev/sda1 or /dev/sdb2, strip partition suffix to get parent disk */
-                char parent_disk[PATH_MAX];
-                strncpy( parent_disk, resolved, sizeof( parent_disk ) - 1 );
-                parent_disk[sizeof( parent_disk ) - 1] = '\0';
+                char blkid_result[PATH_MAX];
+                if( fgets( blkid_result, sizeof( blkid_result ), bp ) != NULL )
+                {
+                    /* Strip trailing newline */
+                    size_t blen = strlen( blkid_result );
+                    while( blen > 0 && ( blkid_result[blen - 1] == '\n' || blkid_result[blen - 1] == '\r' ) )
+                    {
+                        blkid_result[--blen] = '\0';
+                    }
+                    if( blen > 0 )
+                    {
+                        strncpy( resolved, blkid_result, sizeof( resolved ) - 1 );
+                        resolved[sizeof( resolved ) - 1] = '\0';
+                        found_boot_partition = 1;
+                        wype_log( WYPE_LOG_DEBUG,
+                                  "wypeOS boot partition found via blkid -> %s",
+                                  resolved );
+                    }
+                }
+                pclose( bp );
+            }
+        }
 
-                /* Strip trailing digits (partition number) */
-                size_t plen = strlen( parent_disk );
-                while( plen > 0 && parent_disk[plen - 1] >= '0' && parent_disk[plen - 1] <= '9' )
-                {
-                    plen--;
-                }
-                /* For nvme style (nvme0n1p1), also strip the 'p' before partition number */
-                if( plen > 0 && parent_disk[plen - 1] == 'p' && plen >= 2
-                    && parent_disk[plen - 2] >= '0' && parent_disk[plen - 2] <= '9' )
-                {
-                    plen--;
-                }
-                parent_disk[plen] = '\0';
+        /* If we found the boot partition, strip partition suffix to get parent disk and compare */
+        if( found_boot_partition )
+        {
+            char parent_disk[PATH_MAX];
+            strncpy( parent_disk, resolved, sizeof( parent_disk ) - 1 );
+            parent_disk[sizeof( parent_disk ) - 1] = '\0';
 
-                if( strcmp( dev->path, parent_disk ) == 0 )
-                {
-                    next_device->device_busy = 1;
-                    wype_log( WYPE_LOG_NOTICE,
-                              "Device %s is the wypeOS boot device (label WYPEOS on %s).",
-                              dev->path, resolved );
-                }
+            /* Strip trailing digits (partition number) */
+            size_t plen = strlen( parent_disk );
+            while( plen > 0 && parent_disk[plen - 1] >= '0' && parent_disk[plen - 1] <= '9' )
+            {
+                plen--;
+            }
+            /* For nvme style (nvme0n1p1), also strip the 'p' before partition number */
+            if( plen > 0 && parent_disk[plen - 1] == 'p' && plen >= 2
+                && parent_disk[plen - 2] >= '0' && parent_disk[plen - 2] <= '9' )
+            {
+                plen--;
+            }
+            parent_disk[plen] = '\0';
+
+            if( strcmp( dev->path, parent_disk ) == 0 )
+            {
+                next_device->device_busy = 1;
+                wype_log( WYPE_LOG_NOTICE,
+                          "Device %s is the wypeOS boot device (label WYPEOS on %s).",
+                          dev->path, resolved );
             }
         }
     }
