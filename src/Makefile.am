@@ -67,7 +67,8 @@ WYPE_HDDTEMP = \
 # Dashboard API server (stubs if libraries absent)
 WYPE_API = \
     api_server.c api_server.h \
-    dashboard_register.c dashboard_register.h
+    dashboard_register.c dashboard_register.h \
+    smart.c smart.h
 
 # Combine all sources
 wype_SOURCES = $(WYPE_CORE) $(WYPE_PRNG) $(WYPE_PDF) $(WYPE_HDDTEMP) $(WYPE_API)

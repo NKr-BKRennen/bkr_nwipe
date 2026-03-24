@@ -1,6 +1,12 @@
 RELEASE NOTES
 =============
 
+Wype v1.7.0 (2026-03-24)
+-----------------------
+**Add:**
+- SMART attributes exposed via Dashboard API: health status, power-on hours, power cycle count, start/stop count, reallocated sectors, pending sectors, offline uncorrectable, UDMA CRC errors, spin-up time, firmware version, SSD percentage used
+- SMART data read via smartctl during device enumeration (supports ATA and NVMe)
+
 Wype v1.6.1 (2026-03-24)
 -----------------------
 **Fix:**

@@ -397,6 +397,35 @@ static cJSON* build_status_json( void )
         cJSON_AddBoolToObject( d, "syncing", c->sync_status != 0 );
         cJSON_AddBoolToObject( d, "retrying", c->retry_status != 0 );
 
+        /* SMART attributes */
+        if( c->smart_available )
+        {
+            cJSON* smart = cJSON_CreateObject();
+            if( c->smart_overall_health >= 0 )
+                cJSON_AddStringToObject( smart, "health", c->smart_overall_health ? "PASSED" : "FAILED" );
+            if( c->smart_firmware[0] )
+                cJSON_AddStringToObject( smart, "firmware", c->smart_firmware );
+            if( c->smart_power_on_hours >= 0 )
+                cJSON_AddNumberToObject( smart, "power_on_hours", c->smart_power_on_hours );
+            if( c->smart_power_cycle_count >= 0 )
+                cJSON_AddNumberToObject( smart, "power_cycle_count", c->smart_power_cycle_count );
+            if( c->smart_start_stop_count >= 0 )
+                cJSON_AddNumberToObject( smart, "start_stop_count", c->smart_start_stop_count );
+            if( c->smart_reallocated_sectors >= 0 )
+                cJSON_AddNumberToObject( smart, "reallocated_sectors", c->smart_reallocated_sectors );
+            if( c->smart_pending_sectors >= 0 )
+                cJSON_AddNumberToObject( smart, "pending_sectors", c->smart_pending_sectors );
+            if( c->smart_offline_uncorrectable >= 0 )
+                cJSON_AddNumberToObject( smart, "offline_uncorrectable", c->smart_offline_uncorrectable );
+            if( c->smart_udma_crc_errors >= 0 )
+                cJSON_AddNumberToObject( smart, "udma_crc_errors", c->smart_udma_crc_errors );
+            if( c->smart_spin_up_time_ms >= 0 )
+                cJSON_AddNumberToObject( smart, "spin_up_time_ms", c->smart_spin_up_time_ms );
+            if( c->smart_percentage_used >= 0 )
+                cJSON_AddNumberToObject( smart, "percentage_used", c->smart_percentage_used );
+            cJSON_AddItemToObject( d, "smart", smart );
+        }
+
         cJSON_AddItemToArray( disks, d );
     }
 

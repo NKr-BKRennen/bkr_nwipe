@@ -227,6 +227,20 @@ typedef struct wype_context_t_
     char inventory_number[256];  // User-entered inventory number for this device (wype)
     char device_comment[512];   // Optional user comment (email only, not on certificate)
 
+    /* SMART attributes (populated once during device enumeration via smartctl) */
+    int smart_available;  // 1 = SMART data was read successfully, 0 = not available
+    int smart_power_on_hours;  // Power-On Hours (-1 = unknown)
+    int smart_power_cycle_count;  // Power Cycle Count (-1 = unknown)
+    int smart_start_stop_count;  // Start/Stop Count (-1 = unknown)
+    int smart_reallocated_sectors;  // Reallocated Sector Count (-1 = unknown)
+    int smart_pending_sectors;  // Current Pending Sector Count (-1 = unknown)
+    int smart_offline_uncorrectable;  // Offline Uncorrectable Sector Count (-1 = unknown)
+    int smart_udma_crc_errors;  // UDMA CRC Error Count (-1 = unknown)
+    int smart_spin_up_time_ms;  // Spin-Up Time in milliseconds (-1 = unknown)
+    int smart_overall_health;  // 1 = PASSED, 0 = FAILED, -1 = unknown
+    char smart_firmware[32];  // Firmware version
+    int smart_percentage_used;  // NVMe/SSD percentage used (-1 = unknown)
+
     /*
      * Identity contains the raw serial number of the drive
      * (where applicable), however, for use within wype use the

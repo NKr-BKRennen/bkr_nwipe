@@ -45,6 +45,7 @@
 #include <ctype.h>
 #include "hpa_dco.h"
 #include "miscellaneous.h"
+#include "smart.h"
 
 #include <parted/parted.h>
 #include <parted/debug.h>
@@ -795,6 +796,9 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
     {
         wype_log( WYPE_LOG_INFO, "No UUID available for %s\n", next_device->device_name );
     }
+
+    /* Read SMART attributes (power-on hours, cycle count, health, etc.) */
+    wype_read_smart( next_device );
 
     /* print an empty line to separate the drives in the log */
     wype_log( WYPE_LOG_INFO, " " );
