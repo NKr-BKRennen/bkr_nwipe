@@ -399,6 +399,22 @@ Wype uses [Semantic Versioning](https://semver.org/): `MAJOR.MINOR.PATCH`
 
 ## Changelog
 
+### v1.7.1 (2026-03-24)
+
+**Fix:**
+- NVMe drives now correctly detected as SSD — prevents incorrect wipe method warnings when using SSD-specific methods (e.g. Sanitize Crypto Erase) on NVMe devices
+
+### v1.7.0 (2026-03-24)
+
+**Add:**
+- SMART attributes exposed via Dashboard API: health status, power-on hours, power cycles, reallocated/pending sectors, UDMA CRC errors, spin-up time, firmware version, SSD percentage used
+- SMART data read via smartctl during device enumeration (supports ATA and NVMe)
+
+### v1.6.1 (2026-03-24)
+
+**Fix:**
+- Race condition in device enumeration: device context was added to the array before being zeroed, causing the API to return garbage values (uninitialized memory)
+
 ### v1.6.0 (2026-03-24)
 
 **Add:**
