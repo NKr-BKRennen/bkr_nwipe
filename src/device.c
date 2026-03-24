@@ -725,13 +725,16 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
             strcpy( next_device->device_type_str, " MMC" );
             break;
     }
-    if( next_device->device_is_ssd )
+    if( next_device->device_type != WYPE_DEVICE_NVME )
     {
-        strcpy( next_device->device_type_str + 4, "-SSD" );
-    }
-    else
-    {
-        strcpy( next_device->device_type_str + 4, "    " );
+        if( next_device->device_is_ssd )
+        {
+            strcpy( next_device->device_type_str + 4, "-SSD" );
+        }
+        else
+        {
+            strcpy( next_device->device_type_str + 4, "    " );
+        }
     }
 
     if( strlen( (const char*) next_device->device_serial_no ) )
