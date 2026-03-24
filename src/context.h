@@ -225,6 +225,7 @@ typedef struct wype_context_t_
 
     char device_hostname[256];  // User-entered hostname for this device (wype)
     char inventory_number[256];  // User-entered inventory number for this device (wype)
+    char device_comment[512];   // Optional user comment (email only, not on certificate)
 
     /*
      * Identity contains the raw serial number of the drive

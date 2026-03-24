@@ -288,6 +288,7 @@ static cJSON* build_status_json( void )
         /* user metadata */
         cJSON_AddStringToObject( d, "hostname", c->device_hostname );
         cJSON_AddStringToObject( d, "inventory_number", c->inventory_number );
+        cJSON_AddStringToObject( d, "comment", c->device_comment );
 
         /* selection */
         cJSON_AddBoolToObject( d, "selected",

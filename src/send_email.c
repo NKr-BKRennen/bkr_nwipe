@@ -496,6 +496,14 @@ int wype_send_all_certificates( wype_context_t** c, int count )
                                          c[i]->device_serial_no,
                                          c[i]->wipe_status_txt );
             }
+
+            if( c[i]->device_comment[0] != '\0' )
+            {
+                body_offset += snprintf( body_text + body_offset,
+                                         sizeof( body_text ) - body_offset,
+                                         "    Comment: %s\r\n",
+                                         c[i]->device_comment );
+            }
         }
 
         snprintf( header,
