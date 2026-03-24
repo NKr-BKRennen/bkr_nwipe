@@ -1,6 +1,11 @@
 RELEASE NOTES
 =============
 
+Wype v1.7.1 (2026-03-24)
+-----------------------
+**Fix:**
+- NVMe drives now correctly detected as SSD — prevents incorrect wipe method warnings when using SSD-specific methods (e.g. Sanitize Crypto Erase) on NVMe devices
+
 Wype v1.7.0 (2026-03-24)
 -----------------------
 **Add:**

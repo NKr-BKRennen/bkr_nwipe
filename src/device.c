@@ -1074,6 +1074,7 @@ int wype_get_device_bus_type_and_serialno( char* device,
                         if( strstr( result, "/nvme/" ) != 0 )
                         {
                             *bus = WYPE_DEVICE_NVME;
+                            *is_ssd = 1;
                         }
                         else
                         {
