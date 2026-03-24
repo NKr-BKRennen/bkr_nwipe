@@ -198,6 +198,10 @@ static cJSON* build_status_json( void )
         if( load1 >= 0 )
             cJSON_AddNumberToObject( node, "load_average_1m", load1 );
 
+        long ncpu = sysconf( _SC_NPROCESSORS_ONLN );
+        if( ncpu > 0 )
+            cJSON_AddNumberToObject( node, "cpu_count", (double) ncpu );
+
         long mt = 0, ma = 0;
         f = fopen( "/proc/meminfo", "r" );
         if( f )
