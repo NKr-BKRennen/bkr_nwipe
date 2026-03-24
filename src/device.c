@@ -383,6 +383,12 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
         return 0;
     }
 
+    /* Zero the allocation immediately, BEFORE inserting into the array.
+     * The API server reads device contexts concurrently; if the pointer
+     * is visible before memset, it would see uninitialised (garbage) values
+     * for throughput, errors, io_retries, etc. */
+    memset( next_device, 0, sizeof( wype_context_t ) );
+
     /* Now expand the array to hold the additional struct pointer */
     {
         wype_context_t** tmp = realloc( *c, ( dcount + 1 ) * sizeof( wype_context_t* ) );
@@ -395,9 +401,6 @@ int check_device( wype_context_t*** c, PedDevice* dev, int dcount )
         }
         *c = tmp;
     }
-
-    /* Zero the allocation. */
-    memset( next_device, 0, sizeof( wype_context_t ) );
 
     /*
      * Get device busy state (possibly mounted or otherwise in use)

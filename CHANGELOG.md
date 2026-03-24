@@ -1,6 +1,11 @@
 RELEASE NOTES
 =============
 
+Wype v1.6.1 (2026-03-24)
+-----------------------
+**Fix:**
+- Race condition in device enumeration: device context was added to the array before being zeroed, causing the API to return garbage values (uninitialized memory) for throughput, errors, and io_retries — resulting in dashboard "Waiting for data" due to malformed JSON
+
 Wype v1.6.0 (2026-03-24)
 -----------------------
 **Add:**
