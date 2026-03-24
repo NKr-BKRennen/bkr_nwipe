@@ -9190,7 +9190,9 @@ void wype_gui_load( void )
     wype_fp = fopen( WYPE_KNOB_LOADAVG, "r" );
 
     /* Print the label. */
-    mvwprintw( stats_window, WYPE_GUI_STATS_LOAD_Y, WYPE_GUI_STATS_LOAD_X, "Load Averages:" );
+    wattron( stats_window, COLOR_PAIR( 2 ) );
+    mvwprintw( stats_window, WYPE_GUI_STATS_LOAD_Y, WYPE_GUI_STATS_LOAD_X, "Load Averages" );
+    wattroff( stats_window, COLOR_PAIR( 2 ) );
 
     if( wype_fp )
     {
@@ -9934,10 +9936,17 @@ void* wype_gui_status( void* ptr )
                 wattron( stats_window, COLOR_PAIR( 2 ) );
                 mvwprintw( stats_window, WYPE_GUI_STATS_THROUGHPUT_Y, WYPE_GUI_STATS_THROUGHPUT_X, "Throughput" );
                 wattroff( stats_window, COLOR_PAIR( 2 ) );
-                wattron( stats_window, A_BOLD );
-                mvwprintw(
-                    stats_window, WYPE_GUI_STATS_THROUGHPUT_Y, WYPE_GUI_STATS_TAB, "%s/s", nomenclature_result_str );
-                wattroff( stats_window, A_BOLD );
+
+                /* Skip leading spaces from nomenclature so value aligns with other fields */
+                {
+                    char* tp_str = nomenclature_result_str;
+                    while( *tp_str == ' ' )
+                        tp_str++;
+                    wattron( stats_window, A_BOLD );
+                    mvwprintw(
+                        stats_window, WYPE_GUI_STATS_THROUGHPUT_Y, WYPE_GUI_STATS_TAB, "%-11s", tp_str );
+                    wattroff( stats_window, A_BOLD );
+                }
 
                 /* Change the current time into a delta. */
                 wype_time_now -= wype_time_start;
